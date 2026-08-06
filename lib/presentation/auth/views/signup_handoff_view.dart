@@ -52,7 +52,7 @@ class _SignupHandoffViewState extends State<SignupHandoffView> with SingleTicker
     _controller.forward();
 
     Future.delayed(const Duration(milliseconds: 2000), () {
-      //if (mounted) Get.offNamed(AppRoutes.societyRegister);
+      if (mounted) Get.offNamed(AppRoutes.profileSetup);
     });
   }
 
@@ -148,10 +148,10 @@ class _SetUpSocietyLayer extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
           ),
           alignment: Alignment.center,
-          child: const Icon(Icons.villa_rounded, size: 32, color: AppColors.primaryDark),
+          child: const Icon(Icons.person, size: 32, color: AppColors.primaryDark),
         ),
         const SizedBox(height: 16),
-        Text("Let's set up your society", style: AppTextStyles.h3),
+        Text("Let's set up your profile", style: AppTextStyles.h3),
         const SizedBox(height: 4),
         Text('Just a few details to get started', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
       ],

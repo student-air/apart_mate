@@ -110,32 +110,32 @@ class AuthController extends GetxController {
   }
 
   Future<void> signUpWithGoogle() async {
-    isLoading.value = true;
-    try {
-      await _authRepository.loginWithGoogle();
-      Get.offNamed(AppRoutes.profileSetup, arguments: 'Google');
-    } catch (e) {
-      if (!_isCancelled(e)) {
-        AppSnackbar.error('Google sign-in failed', 'Please try again');
-      }
-    } finally {
-      isLoading.value = false;
+  isLoading.value = true;
+  try {
+    await _authRepository.loginWithGoogle();
+    Get.offNamed(AppRoutes.signupHandoff, arguments: 'Google');
+  } catch (e) {
+    if (!_isCancelled(e)) {
+      AppSnackbar.error('Google sign-in failed', 'Please try again');
     }
+  } finally {
+    isLoading.value = false;
   }
+}
 
-  Future<void> signUpWithApple() async {
-    isLoading.value = true;
-    try {
-      await _authRepository.loginWithApple();
-      Get.offNamed(AppRoutes.profileSetup, arguments: 'Apple');
-    } catch (e) {
-      if (!_isCancelled(e)) {
-        AppSnackbar.error('Apple sign-in failed', 'Please try again');
-      }
-    } finally {
-      isLoading.value = false;
+Future<void> signUpWithApple() async {
+  isLoading.value = true;
+  try {
+    await _authRepository.loginWithApple();
+    Get.offNamed(AppRoutes.signupHandoff, arguments: 'Apple');
+  } catch (e) {
+    if (!_isCancelled(e)) {
+      AppSnackbar.error('Apple sign-in failed', 'Please try again');
     }
+  } finally {
+    isLoading.value = false;
   }
+}
 
   Future<void> forgotPassword() async {
     final resetEmailCtrl = TextEditingController(text: usernameCtrl.text.trim());
@@ -231,7 +231,7 @@ class AuthController extends GetxController {
         phone: phoneCtrl.text.trim(),
         password: signupPasswordCtrl.text,
       );
-      Get.offNamed(AppRoutes.profileSetup, arguments: 'Email');
+      Get.offNamed(AppRoutes.signupHandoff, arguments: 'Email');
     } catch (e) {
       AppSnackbar.error('Sign up failed', 'Please try again');
     } finally {

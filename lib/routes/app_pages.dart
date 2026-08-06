@@ -9,12 +9,12 @@ import 'package:apart_mate/presentation/auth/bindings/auth_binding.dart';
 import 'package:apart_mate/presentation/auth/views/login_view.dart';
 import 'package:apart_mate/presentation/auth/views/signup_view.dart';
 import 'package:apart_mate/presentation/auth/views/signup_handoff_view.dart';
+import 'package:apart_mate/presentation/profile_setup/bindings/profile_setup_binding.dart';
+import 'package:apart_mate/presentation/profile_setup/views/profile_setup_view.dart';
 
 // TODO: uncomment as each module's binding/view is built
-// import 'package:apart_mate/presentation/profile_setup/bindings/profile_setup_binding.dart';
-// import 'package:apart_mate/presentation/profile_setup/views/profile_setup_view.dart';
-// import 'package:apart_mate/presentation/role_selection/bindings/role_selection_binding.dart';
-// import 'package:apart_mate/presentation/role_selection/views/role_selection_view.dart';
+import 'package:apart_mate/presentation/role_selection/bindings/role_selection_binding.dart';
+import 'package:apart_mate/presentation/role_selection/views/role_selection_view.dart';
 // import 'package:apart_mate/presentation/join_society/bindings/join_society_binding.dart';
 // import 'package:apart_mate/presentation/join_society/views/join_society_view.dart';
 // import 'package:apart_mate/presentation/property_details/bindings/property_details_binding.dart';
@@ -52,19 +52,21 @@ class AppPages {
     GetPage(
       name: AppRoutes.signupHandoff,
       page: () => const SignupHandoffView(),
+      binding: AuthBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.profileSetup,
+      page: () => const ProfileSetupView(),
+      binding: ProfileSetupBinding(),
     ),
 
     // TODO: register as each module is built
-    // GetPage(
-    //   name: AppRoutes.profileSetup,
-    //   page: () => const ProfileSetupView(),
-    //   binding: ProfileSetupBinding(),
-    // ),
-    // GetPage(
-    //   name: AppRoutes.roleSelection,
-    //   page: () => const RoleSelectionView(),
-    //   binding: RoleSelectionBinding(),
-    // ),
+    
+    GetPage(
+      name: AppRoutes.roleSelection,
+      page: () => const RoleSelectionView(),
+      binding: RoleSelectionBinding(),
+    ),
     // GetPage(
     //   name: AppRoutes.joinSociety,
     //   page: () => const JoinSocietyView(),

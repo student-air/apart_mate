@@ -149,6 +149,29 @@ class LocalAuthRepository implements IAuthRepository {
     }
     // No real email is sent locally — this just simulates success.
   }
+   @override
+  Future<UserModel> updateUserRole(String role) async {
+    await _simulateLatency();
+
+    final user = _currentUser;
+    if (user == null) {
+      throw Exception('No signed-in user to update');
+    }
+
+    final updatedUser = user.copyWith(role: role);
+
+    final index = _accounts.indexWhere((a) => a.user.id == user.id);
+    if (index != -1) {
+      _accounts[index] = _Account(
+        user: updatedUser,
+        username: _accounts[index].username,
+        password: _accounts[index].password,
+      );
+    }
+
+    _currentUser = updatedUser;
+    return updatedUser;
+  }
 
   @override
   Future<void> logout() async {

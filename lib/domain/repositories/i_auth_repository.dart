@@ -2,7 +2,6 @@
 
 import 'package:apart_mate/data/models/user_model.dart';
 
-/// Result of an OAuth (Google/Apple) sign-in attempt.
 class AuthResult {
   final UserModel user;
   final bool isNewUser;
@@ -14,7 +13,6 @@ class AuthResult {
 }
 
 abstract class IAuthRepository {
-  /// The currently signed-in user, or null if signed out.
   UserModel? get currentUser;
 
   Future<UserModel> login({
@@ -34,6 +32,10 @@ abstract class IAuthRepository {
   });
 
   Future<void> sendPasswordResetEmail(String email);
+
+  /// Updates the current user's role (e.g. after role_selection) and
+  /// returns the updated user.
+  Future<UserModel> updateUserRole(String role);
 
   Future<void> logout();
 }

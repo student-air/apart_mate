@@ -11,7 +11,7 @@ class AppStrings {
 
   // Auth - Login
   static const welcomeBack = 'Welcome Back';
-  static const signInSubtitle = 'Sign in to manage your society';
+  static const signInSubtitle = 'Sign in to manage your property with ease';
   static const username = 'Username';
   static const usernameHint = 'Enter your username';
   static const password = 'Password';
@@ -26,7 +26,7 @@ class AppStrings {
 
   // Auth - Signup
   static const createAccount = 'Create Account';
-  static const signUpSubtitle = 'Join apart_mate as a society owner';
+  static const signUpSubtitle = 'Join apart_mate as a resident or owner ';
   static const fullName = 'Full Name';
   static const fullNameHint = 'e.g. John Doe';
   static const email = 'Email';
