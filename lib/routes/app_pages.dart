@@ -11,13 +11,14 @@ import 'package:apart_mate/presentation/auth/views/signup_view.dart';
 import 'package:apart_mate/presentation/auth/views/signup_handoff_view.dart';
 import 'package:apart_mate/presentation/profile_setup/bindings/profile_setup_binding.dart';
 import 'package:apart_mate/presentation/profile_setup/views/profile_setup_view.dart';
-
-// TODO: uncomment as each module's binding/view is built
 import 'package:apart_mate/presentation/role_selection/bindings/role_selection_binding.dart';
 import 'package:apart_mate/presentation/role_selection/views/role_selection_view.dart';
-// import 'package:apart_mate/presentation/join_society/bindings/join_society_binding.dart';
-// import 'package:apart_mate/presentation/join_society/views/join_society_view.dart';
-// import 'package:apart_mate/presentation/property_details/bindings/property_details_binding.dart';
+import 'package:apart_mate/presentation/join_society/bindings/join_society_binding.dart';
+import 'package:apart_mate/presentation/join_society/views/join_society_view.dart';
+
+// TODO: uncomment as each module's binding/view is built
+
+// mport 'package:apart_mate/presentation/property_details/bindings/property_details_binding.dart';
 // import 'package:apart_mate/presentation/property_details/views/property_details_view.dart';
 // import 'package:apart_mate/presentation/request_status/bindings/request_status_binding.dart';
 // import 'package:apart_mate/presentation/request_status/views/request_status_view.dart';
@@ -59,19 +60,17 @@ class AppPages {
       page: () => const ProfileSetupView(),
       binding: ProfileSetupBinding(),
     ),
-
-    // TODO: register as each module is built
-    
-    GetPage(
+GetPage(
       name: AppRoutes.roleSelection,
       page: () => const RoleSelectionView(),
       binding: RoleSelectionBinding(),
     ),
-    // GetPage(
-    //   name: AppRoutes.joinSociety,
-    //   page: () => const JoinSocietyView(),
-    //   binding: JoinSocietyBinding(),
-    // ),
+    GetPage(
+      name: AppRoutes.joinSociety,
+      page: () => const JoinSocietyView(),
+      binding: JoinSocietyBinding(),
+    ),
+    // TODO: register as each module is built
     // GetPage(
     //   name: AppRoutes.propertyDetails,
     //   page: () => const PropertyDetailsView(),
