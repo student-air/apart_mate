@@ -36,12 +36,14 @@ class _PropertyDetailsViewState extends State<PropertyDetailsView> {
   }
 
   void _next() {
-    if (currentStep.value < totalSteps - 1) {
-      _goToStep(currentStep.value + 1);
-    } else {
-      controller.saveAndContinue();
-    }
+  if (!controller.validateStep(currentStep.value)) return;
+
+  if (currentStep.value < totalSteps - 1) {
+    _goToStep(currentStep.value + 1);
+  } else {
+    controller.saveAndContinue();
   }
+}
 
   void _back() {
     if (currentStep.value > 0) {

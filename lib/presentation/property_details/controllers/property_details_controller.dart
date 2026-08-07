@@ -116,6 +116,42 @@ class PropertyDetailsController extends GetxController {
     }
   }
 
+  // lib/presentation/property_details/controllers/property_details_controller.dart
+// add these two methods, and change _next()'s validation source in the view
+
+  bool validateStep(int step) {
+    switch (step) {
+      case 0:
+        if (selectedBuilding.value == null) {
+          AppSnackbar.error('Missing info', 'Please select a building');
+          return false;
+        }
+        if (selectedFloor.value == null) {
+          AppSnackbar.error('Missing info', 'Please select a floor');
+          return false;
+        }
+        if (flatNumberCtrl.text.trim().isEmpty) {
+          AppSnackbar.error('Missing info', 'Please enter your flat number');
+          return false;
+        }
+        return true;
+      case 1:
+        if (selectedPropertyType.value == null) {
+          AppSnackbar.error('Missing info', 'Please select a property type');
+          return false;
+        }
+        if (selectedFlatType.value == null) {
+          AppSnackbar.error('Missing info', 'Please select a flat type');
+          return false;
+        }
+        return true;
+      case 2:
+        return true; // utilities step has no required fields
+      default:
+        return true;
+    }
+  }
+
   void goBack() => Get.back();
 
   @override
