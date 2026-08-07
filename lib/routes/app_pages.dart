@@ -15,11 +15,10 @@ import 'package:apart_mate/presentation/role_selection/bindings/role_selection_b
 import 'package:apart_mate/presentation/role_selection/views/role_selection_view.dart';
 import 'package:apart_mate/presentation/join_society/bindings/join_society_binding.dart';
 import 'package:apart_mate/presentation/join_society/views/join_society_view.dart';
+import 'package:apart_mate/presentation/property_details/bindings/property_details_binding.dart';
+import 'package:apart_mate/presentation/property_details/views/property_details_view.dart';
 
 // TODO: uncomment as each module's binding/view is built
-
-// mport 'package:apart_mate/presentation/property_details/bindings/property_details_binding.dart';
-// import 'package:apart_mate/presentation/property_details/views/property_details_view.dart';
 // import 'package:apart_mate/presentation/request_status/bindings/request_status_binding.dart';
 // import 'package:apart_mate/presentation/request_status/views/request_status_view.dart';
 // import 'package:apart_mate/presentation/dashboard/bindings/dashboard_binding.dart';
@@ -70,12 +69,13 @@ GetPage(
       page: () => const JoinSocietyView(),
       binding: JoinSocietyBinding(),
     ),
+    GetPage(
+      name: AppRoutes.propertyDetails,
+      page: () => const PropertyDetailsView(),
+      binding: PropertyDetailsBinding(),
+    ),
     // TODO: register as each module is built
-    // GetPage(
-    //   name: AppRoutes.propertyDetails,
-    //   page: () => const PropertyDetailsView(),
-    //   binding: PropertyDetailsBinding(),
-    // ),
+    
     // GetPage(
     //   name: AppRoutes.requestStatus,
     //   page: () => const RequestStatusView(),

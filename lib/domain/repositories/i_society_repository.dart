@@ -2,13 +2,19 @@
 
 import 'package:apart_mate/data/models/society_model.dart';
 
-abstract class ISocietyRepository {
-  /// Looks up a society by its join code. Returns null if no society
-  /// matches — the UI decides how to surface that as an error.
-  Future<SocietyModel?> getSocietyByJoinCode(String code);
+enum JoinRequestStatus { pending, approved, rejected }
 
-  /// Links the current user to [societyId] (join request/membership).
+abstract class ISocietyRepository {
+  Future<SocietyModel?> getSocietyByJoinCode(String code);
+  Future<SocietyModel?> getSocietyById(String id);
+
   Future<void> joinSociety({
+    required String userId,
+    required String societyId,
+  });
+
+  /// Checks the current status of a previously submitted join request.
+  Future<JoinRequestStatus> getJoinRequestStatus({
     required String userId,
     required String societyId,
   });

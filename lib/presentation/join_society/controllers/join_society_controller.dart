@@ -79,7 +79,7 @@ class JoinSocietyController extends GetxController {
     try {
       await _societyRepository.joinSociety(userId: user.id, societyId: matchedSociety.id);
       AppSnackbar.success('Request sent', 'Your request to join ${matchedSociety.name} was submitted');
-      Get.offNamed(AppRoutes.requestStatus, arguments: matchedSociety.id);
+      Get.offNamed(AppRoutes.propertyDetails, arguments: matchedSociety.id);
     } finally {
       isJoining.value = false;
     }
