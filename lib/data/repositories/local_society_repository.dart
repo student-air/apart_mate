@@ -8,31 +8,28 @@ class LocalSocietyRepository implements ISocietyRepository {
     const SocietyModel(
       id: 'society_001',
       name: 'Gulshan Heights',
-      joinCode: 'RVXBJA',
+      joinCode: 'GH842K',
       address: 'Gulshan-e-Iqbal',
       city: 'Karachi',
       isVerified: true,
       buildingsCount: 3,
       unitsCount: 120,
-      foundedYear: 1998,
+      foundedYear: 98,
     ),
     const SocietyModel(
       id: 'society_002',
       name: 'Riverview Enclave',
-      joinCode: 'GH842K',
+      joinCode: 'RVXBJA',
       address: 'DHA Phase 6',
       city: 'Lahore',
       isVerified: true,
       buildingsCount: 5,
       unitsCount: 210,
-      foundedYear: 2005,
+      foundedYear: 2010,
     ),
   ];
 
-  // Maps "userId:societyId" -> status. Mock always resolves to pending
-  // on submit — flip a value in here manually during dev/testing to
-  // simulate approval/rejection.
-  final Map<String, JoinRequestStatus> _requestStatuses = {};
+  final Map<String, JoinRequestInfo> _requests = {};
 
   Future<void> _simulateLatency() =>
       Future.delayed(const Duration(milliseconds: 600));
@@ -51,27 +48,6 @@ class LocalSocietyRepository implements ISocietyRepository {
   }
 
   @override
-  Future<void> joinSociety({
-    required String userId,
-    required String societyId,
-  }) async {
-    await _simulateLatency();
-    _requestStatuses[_key(userId, societyId)] = JoinRequestStatus.pending;
-  }
-
-  @override
-  Future<JoinRequestStatus> getJoinRequestStatus({
-    required String userId,
-    required String societyId,
-  }) async {
-    await _simulateLatency();
-    return _requestStatuses[_key(userId, societyId)] ?? JoinRequestStatus.pending;
-  }
-
-  // lib/data/repositories/local/local_society_repository.dart — add this,
-// replacing the earlier non-interface helper:
-
-  @override
   Future<SocietyModel?> getSocietyById(String id) async {
     await _simulateLatency();
     try {
@@ -79,5 +55,28 @@ class LocalSocietyRepository implements ISocietyRepository {
     } catch (_) {
       return null;
     }
+  }
+
+  // lib/data/repositories/local/local_society_repository.dart
+
+@override
+Future<void> joinSociety({
+  required String userId,
+  required String societyId,
+}) async {
+  await _simulateLatency();
+  _requests[_key(userId, societyId)] = JoinRequestInfo(
+    status: JoinRequestStatus.approved,
+    submittedAt: DateTime.now(),
+  );
+}
+  @override
+  Future<JoinRequestInfo> getJoinRequestInfo({
+    required String userId,
+    required String societyId,
+  }) async {
+    await _simulateLatency();
+    return _requests[_key(userId, societyId)] ??
+        JoinRequestInfo(status: JoinRequestStatus.pending, submittedAt: DateTime.now());
   }
 }
