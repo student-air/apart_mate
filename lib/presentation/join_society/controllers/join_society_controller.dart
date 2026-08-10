@@ -25,6 +25,9 @@ class JoinSocietyController extends GetxController {
 
   String get _enteredCode => digitCtrls.map((c) => c.text).join();
 
+  /// Used by the view to show Independent Owner option only for owners
+  String? get currentUserRole => _authRepository.currentUser?.role;
+
   void onDigitChanged(int index, String value) {
     lookupFailed.value = false;
 
@@ -77,14 +80,32 @@ class JoinSocietyController extends GetxController {
       await _societyRepository.joinSociety(userId: user.id, societyId: matchedSociety.id);
       AppSnackbar.success('Request sent', 'Your request to join ${matchedSociety.name} was submitted');
 
-      // Tenants don't declare property specs — that's the owner's job.
-      // Owners/employees go set up the flat details; tenants go
-      // straight to waiting on approval.
       if (user.role == 'tenant') {
         Get.offNamed(AppRoutes.requestStatus, arguments: matchedSociety.id);
       } else {
         Get.offNamed(AppRoutes.propertyDetails, arguments: matchedSociety.id);
       }
+    } finally {
+      isJoining.value = false;
+    }
+  }
+
+  /// Independent Owner path — no society code needed
+  Future<void> continueAsIndependentOwner() async {
+    final user = _authRepository.currentUser;
+    if (user == null) {
+      AppSnackbar.error('Not signed in', 'Please sign in again');
+      Get.offAllNamed(AppRoutes.login);
+      return;
+    }
+
+    isJoining.value = true;
+    try {
+      // Simply navigate to Property Details in independent mode
+      // We pass `null` so PropertyDetailsController knows it's independent
+      Get.offNamed(AppRoutes.propertyDetails, arguments: null);
+    } catch (e) {
+      AppSnackbar.error('Something went wrong', 'Please try again');
     } finally {
       isJoining.value = false;
     }

@@ -30,22 +30,58 @@ class JoinSocietyView extends GetView<JoinSocietyController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Society Code', style: AppTextStyles.labelLarge),
-                  const SizedBox(height: AppDimens.space16),
-                  _CodeInputRow(controller: controller),
-                  const SizedBox(height: AppDimens.space12),
-                  Center(
-                    child: Text(
-                      'Enter the 6-character society code',
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textMuted),
+                  // ── Society Code Header ──────────────────────────────
+                  Text(
+                    'Society Code',
+                    style: AppTextStyles.labelLarge.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Ask your society admin for the 6-character code',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppDimens.space20),
+
+                  // Code Input
+                  _CodeInputRow(controller: controller),
+
+                  const SizedBox(height: AppDimens.space12),
+
+                  // Helper / Error text
+                  Center(
+                    child: Obx(() {
+                      if (controller.lookupFailed.value) {
+                        return Text(
+                          'Invalid society code. Please try again',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.danger,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      }
+                      return Text(
+                        'Letters and numbers only • Case insensitive',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textMuted,
+                        ),
+                      );
+                    }),
+                  ),
+
                   const SizedBox(height: AppDimens.space24),
+
+                  // Society Preview
                   Obx(() {
                     if (controller.isLookingUp.value) {
                       return const Padding(
                         padding: EdgeInsets.symmetric(vertical: AppDimens.space24),
-                        child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)),
+                        child: Center(
+                          child: CircularProgressIndicator(color: AppColors.primaryDark),
+                        ),
                       );
                     }
                     if (controller.society.value != null) {
@@ -53,20 +89,136 @@ class JoinSocietyView extends GetView<JoinSocietyController> {
                     }
                     return const SizedBox.shrink();
                   }),
+
                   const SizedBox(height: AppDimens.space24),
+
+                  // Continue Button
                   Obx(
                     () => AppPrimaryButton(
                       label: 'Continue',
                       isLoading: controller.isJoining.value,
-                      onPressed: controller.society.value != null ? controller.continueWithSociety : null,
+                      onPressed: controller.society.value != null
+                          ? controller.continueWithSociety
+                          : null,
                     ),
                   ),
-                  const SizedBox(height: AppDimens.space16),
-                  Center(
-                    child: Text(
-                      "Don't have a code? Contact your admin",
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                    ),
+
+                  const SizedBox(height: AppDimens.space28),
+
+                  // ── Independent Owner Section ────────────────────────
+                  Builder(
+                    builder: (context) {
+                      final role = controller.currentUserRole;
+
+                      if (role != 'owner') {
+                        return Center(
+                          child: Text(
+                            "Don't have a code? Contact your admin",
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        children: [
+                          // OR Divider
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Divider(color: AppColors.border, thickness: 1),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  'OR',
+                                  style: AppTextStyles.labelSmall.copyWith(
+                                    color: AppColors.textMuted,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ),
+                              const Expanded(
+                                child: Divider(color: AppColors.border, thickness: 1),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: AppDimens.space20),
+
+                          // Independent Property Card
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: controller.continueAsIndependentOwner,
+                              borderRadius: BorderRadius.circular(AppDimens.radius2xl),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(AppDimens.space20),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(AppDimens.radius2xl),
+                                  border: Border.all(color: AppColors.border),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.04),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 52,
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.pastelBlueBg,
+                                        borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: const Icon(
+                                        Icons.home_work_rounded,
+                                        size: 26,
+                                        color: AppColors.pastelBlueIcon,
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppDimens.space16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Independent Property',
+                                            style: AppTextStyles.h4.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'I own a house without any society management',
+                                            style: AppTextStyles.bodySmall.copyWith(
+                                              color: AppColors.textSecondary,
+                                              height: 1.3,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 16,
+                                      color: AppColors.textMuted,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -119,11 +271,16 @@ class _Header extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Join Society', style: AppTextStyles.h2.copyWith(color: AppColors.textOnDark)),
+                      Text(
+                        'Join Society',
+                        style: AppTextStyles.h2.copyWith(color: AppColors.textOnDark),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         'Enter the code provided by your society',
-                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textOnDarkMuted),
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textOnDarkMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -171,37 +328,6 @@ class _LogoBadge extends StatelessWidget {
   }
 }
 
-// class _LogoBadge extends StatelessWidget {
-//   const _LogoBadge();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       width: 36,
-//       height: 36,
-//       clipBehavior: Clip.antiAlias,
-//       decoration: BoxDecoration(borderRadius: BorderRadius.circular(AppDimens.radiusSm)),
-//       child: Image.asset(
-//         'assets/images/logo.png',
-//         width: 36,
-//         height: 36,
-//         fit: BoxFit.contain,
-//         errorBuilder: (context, error, stackTrace) {
-//           return Container(
-//             width: 36,
-//             height: 36,
-//             decoration: BoxDecoration(
-//               color: AppColors.accentGreen,
-//               borderRadius: BorderRadius.circular(AppDimens.radiusSm),
-//             ),
-//             alignment: Alignment.center,
-//             child: const Icon(Icons.apartment_rounded, size: 20, color: AppColors.primaryDark),
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
 class _CodeInputRow extends StatelessWidget {
   final JoinSocietyController controller;
   const _CodeInputRow({required this.controller});
@@ -238,8 +364,8 @@ class _CodeBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 48,
-      height: 56,
+      width: 50,
+      height: 58,
       child: KeyboardListener(
         focusNode: FocusNode(skipTraversal: true),
         onKeyEvent: (event) {
@@ -260,23 +386,35 @@ class _CodeBox extends StatelessWidget {
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
             UpperCaseTextFormatter(),
           ],
-          style: AppTextStyles.h3.copyWith(color: AppColors.textPrimary),
+          style: AppTextStyles.h3.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
           decoration: InputDecoration(
             counterText: '',
             filled: true,
             fillColor: AppColors.surface,
             contentPadding: EdgeInsets.zero,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-              borderSide: const BorderSide(color: AppColors.accentGreen, width: 1.5),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: AppColors.accentGreen,
+                width: 1.6,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-              borderSide: const BorderSide(color: AppColors.accentGreen, width: 1.5),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: AppColors.accentGreen,
+                width: 1.6,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-              borderSide: const BorderSide(color: AppColors.accentGreenDark, width: 2),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: AppColors.accentGreenDark,
+                width: 2.2,
+              ),
             ),
           ),
           onChanged: onChanged,
@@ -286,8 +424,6 @@ class _CodeBox extends StatelessWidget {
   }
 }
 
-/// Forces every character typed into a code box to uppercase, so
-/// join codes are case-insensitive from the user's perspective.
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -299,7 +435,7 @@ class UpperCaseTextFormatter extends TextInputFormatter {
 }
 
 class _SocietyPreviewCard extends StatelessWidget {
-  final dynamic society; // SocietyModel
+  final dynamic society;
   const _SocietyPreviewCard({required this.society});
 
   @override
@@ -309,6 +445,13 @@ class _SocietyPreviewCard extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimens.radius2xl),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -332,7 +475,11 @@ class _SocietyPreviewCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppDimens.radiusMd),
                   ),
                   alignment: Alignment.center,
-                  child: const Icon(Icons.villa_rounded, size: 24, color: AppColors.accentGreenDark),
+                  child: const Icon(
+                    Icons.villa_rounded,
+                    size: 24,
+                    color: AppColors.accentGreenDark,
+                  ),
                 ),
                 const SizedBox(width: AppDimens.space12),
                 Expanded(
@@ -343,7 +490,9 @@ class _SocietyPreviewCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         '${society.address}, ${society.city}',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -357,42 +506,16 @@ class _SocietyPreviewCard extends StatelessWidget {
                     ),
                     child: Text(
                       'Verified',
-                      style: AppTextStyles.labelSmall.copyWith(color: AppColors.successGreenDark),
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.successGreenDark,
+                      ),
                     ),
                   ),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppDimens.space16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _StatColumn(value: '${society.buildingsCount}', label: 'Buildings'),
-                _StatColumn(value: '${society.unitsCount}', label: 'Units'),
-                _StatColumn(value: '${society.foundedYear}', label: 'Founded'),
-              ],
-            ),
-          ),
         ],
       ),
-    );
-  }
-}
-
-class _StatColumn extends StatelessWidget {
-  final String value;
-  final String label;
-  const _StatColumn({required this.value, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value, style: AppTextStyles.h3),
-        const SizedBox(height: 2),
-        Text(label, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
-      ],
     );
   }
 }

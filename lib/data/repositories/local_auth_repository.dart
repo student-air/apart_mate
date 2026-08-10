@@ -347,4 +347,10 @@ class LocalAuthRepository implements IAuthRepository {
     await _simulateLatency();
     _currentUser = null;
   }
+
+  @override
+  Future<void> updateUserPropertyType(String s) {
+    // TODO: implement updateUserPropertyType
+    throw UnimplementedError();
+  }
 }

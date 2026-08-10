@@ -5,6 +5,7 @@ class UserModel {
   final String phone;
   final String role;
   final String? photoPath;
+  final String? propertyType; // 'society' | 'independent' | null
 
   const UserModel({
     required this.id,
@@ -13,6 +14,7 @@ class UserModel {
     required this.phone,
     required this.role,
     this.photoPath,
+    this.propertyType,
   });
 
   String get initials {
@@ -27,6 +29,7 @@ class UserModel {
     String? phone,
     String? role,
     String? photoPath,
+    String? propertyType,
   }) {
     return UserModel(
       id: id,
@@ -35,6 +38,7 @@ class UserModel {
       phone: phone ?? this.phone,
       role: role ?? this.role,
       photoPath: photoPath ?? this.photoPath,
+      propertyType: propertyType ?? this.propertyType,
     );
   }
 }

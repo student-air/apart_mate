@@ -8,7 +8,6 @@ import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/widgets/app_button.dart';
 import 'package:apart_mate/core/widgets/app_text_field.dart';
 import 'package:apart_mate/core/widgets/app_dropdown_field.dart';
-import 'package:apart_mate/core/widgets/app_responsive_container.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/presentation/property_details/controllers/property_details_controller.dart';
 
@@ -30,20 +29,19 @@ class _PropertyDetailsViewState extends State<PropertyDetailsView> {
     currentStep.value = step;
     _pageController.animateToPage(
       step,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
     );
   }
 
   void _next() {
-  if (!controller.validateStep(currentStep.value)) return;
-
-  if (currentStep.value < totalSteps - 1) {
-    _goToStep(currentStep.value + 1);
-  } else {
-    controller.saveAndContinue();
+    if (!controller.validateStep(currentStep.value)) return;
+    if (currentStep.value < totalSteps - 1) {
+      _goToStep(currentStep.value + 1);
+    } else {
+      controller.saveAndContinue();
+    }
   }
-}
 
   void _back() {
     if (currentStep.value > 0) {
@@ -65,7 +63,11 @@ class _PropertyDetailsViewState extends State<PropertyDetailsView> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          _Header(onBack: _back, currentStep: currentStep, totalSteps: totalSteps),
+          _NewHeader(
+            onBack: _back,
+            currentStep: currentStep,
+            totalSteps: totalSteps,
+          ),
           Expanded(
             child: PageView(
               controller: _pageController,
@@ -78,31 +80,45 @@ class _PropertyDetailsViewState extends State<PropertyDetailsView> {
               ],
             ),
           ),
-          _Footer(controller: controller, currentStep: currentStep, totalSteps: totalSteps, onNext: _next),
+          _NewFooter(
+            controller: controller,
+            currentStep: currentStep,
+            totalSteps: totalSteps,
+            onNext: _next,
+          ),
         ],
       ),
     );
   }
 }
 
-class _Header extends StatelessWidget {
+// ────────────────────────────────────────────────
+// HEADER
+// ────────────────────────────────────────────────
+class _NewHeader extends StatelessWidget {
   final VoidCallback onBack;
   final RxInt currentStep;
   final int totalSteps;
-  const _Header({required this.onBack, required this.currentStep, required this.totalSteps});
 
-  static const stepTitles = ['Basic Information', 'Specifications', 'Utilities & Facilities'];
+  const _NewHeader({
+    required this.onBack,
+    required this.currentStep,
+    required this.totalSteps,
+  });
+
+  static const stepTitles = [
+    'Basic Info',
+    'Specifications',
+    'Utilities',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final role = Get.find<IAuthRepository>().currentUser?.role ?? '';
-    final roleLabel = role.isEmpty ? '' : role[0].toUpperCase() + role.substring(1);
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(
         AppDimens.space20,
-        AppDimens.space16,
+        AppDimens.space12,
         AppDimens.space20,
         AppDimens.space24,
       ),
@@ -119,58 +135,146 @@ class _Header extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InkWell(
+                // Back button
+                GestureDetector(
                   onTap: onBack,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-                  child: const Padding(
-                    padding: EdgeInsets.only(right: 12, top: 2),
-                    child: Icon(Icons.arrow_back_rounded, color: AppColors.textOnDark, size: 22),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.textOnDark.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: AppColors.textOnDark,
+                      size: 20,
+                    ),
                   ),
                 ),
+
+                const SizedBox(width: AppDimens.space12),
+
+                // Title
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Property Details', style: AppTextStyles.h3.copyWith(color: AppColors.textOnDark)),
+                      Text(
+                        'Property Details',
+                        style: AppTextStyles.h3.copyWith(color: AppColors.textOnDark),
+                      ),
                       const SizedBox(height: 2),
                       Obx(
                         () => Text(
                           stepTitles[currentStep.value],
-                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.textOnDarkMuted),
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textOnDarkMuted,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                if (roleLabel.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.accentGreen,
-                      borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-                    ),
-                    child: Text(
-                      roleLabel,
-                      style: AppTextStyles.labelMedium.copyWith(color: AppColors.primaryDark),
-                    ),
+
+                // App Logo (Right side)
+                Container(
+                  width: 46,
+                  height: 46,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                   ),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 46,
+                    height: 46,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentGreen,
+                          borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.villa_rounded,
+                          size: 22,
+                          color: AppColors.primaryDark,
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: AppDimens.space16),
+
+            const SizedBox(height: AppDimens.space20),
+
+            // Step Indicator
             Obx(
               () => Row(
                 children: List.generate(totalSteps, (i) {
-                  final isActive = i <= currentStep.value;
+                  final isActive = i == currentStep.value;
+                  final isCompleted = i < currentStep.value;
+
                   return Expanded(
-                    child: Container(
-                      height: 4,
-                      margin: EdgeInsets.only(right: i == totalSteps - 1 ? 0 : 6),
-                      decoration: BoxDecoration(
-                        color: isActive ? AppColors.accentGreen : AppColors.textOnDarkFaint,
-                        borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-                      ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 250),
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: isCompleted || isActive
+                                      ? AppColors.accentGreen
+                                      : AppColors.textOnDark.withValues(alpha: 0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: isCompleted
+                                      ? const Icon(Icons.check, size: 14, color: AppColors.primaryDark)
+                                      : Text(
+                                          '${i + 1}',
+                                          style: AppTextStyles.labelSmall.copyWith(
+                                            color: isActive
+                                                ? AppColors.primaryDark
+                                                : AppColors.textOnDarkMuted,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                stepTitles[i],
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: isActive
+                                      ? AppColors.textOnDark
+                                      : AppColors.textOnDarkMuted,
+                                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (i != totalSteps - 1)
+                          Expanded(
+                            child: Container(
+                              height: 2,
+                              margin: const EdgeInsets.only(bottom: 22),
+                              color: isCompleted
+                                  ? AppColors.accentGreen
+                                  : AppColors.textOnDark.withValues(alpha: 0.15),
+                            ),
+                          ),
+                      ],
                     ),
                   );
                 }),
@@ -182,96 +286,71 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
-/// Wraps a step's card so it's vertically centered in whatever space is
-/// left between header and footer, and horizontally capped/centered on
-/// larger screens via AppResponsiveContainer.
-class _CenteredStep extends StatelessWidget {
+// ────────────────────────────────────────────────
+// SHARED
+// ────────────────────────────────────────────────
+class _ModernCard extends StatelessWidget {
   final Widget child;
-  const _CenteredStep({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppDimens.space20,
-            AppDimens.space20,
-            AppDimens.space20,
-            AppDimens.space24,
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight - AppDimens.space48),
-            child: Center(
-              child: AppResponsiveContainer(child: child),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-  const _SectionCard({required this.title, required this.children});
+  const _ModernCard({required this.child});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(
+        AppDimens.space20,
+        AppDimens.space20,
+        AppDimens.space20,
+        AppDimens.space12,
+      ),
       padding: const EdgeInsets.all(AppDimens.space20),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimens.radius2xl),
         border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: AppTextStyles.overline),
-          const SizedBox(height: AppDimens.space16),
-          ...children,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
         ],
       ),
+      child: child,
     );
   }
 }
 
-class _PillOption extends StatelessWidget {
+class _ModernPill extends StatelessWidget {
   final String label;
-  final IconData? icon;
   final bool isSelected;
   final VoidCallback onTap;
+  final IconData? icon;
 
-  const _PillOption({
+  const _ModernPill({
     required this.label,
-    this.icon,
     required this.isSelected,
     required this.onTap,
+    this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-      child: Container(
-        height: 44,
-        alignment: Alignment.center,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 48,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.pastelGreenBg : AppColors.surface,
-          borderRadius: BorderRadius.circular(AppDimens.radiusFull),
+          color: isSelected ? AppColors.pastelGreenBg : AppColors.surfaceMuted,
+          borderRadius: BorderRadius.circular(AppDimens.radiusLg),
           border: Border.all(
             color: isSelected ? AppColors.accentGreen : AppColors.border,
-            width: isSelected ? 1.5 : 1,
+            width: isSelected ? 1.6 : 1.2,
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null && isSelected) ...[
               Icon(icon, size: 16, color: AppColors.successGreenDark),
@@ -281,6 +360,7 @@ class _PillOption extends StatelessWidget {
               label,
               style: AppTextStyles.labelLarge.copyWith(
                 color: isSelected ? AppColors.successGreenDark : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],
@@ -290,326 +370,346 @@ class _PillOption extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------
-// STEP 1 — Basic Information
-// ---------------------------------------------------------------------
+// ────────────────────────────────────────────────
+// STEP 1
+// ────────────────────────────────────────────────
 class _BasicInfoStep extends StatelessWidget {
   final PropertyDetailsController controller;
   const _BasicInfoStep({required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return _CenteredStep(
-      child: _SectionCard(
-        title: 'BASIC INFORMATION',
-        children: [
-          Obx(
-            () => AppDropdownField<String?>(
-              label: 'Building',
-              value: controller.selectedBuilding.value,
-              items: [null, ...PropertyDetailsController.buildings],
-              labelBuilder: (v) => v ?? 'Select Building',
-              onChanged: (v) => controller.selectedBuilding.value = v,
-            ),
-          ),
-          const SizedBox(height: AppDimens.space20),
-          Obx(
-            () => AppDropdownField<String?>(
-              label: 'Floor',
-              value: controller.selectedFloor.value,
-              items: [null, ...PropertyDetailsController.floors],
-              labelBuilder: (v) => v ?? 'Select Floor',
-              onChanged: (v) => controller.selectedFloor.value = v,
-            ),
-          ),
-          const SizedBox(height: AppDimens.space20),
-          AppTextField(
-            label: 'Flat Number',
-            hint: 'e.g. A-203',
-            controller: controller.flatNumberCtrl,
-          ),
-          const SizedBox(height: AppDimens.space20),
-          Text('Occupied?', style: AppTextStyles.labelLarge),
-          const SizedBox(height: AppDimens.space8),
-          Obx(
-            () => Row(
-              children: [
-                Expanded(
-                  child: _PillOption(
-                    label: 'Yes',
-                    icon: Icons.check_circle_rounded,
-                    isSelected: controller.isOccupied.value,
-                    onTap: () => controller.isOccupied.value = true,
-                  ),
+    return SingleChildScrollView(
+      child: _ModernCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (controller.isIndependent) ...[
+              AppTextField(
+                label: 'House Name',
+                hint: 'e.g. My Family House',
+                controller: controller.flatNumberCtrl,
+              ),
+              const SizedBox(height: AppDimens.space16),
+              AppTextField(
+                label: 'Address',
+                hint: 'Full house address',
+                controller: controller.addressCtrl,
+                maxLines: 2,
+              ),
+              const SizedBox(height: AppDimens.space16),
+              Obx(
+                () => AppDropdownField<String?>(
+                  label: 'House Type',
+                  value: controller.selectedHouseType.value,
+                  items: [null, ...PropertyDetailsController.houseTypes],
+                  labelBuilder: (v) => v ?? 'Select House Type',
+                  onChanged: (v) => controller.selectedHouseType.value = v,
                 ),
-                const SizedBox(width: AppDimens.space12),
-                Expanded(
-                  child: _PillOption(
-                    label: 'No',
-                    isSelected: !controller.isOccupied.value,
-                    onTap: () => controller.isOccupied.value = false,
-                  ),
+              ),
+            ] else ...[
+              Obx(
+                () => AppDropdownField<String?>(
+                  label: 'Building',
+                  value: controller.selectedBuilding.value,
+                  items: [null, ...PropertyDetailsController.buildings],
+                  labelBuilder: (v) => v ?? 'Select Building',
+                  onChanged: (v) => controller.selectedBuilding.value = v,
                 ),
-              ],
-            ),
-          ),
-          Obx(() {
-            if (!controller.isOccupied.value) return const SizedBox.shrink();
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: AppDimens.space20),
-                Text('Occupied by', style: AppTextStyles.labelLarge),
-                const SizedBox(height: AppDimens.space8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _PillOption(
-                        label: 'Owner',
-                        isSelected: controller.occupiedBy.value == 'owner',
-                        onTap: () => controller.occupiedBy.value = 'owner',
-                      ),
+              ),
+              const SizedBox(height: AppDimens.space16),
+              Obx(
+                () => AppDropdownField<String?>(
+                  label: 'Floor',
+                  value: controller.selectedFloor.value,
+                  items: [null, ...PropertyDetailsController.floors],
+                  labelBuilder: (v) => v ?? 'Select Floor',
+                  onChanged: (v) => controller.selectedFloor.value = v,
+                ),
+              ),
+              const SizedBox(height: AppDimens.space16),
+              AppTextField(
+                label: 'Flat Number',
+                hint: 'e.g. A-203',
+                controller: controller.flatNumberCtrl,
+              ),
+            ],
+
+            const SizedBox(height: AppDimens.space24),
+            Text('Is this property occupied?', style: AppTextStyles.labelLarge),
+            const SizedBox(height: AppDimens.space12),
+            Obx(
+              () => Row(
+                children: [
+                  Expanded(
+                    child: _ModernPill(
+                      label: 'Yes',
+                      icon: Icons.check_circle_rounded,
+                      isSelected: controller.isOccupied.value,
+                      onTap: () => controller.isOccupied.value = true,
                     ),
-                    const SizedBox(width: AppDimens.space12),
-                    Expanded(
-                      child: _PillOption(
-                        label: 'Tenant',
-                        isSelected: controller.occupiedBy.value == 'tenant',
-                        onTap: () => controller.occupiedBy.value = 'tenant',
-                      ),
+                  ),
+                  const SizedBox(width: AppDimens.space12),
+                  Expanded(
+                    child: _ModernPill(
+                      label: 'No',
+                      isSelected: !controller.isOccupied.value,
+                      onTap: () => controller.isOccupied.value = false,
                     ),
-                  ],
-                ),
-              ],
-            );
-          }),
-        ],
+                  ),
+                ],
+              ),
+            ),
+
+            Obx(() {
+              if (!controller.isOccupied.value) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: AppDimens.space20),
+                  Text('Occupied by', style: AppTextStyles.labelLarge),
+                  const SizedBox(height: AppDimens.space12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ModernPill(
+                          label: 'Owner',
+                          isSelected: controller.occupiedBy.value == 'owner',
+                          onTap: () => controller.occupiedBy.value = 'owner',
+                        ),
+                      ),
+                      const SizedBox(width: AppDimens.space12),
+                      Expanded(
+                        child: _ModernPill(
+                          label: 'Tenant',
+                          isSelected: controller.occupiedBy.value == 'tenant',
+                          onTap: () => controller.occupiedBy.value = 'tenant',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ---------------------------------------------------------------------
-// STEP 2 — Specifications
-// ---------------------------------------------------------------------
+// ────────────────────────────────────────────────
+// STEP 2
+// ────────────────────────────────────────────────
 class _SpecificationsStep extends StatelessWidget {
   final PropertyDetailsController controller;
   const _SpecificationsStep({required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return _CenteredStep(
-      child: _SectionCard(
-        title: 'SPECIFICATIONS',
-        children: [
-          Obx(
-            () => AppDropdownField<String?>(
-              label: 'Property Type',
-              value: controller.selectedPropertyType.value,
-              items: [null, ...PropertyDetailsController.propertyTypes],
-              labelBuilder: (v) => v ?? 'Apartment, House, Office...',
-              onChanged: (v) => controller.selectedPropertyType.value = v,
+    return SingleChildScrollView(
+      child: _ModernCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Obx(
+              () => AppDropdownField<String?>(
+                label: 'Property Type',
+                value: controller.selectedPropertyType.value,
+                items: [null, ...PropertyDetailsController.propertyTypes],
+                labelBuilder: (v) => v ?? 'Select type',
+                onChanged: (v) => controller.selectedPropertyType.value = v,
+              ),
             ),
-          ),
-          const SizedBox(height: AppDimens.space20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: AppTextField(
-                  label: 'Area (sq ft)',
-                  hint: 'e.g. 1200',
-                  controller: controller.areaCtrl,
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(width: AppDimens.space16),
-              Expanded(
-                child: AppTextField(
-                  label: 'Bathrooms',
-                  hint: '0',
-                  controller: controller.bathroomsCtrl,
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDimens.space20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Obx(
-                  () => AppDropdownField<String?>(
-                    label: 'Flat Type',
-                    value: controller.selectedFlatType.value,
-                    items: [null, ...PropertyDetailsController.flatTypes],
-                    labelBuilder: (v) => v ?? 'Select',
-                    onChanged: (v) => controller.selectedFlatType.value = v,
+            const SizedBox(height: AppDimens.space16),
+            Row(
+              children: [
+                Expanded(
+                  child: AppTextField(
+                    label: 'Area (sq ft)',
+                    hint: '1200',
+                    controller: controller.areaCtrl,
+                    keyboardType: TextInputType.number,
                   ),
                 ),
-              ),
-              const SizedBox(width: AppDimens.space16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Balcony', style: AppTextStyles.labelLarge),
-                    const SizedBox(height: AppDimens.space6),
-                    Obx(
-                      () => Row(
-                        children: [
-                          Expanded(
-                            child: _PillOption(
-                              label: 'Yes',
-                              isSelected: controller.hasBalcony.value,
-                              onTap: () => controller.hasBalcony.value = true,
-                            ),
-                          ),
-                          const SizedBox(width: AppDimens.space8),
-                          Expanded(
-                            child: _PillOption(
-                              label: 'No',
-                              isSelected: !controller.hasBalcony.value,
-                              onTap: () => controller.hasBalcony.value = false,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                const SizedBox(width: AppDimens.space12),
+                Expanded(
+                  child: AppTextField(
+                    label: 'Bathrooms',
+                    hint: '2',
+                    controller: controller.bathroomsCtrl,
+                    keyboardType: TextInputType.number,
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: AppDimens.space16),
+            Obx(
+              () => AppDropdownField<String?>(
+                label: controller.isIndependent ? 'Rooms' : 'Flat Type',
+                value: controller.selectedFlatType.value,
+                items: [null, ...PropertyDetailsController.flatTypes],
+                labelBuilder: (v) => v ?? 'Select',
+                onChanged: (v) => controller.selectedFlatType.value = v,
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: AppDimens.space20),
+            Text('Balcony', style: AppTextStyles.labelLarge),
+            const SizedBox(height: AppDimens.space12),
+            Obx(
+              () => Row(
+                children: [
+                  Expanded(
+                    child: _ModernPill(
+                      label: 'Yes',
+                      isSelected: controller.hasBalcony.value,
+                      onTap: () => controller.hasBalcony.value = true,
+                    ),
+                  ),
+                  const SizedBox(width: AppDimens.space12),
+                  Expanded(
+                    child: _ModernPill(
+                      label: 'No',
+                      isSelected: !controller.hasBalcony.value,
+                      onTap: () => controller.hasBalcony.value = false,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ---------------------------------------------------------------------
-// STEP 3 — Utilities & Facilities
-// ---------------------------------------------------------------------
+// ────────────────────────────────────────────────
+// STEP 3
+// ────────────────────────────────────────────────
 class _UtilitiesStep extends StatelessWidget {
   final PropertyDetailsController controller;
   const _UtilitiesStep({required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return _CenteredStep(
-      child: _SectionCard(
-        title: 'UTILITIES & FACILITIES',
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Electricity', style: AppTextStyles.labelLarge),
-                    const SizedBox(height: AppDimens.space6),
-                    Obx(
-                      () => Row(
-                        children: [
-                          Expanded(
-                            child: _PillOption(
-                              label: 'Yes',
-                              isSelected: controller.hasElectricity.value,
-                              onTap: () => controller.hasElectricity.value = true,
+    return SingleChildScrollView(
+      child: _ModernCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Electricity', style: AppTextStyles.labelLarge),
+                      const SizedBox(height: AppDimens.space8),
+                      Obx(
+                        () => Row(
+                          children: [
+                            Expanded(
+                              child: _ModernPill(
+                                label: 'Yes',
+                                isSelected: controller.hasElectricity.value,
+                                onTap: () => controller.hasElectricity.value = true,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: AppDimens.space8),
-                          Expanded(
-                            child: _PillOption(
-                              label: 'No',
-                              isSelected: !controller.hasElectricity.value,
-                              onTap: () => controller.hasElectricity.value = false,
+                            const SizedBox(width: AppDimens.space8),
+                            Expanded(
+                              child: _ModernPill(
+                                label: 'No',
+                                isSelected: !controller.hasElectricity.value,
+                                onTap: () => controller.hasElectricity.value = false,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppDimens.space16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Gas', style: AppTextStyles.labelLarge),
-                    const SizedBox(height: AppDimens.space6),
-                    Obx(
-                      () => Row(
-                        children: [
-                          Expanded(
-                            child: _PillOption(
-                              label: 'Yes',
-                              isSelected: controller.hasGas.value,
-                              onTap: () => controller.hasGas.value = true,
+                const SizedBox(width: AppDimens.space12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Gas', style: AppTextStyles.labelLarge),
+                      const SizedBox(height: AppDimens.space8),
+                      Obx(
+                        () => Row(
+                          children: [
+                            Expanded(
+                              child: _ModernPill(
+                                label: 'Yes',
+                                isSelected: controller.hasGas.value,
+                                onTap: () => controller.hasGas.value = true,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: AppDimens.space8),
-                          Expanded(
-                            child: _PillOption(
-                              label: 'No',
-                              isSelected: !controller.hasGas.value,
-                              onTap: () => controller.hasGas.value = false,
+                            const SizedBox(width: AppDimens.space8),
+                            Expanded(
+                              child: _ModernPill(
+                                label: 'No',
+                                isSelected: !controller.hasGas.value,
+                                onTap: () => controller.hasGas.value = false,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: AppDimens.space20),
+            Obx(
+              () => AppDropdownField<String?>(
+                label: 'Meter Type',
+                value: controller.selectedMeterType.value,
+                items: [null, ...PropertyDetailsController.meterTypes],
+                labelBuilder: (v) => v ?? 'Select',
+                onChanged: (v) => controller.selectedMeterType.value = v,
               ),
-            ],
-          ),
-          const SizedBox(height: AppDimens.space20),
-          Obx(
-            () => AppDropdownField<String?>(
-              label: 'Meter Type',
-              value: controller.selectedMeterType.value,
-              items: [null, ...PropertyDetailsController.meterTypes],
-              labelBuilder: (v) => v ?? 'Wapda / Society',
-              onChanged: (v) => controller.selectedMeterType.value = v,
             ),
-          ),
-          const SizedBox(height: AppDimens.space20),
-          Obx(
-            () => AppDropdownField<String?>(
-              label: 'Water Connection',
-              value: controller.selectedWaterConnection.value,
-              items: [null, ...PropertyDetailsController.waterConnectionTypes],
-              labelBuilder: (v) => v ?? 'Select type',
-              onChanged: (v) => controller.selectedWaterConnection.value = v,
+            const SizedBox(height: AppDimens.space16),
+            Obx(
+              () => AppDropdownField<String?>(
+                label: 'Water Connection',
+                value: controller.selectedWaterConnection.value,
+                items: [null, ...PropertyDetailsController.waterConnectionTypes],
+                labelBuilder: (v) => v ?? 'Select type',
+                onChanged: (v) => controller.selectedWaterConnection.value = v,
+              ),
             ),
-          ),
-          const SizedBox(height: AppDimens.space20),
-          Obx(
-            () => AppDropdownField<String?>(
-              label: 'Furnishing',
-              value: controller.selectedFurnishing.value,
-              items: [null, ...PropertyDetailsController.furnishingTypes],
-              labelBuilder: (v) => v ?? 'Furnished / Semi / Unfurnished',
-              onChanged: (v) => controller.selectedFurnishing.value = v,
+            const SizedBox(height: AppDimens.space16),
+            Obx(
+              () => AppDropdownField<String?>(
+                label: 'Furnishing',
+                value: controller.selectedFurnishing.value,
+                items: [null, ...PropertyDetailsController.furnishingTypes],
+                labelBuilder: (v) => v ?? 'Select',
+                onChanged: (v) => controller.selectedFurnishing.value = v,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _Footer extends StatelessWidget {
+// ────────────────────────────────────────────────
+// FOOTER
+// ────────────────────────────────────────────────
+class _NewFooter extends StatelessWidget {
   final PropertyDetailsController controller;
   final RxInt currentStep;
   final int totalSteps;
   final VoidCallback onNext;
 
-  const _Footer({
+  const _NewFooter({
     required this.controller,
     required this.currentStep,
     required this.totalSteps,
@@ -619,22 +719,28 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.fromLTRB(
         AppDimens.space20,
         AppDimens.space16,
         AppDimens.space20,
         AppDimens.space16,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.borderLight)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
         child: Obx(
           () => AppPrimaryButton(
-            label: currentStep.value == totalSteps - 1 ? 'Save & Continue' : 'Next',
+            label: currentStep.value == totalSteps - 1 ? 'Save & Continue' : 'Continue',
             isLoading: controller.isLoading.value,
             onPressed: onNext,
           ),

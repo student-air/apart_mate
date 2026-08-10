@@ -38,4 +38,6 @@ abstract class IAuthRepository {
   Future<UserModel> updateUserRole(String role);
 
   Future<void> logout();
+
+  Future<void> updateUserPropertyType(String s) async {}
 }

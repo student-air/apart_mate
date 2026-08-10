@@ -14,8 +14,6 @@ class RoleSelectionView extends GetView<RoleSelectionController> {
   IconData _iconFor(String key) {
     switch (key) {
       case 'owner':
-        // Material Icons has no literal crown glyph — workspace_premium is
-        // the closest built-in "crown/premium badge" style icon.
         return Icons.workspace_premium_rounded;
       case 'tenant':
         return Icons.key_rounded;
