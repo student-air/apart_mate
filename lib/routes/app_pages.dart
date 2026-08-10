@@ -21,8 +21,8 @@ import 'package:apart_mate/presentation/property_details/views/property_details_
 // TODO: uncomment as each module's binding/view is built
 import 'package:apart_mate/presentation/request_status/bindings/request_status_binding.dart';
 import 'package:apart_mate/presentation/request_status/views/request_status_view.dart';
-// import 'package:apart_mate/presentation/dashboard/bindings/dashboard_binding.dart';
-// import 'package:apart_mate/presentation/dashboard/views/dashboard_view.dart';
+import 'package:apart_mate/presentation/dashboard/bindings/dashboard_binding.dart';
+import 'package:apart_mate/presentation/dashboard/views/dashboard_view.dart';
 // import 'package:apart_mate/presentation/profile/bindings/profile_binding.dart';
 // import 'package:apart_mate/presentation/profile/views/profile_view.dart';
 // import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
@@ -81,11 +81,11 @@ GetPage(
       page: () => const RequestStatusView(),
       binding: RequestStatusBinding(),
     ),
-    // GetPage(
-    //   name: AppRoutes.dashboard,
-    //   page: () => const DashboardView(),
-    //   binding: DashboardBinding(),
-    // ),
+    GetPage(
+      name: AppRoutes.dashboard,
+      page: () => const DashboardView(),
+      binding: DashboardBinding(),
+    ),
     // GetPage(
     //   name: AppRoutes.profile,
     //   page: () => const ProfileView(),

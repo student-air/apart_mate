@@ -1,4 +1,4 @@
-// lib/data/repositories/local/local_property_repository.dart
+// lib/data/repositories/local_property_repository.dart
 
 import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';

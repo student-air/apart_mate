@@ -1,4 +1,4 @@
-// lib/data/repositories/local/local_society_repository.dart
+// lib/data/repositories/local_society_repository.dart
 
 import 'package:apart_mate/data/models/society_model.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
@@ -25,7 +25,7 @@ class LocalSocietyRepository implements ISocietyRepository {
       isVerified: true,
       buildingsCount: 5,
       unitsCount: 210,
-      foundedYear: 2010,
+      foundedYear: 1998,
     ),
   ];
 
@@ -57,19 +57,18 @@ class LocalSocietyRepository implements ISocietyRepository {
     }
   }
 
-  // lib/data/repositories/local/local_society_repository.dart
+  @override
+  Future<void> joinSociety({
+    required String userId,
+    required String societyId,
+  }) async {
+    await _simulateLatency();
+    _requests[_key(userId, societyId)] = JoinRequestInfo(
+      status: JoinRequestStatus.approved,
+      submittedAt: DateTime.now(),
+    );
+  }
 
-@override
-Future<void> joinSociety({
-  required String userId,
-  required String societyId,
-}) async {
-  await _simulateLatency();
-  _requests[_key(userId, societyId)] = JoinRequestInfo(
-    status: JoinRequestStatus.approved,
-    submittedAt: DateTime.now(),
-  );
-}
   @override
   Future<JoinRequestInfo> getJoinRequestInfo({
     required String userId,
@@ -78,5 +77,15 @@ Future<void> joinSociety({
     await _simulateLatency();
     return _requests[_key(userId, societyId)] ??
         JoinRequestInfo(status: JoinRequestStatus.pending, submittedAt: DateTime.now());
+  }
+
+  @override
+  Future<String?> getSocietyIdForUser(String userId) async {
+    await _simulateLatency();
+    for (final entry in _requests.entries) {
+      final parts = entry.key.split(':');
+      if (parts.first == userId) return parts.last;
+    }
+    return null;
   }
 }

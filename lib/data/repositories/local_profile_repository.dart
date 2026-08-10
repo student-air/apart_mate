@@ -1,4 +1,4 @@
-// lib/data/repositories/local/local_profile_repository.dart
+// lib/data/repositories/local_profile_repository.dart
 
 import 'package:apart_mate/data/models/profile_model.dart';
 import 'package:apart_mate/domain/repositories/i_profile_repository.dart';

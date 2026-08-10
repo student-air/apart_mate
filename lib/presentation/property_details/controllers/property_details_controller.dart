@@ -107,7 +107,7 @@ class PropertyDetailsController extends GetxController {
           hasGas: hasGas.value,
           meterType: selectedMeterType.value ?? '',
           waterConnection: selectedWaterConnection.value ?? '',
-          furnishing: selectedFurnishing.value ?? '',
+          furnishing: selectedFurnishing.value ?? '', createdAt: DateTime.now(),
         ),
       );
       Get.offNamed(AppRoutes.requestStatus, arguments: societyId);

@@ -1,4 +1,4 @@
-// lib/data/repositories/local/local_auth_repository.dart
+// lib/data/repositories/local_auth_repository.dart
 
 import 'package:apart_mate/data/models/user_model.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';

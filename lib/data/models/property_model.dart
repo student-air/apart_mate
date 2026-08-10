@@ -8,7 +8,7 @@ class PropertyModel {
   final String floor;
   final String flatNumber;
   final bool isOccupied;
-  final String occupiedBy; // 'owner' | 'tenant'
+  final String occupiedBy;
   final String propertyType;
   final String areaSqFt;
   final String bathrooms;
@@ -19,6 +19,7 @@ class PropertyModel {
   final String meterType;
   final String waterConnection;
   final String furnishing;
+  final DateTime createdAt;
 
   const PropertyModel({
     required this.id,
@@ -39,5 +40,6 @@ class PropertyModel {
     required this.meterType,
     required this.waterConnection,
     required this.furnishing,
+    required this.createdAt,
   });
 }

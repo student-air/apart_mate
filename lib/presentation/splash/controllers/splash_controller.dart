@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 
@@ -38,13 +37,11 @@ class SplashController extends GetxController {
     }
 
     if (user.role.isEmpty) {
-      // role_selection isn't built yet — avoid navigating to an
-      // unregistered route, which would crash.
-      AppSnackbar.info('Coming soon', 'Role selection screen is under construction');
+      // Signed in but never finished onboarding.
+      Get.offAllNamed(AppRoutes.roleSelection);
       return;
     }
 
-    // dashboard isn't built yet either — same guard.
-    AppSnackbar.info('Coming soon', 'Dashboard screen is under construction');
+    Get.offAllNamed(AppRoutes.dashboard);
   }
 }

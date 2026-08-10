@@ -1,5 +1,7 @@
-// import 'package:apart_mate/data/models/dashboard_stats_model.dart';
+// lib/domain/repositories/i_dashboard_repository.dart
 
-// abstract class IDashboardRepository {
-//   Future<DashboardStatsModel> getStats();
-// }
+import 'package:apart_mate/data/models/dashboard_models.dart';
+
+abstract class IDashboardRepository {
+  Future<DashboardData> getDashboardData(String userId);
+}
