@@ -7,6 +7,7 @@ import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/widgets/app_bottom_nav.dart';
+import 'package:apart_mate/routes/app_routes.dart';
 import 'package:apart_mate/core/widgets/app_loading.dart';
 import 'package:apart_mate/presentation/dashboard/controllers/dashboard_controller.dart';
 
@@ -21,77 +22,34 @@ class DashboardView extends GetView<DashboardController> {
       floatingActionButton: AppAddFab(onPressed: () {}),
       bottomNavigationBar: AppBottomNav(
         activeTab: AppNavTab.home,
-        onHome: () {},
+        onHome: () => Get.offNamed(AppRoutes.dashboard),
         onUpdates: () {},
         onRequests: () {},
-        onProfile: () {},
+        onProfile: () => Get.toNamed(AppRoutes.profile),
       ),
+      // lib/presentation/dashboard/views/dashboard_view.dart — replace the Obx body content
+
       body: Obx(() {
         if (controller.isLoading.value) {
           return const AppLoading();
         }
 
         final society = controller.society.value;
-        final property = controller.property.value;
 
-        if (society == null || property == null) {
+        if (society == null) {
           return _NoDataState(onRetry: controller.refresh);
         }
 
-        return RefreshIndicator(
-          onRefresh: controller.refresh,
-          color: AppColors.primaryDark,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(
-              AppDimens.space20,
-              AppDimens.space16,
-              AppDimens.space20,
-              AppDimens.space24,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _TopBar(societyName: society.name),
-                const SizedBox(height: AppDimens.space20),
-                _GreetingHeader(controller: controller),
-                const SizedBox(height: AppDimens.space20),
-                _FlatSelector(property: property),
-                const SizedBox(height: AppDimens.space24),
-                Text('PROPERTY STATUS', style: AppTextStyles.overline),
-                const SizedBox(height: AppDimens.space12),
-                _PropertyStatusGrid(
-                  approved: controller.requestApproved.value,
-                  property: property,
-                ),
-                const SizedBox(height: AppDimens.space20),
-                _OccupancyCard(property: property),
-                const SizedBox(height: AppDimens.space20),
-                _PropertyDetailsCard(property: property),
-                const SizedBox(height: AppDimens.space20),
-                Text('QUICK ACTIONS', style: AppTextStyles.overline),
-                const SizedBox(height: AppDimens.space12),
-                const _QuickActionsRow(),
-                const SizedBox(height: AppDimens.space20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('LATEST UPDATES', style: AppTextStyles.overline),
-                    InkWell(
-                      onTap: () {},
-                      child: Text(
-                        'View All',
-                        style: AppTextStyles.labelLarge.copyWith(color: AppColors.accentGreenDark),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppDimens.space12),
-                _LatestUpdatesList(updates: controller.updates),
-              ],
-            ),
-          ),
-        );
+        if (controller.isTenant) {
+          return _TenantDashboardBody(controller: controller, society: society);
+        }
+
+        final property = controller.property.value;
+        if (property == null) {
+          return _NoDataState(onRetry: controller.refresh);
+        }
+
+        return _OwnerDashboardBody(controller: controller, society: society, property: property);
       }),
     );
   }
@@ -291,7 +249,7 @@ class _FlatSelector extends StatelessWidget {
             height: 44,
             decoration: const BoxDecoration(color: AppColors.pastelGreenBg, shape: BoxShape.circle),
             alignment: Alignment.center,
-            child: const Icon(Icons.apartment_rounded, size: 22, color: AppColors.pastelGreenIcon),
+            child: const Icon(Icons.home_rounded, size: 22, color: AppColors.pastelGreenIcon),
           ),
           const SizedBox(width: AppDimens.space12),
           Expanded(
@@ -306,7 +264,7 @@ class _FlatSelector extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+         // const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
         ],
       ),
     );
@@ -325,7 +283,7 @@ class _PropertyStatusGrid extends StatelessWidget {
     final items = [
       (
         icon: Icons.verified_user_rounded,
-        label: 'Owner Verified',
+        label: 'Owner\nVerified',
         value: approved ? 'Verified' : 'Pending',
         bg: AppColors.pastelGreenBg,
         fg: AppColors.pastelGreenIcon,
@@ -339,14 +297,14 @@ class _PropertyStatusGrid extends StatelessWidget {
       ),
       (
         icon: Icons.person_rounded,
-        label: 'Tenant Status',
+        label: 'Tenant\nStatus',
         value: tenantStatus,
         bg: AppColors.pastelOrangeBg,
         fg: AppColors.pastelOrangeIcon,
       ),
       (
         icon: Icons.description_rounded,
-        label: 'Documents',
+        label: 'Document\nStatus',
         value: approved ? 'Verified' : 'Pending',
         bg: AppColors.pastelPurpleBg,
         fg: AppColors.pastelPurpleIcon,
@@ -454,7 +412,7 @@ class _PropertyDetailsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      (icon: Icons.apartment_rounded, value: property.propertyType as String, label: 'Type'),
+      (icon: Icons.home_rounded, value: property.propertyType as String, label: 'Type'),
       (icon: Icons.bed_rounded, value: property.flatType as String, label: 'Flat Type'),
       (icon: Icons.square_foot_rounded, value: '${property.areaSqFt} sq ft', label: 'Area'),
       (
@@ -658,6 +616,198 @@ class _LatestUpdatesList extends StatelessWidget {
           );
         }),
       ),
+    );
+  }
+}
+
+class _OwnerDashboardBody extends StatelessWidget {
+  final DashboardController controller;
+  final dynamic society; // SocietyModel
+  final dynamic property; // PropertyModel
+  const _OwnerDashboardBody({required this.controller, required this.society, required this.property});
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: controller.refresh,
+      color: AppColors.primaryDark,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+          AppDimens.space20,
+          AppDimens.space16,
+          AppDimens.space20,
+          AppDimens.space24,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _TopBar(societyName: society.name),
+            const SizedBox(height: AppDimens.space20),
+            _GreetingHeader(controller: controller),
+            const SizedBox(height: AppDimens.space20),
+            _FlatSelector(property: property),
+            const SizedBox(height: AppDimens.space24),
+            Text('PROPERTY STATUS', style: AppTextStyles.overline),
+            const SizedBox(height: AppDimens.space12),
+            _PropertyStatusGrid(approved: controller.requestApproved.value, property: property),
+            const SizedBox(height: AppDimens.space20),
+            _OccupancyCard(property: property),
+            const SizedBox(height: AppDimens.space20),
+            _PropertyDetailsCard(property: property),
+            const SizedBox(height: AppDimens.space20),
+            Text('QUICK ACTIONS', style: AppTextStyles.overline),
+            const SizedBox(height: AppDimens.space12),
+            const _QuickActionsRow(),
+            const SizedBox(height: AppDimens.space20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('LATEST UPDATES', style: AppTextStyles.overline),
+                InkWell(
+                  onTap: () {},
+                  child: Text('View All', style: AppTextStyles.labelLarge.copyWith(color: AppColors.accentGreenDark)),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppDimens.space12),
+            _LatestUpdatesList(updates: controller.updates),
+          ],
+        ),
+      ),
+    );
+  }
+}
+class _TenantDashboardBody extends StatelessWidget {
+  final DashboardController controller;
+  final dynamic society; // SocietyModel
+  const _TenantDashboardBody({required this.controller, required this.society});
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: controller.refresh,
+      color: AppColors.primaryDark,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+          AppDimens.space20,
+          AppDimens.space16,
+          AppDimens.space20,
+          AppDimens.space24,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _TopBar(societyName: society.name),
+            const SizedBox(height: AppDimens.space20),
+            _GreetingHeader(controller: controller),
+            const SizedBox(height: AppDimens.space24),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppDimens.space16),
+              decoration: BoxDecoration(
+                color: controller.requestApproved.value ? AppColors.pastelGreenBg : AppColors.pendingBg,
+                borderRadius: BorderRadius.circular(AppDimens.radius2xl),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    controller.requestApproved.value ? Icons.check_circle_rounded : Icons.hourglass_top_rounded,
+                    size: 22,
+                    color: controller.requestApproved.value ? AppColors.successGreenDark : AppColors.pending,
+                  ),
+                  const SizedBox(width: AppDimens.space12),
+                  Expanded(
+                    child: Text(
+                      controller.requestApproved.value
+                          ? 'You\'re a verified tenant at ${society.name}'
+                          : 'Your membership request is pending review',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: controller.requestApproved.value ? AppColors.successGreenDark : AppColors.pending,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppDimens.space24),
+            Text('QUICK ACTIONS', style: AppTextStyles.overline),
+            const SizedBox(height: AppDimens.space12),
+            const _TenantQuickActionsRow(),
+            const SizedBox(height: AppDimens.space20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('LATEST UPDATES', style: AppTextStyles.overline),
+                InkWell(
+                  onTap: () {},
+                  child: Text('View All', style: AppTextStyles.labelLarge.copyWith(color: AppColors.accentGreenDark)),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppDimens.space12),
+            _LatestUpdatesList(updates: controller.updates),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TenantQuickActionsRow extends StatelessWidget {
+  const _TenantQuickActionsRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = [
+      (icon: Icons.receipt_long_rounded, label: 'Rent &\nPayments', bg: AppColors.pastelGreenBg, fg: AppColors.pastelGreenIcon),
+      (icon: Icons.build_rounded, label: 'Maintenance\nRequest', bg: AppColors.pastelPurpleBg, fg: AppColors.pastelPurpleIcon),
+      (icon: Icons.description_rounded, label: 'Lease\nDocuments', bg: AppColors.pastelBlueBg, fg: AppColors.pastelBlueIcon),
+      (icon: Icons.support_agent_rounded, label: 'Contact\nAdmin', bg: AppColors.pastelRedBg, fg: AppColors.pastelRedIcon),
+    ];
+
+    return Row(
+      children: actions.map((action) {
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(AppDimens.radius2xl),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: AppDimens.space12, horizontal: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppDimens.radius2xl),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(color: action.bg, shape: BoxShape.circle),
+                      alignment: Alignment.center,
+                      child: Icon(action.icon, size: 19, color: action.fg),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      action.label,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.labelSmall.copyWith(fontWeight: FontWeight.w600, fontSize: 9.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

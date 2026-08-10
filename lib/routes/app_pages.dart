@@ -23,8 +23,8 @@ import 'package:apart_mate/presentation/request_status/bindings/request_status_b
 import 'package:apart_mate/presentation/request_status/views/request_status_view.dart';
 import 'package:apart_mate/presentation/dashboard/bindings/dashboard_binding.dart';
 import 'package:apart_mate/presentation/dashboard/views/dashboard_view.dart';
-// import 'package:apart_mate/presentation/profile/bindings/profile_binding.dart';
-// import 'package:apart_mate/presentation/profile/views/profile_view.dart';
+import 'package:apart_mate/presentation/profile/bindings/profile_binding.dart';
+import 'package:apart_mate/presentation/profile/views/profile_view.dart';
 // import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
 // import 'package:apart_mate/presentation/edit_profile/views/edit_profile_view.dart';
 
@@ -86,11 +86,11 @@ GetPage(
       page: () => const DashboardView(),
       binding: DashboardBinding(),
     ),
-    // GetPage(
-    //   name: AppRoutes.profile,
-    //   page: () => const ProfileView(),
-    //   binding: ProfileBinding(),
-    // ),
+    GetPage(
+      name: AppRoutes.profile,
+      page: () => const ProfileView(),
+      binding: ProfileBinding(),
+    ),
     // GetPage(
     //   name: AppRoutes.editProfile,
     //   page: () => const EditProfileView(),

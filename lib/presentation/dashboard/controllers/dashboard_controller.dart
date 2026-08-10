@@ -36,6 +36,7 @@ class DashboardController extends GetxController {
   String get userName => _authRepository.currentUser?.fullName ?? '';
   String get userRole => _authRepository.currentUser?.role ?? '';
   String get roleLabel => userRole.isEmpty ? '' : userRole[0].toUpperCase() + userRole.substring(1);
+  bool get isTenant => userRole == 'tenant';
 
   String get greeting {
     final hour = DateTime.now().hour;
@@ -57,6 +58,8 @@ class DashboardController extends GetxController {
     isLoading.value = true;
     try {
       final societyId = await _societyRepository.getSocietyIdForUser(user.id);
+      // Tenants don't file property_details, so this naturally comes
+      // back null for them — that's expected, not an error.
       final fetchedProperty = await _propertyRepository.getPropertyForUser(user.id);
 
       SocietyModel? fetchedSociety;

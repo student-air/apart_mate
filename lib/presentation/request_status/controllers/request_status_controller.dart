@@ -34,6 +34,8 @@ class RequestStatusController extends GetxController {
     _load();
   }
 
+// lib/presentation/request_status/controllers/request_status_controller.dart — only _load() and continueToDashboard() change
+
   Future<void> _load() async {
     final societyId = _societyId;
     final user = _authRepository.currentUser;
@@ -48,7 +50,7 @@ class RequestStatusController extends GetxController {
       final results = await Future.wait([
         _societyRepository.getSocietyById(societyId),
         _societyRepository.getJoinRequestInfo(userId: user.id, societyId: societyId),
-        _propertyRepository.getPropertyForUser(user.id),
+        _propertyRepository.getPropertyForUser(user.id), // returns null for tenants — handled by property?.let checks in the view
       ]);
       society.value = results[0] as SocietyModel?;
       final requestInfo = results[1] as JoinRequestInfo;
@@ -60,9 +62,11 @@ class RequestStatusController extends GetxController {
     }
   }
 
-  Future<void> refresh() => _load();
-
   void continueToDashboard() {
     Get.offAllNamed(AppRoutes.dashboard);
   }
+  
+
+  
+  Future<void> refresh() => _load();
 }

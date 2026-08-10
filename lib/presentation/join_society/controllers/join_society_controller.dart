@@ -25,9 +25,6 @@ class JoinSocietyController extends GetxController {
 
   String get _enteredCode => digitCtrls.map((c) => c.text).join();
 
-  /// Called on every keystroke in any box. Advances focus, and once all
-  /// [codeLength] boxes are filled, automatically triggers the lookup —
-  /// no manual "search" button needed.
   void onDigitChanged(int index, String value) {
     lookupFailed.value = false;
 
@@ -79,7 +76,15 @@ class JoinSocietyController extends GetxController {
     try {
       await _societyRepository.joinSociety(userId: user.id, societyId: matchedSociety.id);
       AppSnackbar.success('Request sent', 'Your request to join ${matchedSociety.name} was submitted');
-      Get.offNamed(AppRoutes.propertyDetails, arguments: matchedSociety.id);
+
+      // Tenants don't declare property specs — that's the owner's job.
+      // Owners/employees go set up the flat details; tenants go
+      // straight to waiting on approval.
+      if (user.role == 'tenant') {
+        Get.offNamed(AppRoutes.requestStatus, arguments: matchedSociety.id);
+      } else {
+        Get.offNamed(AppRoutes.propertyDetails, arguments: matchedSociety.id);
+      }
     } finally {
       isJoining.value = false;
     }

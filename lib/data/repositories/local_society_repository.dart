@@ -1,6 +1,7 @@
-// lib/data/repositories/local_society_repository.dart
+// lib/data/repositories/local/local_society_repository.dart
 
 import 'package:apart_mate/data/models/society_model.dart';
+import 'package:apart_mate/data/repositories/local_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 
 class LocalSocietyRepository implements ISocietyRepository {
@@ -14,7 +15,7 @@ class LocalSocietyRepository implements ISocietyRepository {
       isVerified: true,
       buildingsCount: 3,
       unitsCount: 120,
-      foundedYear: 98,
+      foundedYear: 2010,
     ),
     const SocietyModel(
       id: 'society_002',
@@ -25,11 +26,21 @@ class LocalSocietyRepository implements ISocietyRepository {
       isVerified: true,
       buildingsCount: 5,
       unitsCount: 210,
-      foundedYear: 1998,
+      foundedYear: 2012,
     ),
   ];
 
-  final Map<String, JoinRequestInfo> _requests = {};
+  late final Map<String, JoinRequestInfo> _requests = {
+    // Demo accounts are pre-approved members of Gulshan Heights.
+    '${LocalAuthRepository.demoGoogleUserId}:society_001': JoinRequestInfo(
+      status: JoinRequestStatus.approved,
+      submittedAt: DateTime.now().subtract(const Duration(days: 30)),
+    ),
+    '${LocalAuthRepository.demoAppleUserId}:society_001': JoinRequestInfo(
+      status: JoinRequestStatus.approved,
+      submittedAt: DateTime.now().subtract(const Duration(days: 30)),
+    ),
+  };
 
   Future<void> _simulateLatency() =>
       Future.delayed(const Duration(milliseconds: 600));
