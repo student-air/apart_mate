@@ -191,14 +191,16 @@ class PropertyDetailsController extends GetxController {
         // Independent owners go straight to dashboard (no approval needed)
         Get.offAllNamed(AppRoutes.dashboard);
       } else {
-        Get.offNamed(AppRoutes.requestStatus, arguments: societyId);
+        Get.offNamed(AppRoutes.requeststatus, arguments: societyId);
       }
     } finally {
       isLoading.value = false;
     }
   }
 
-  void goBack() => Get.back();
+  void goBack() {
+    Get.back();
+  }
 
   @override
   void onClose() {

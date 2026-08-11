@@ -1,10 +1,10 @@
-// lib/core/widgets/app_bottom_nav.dart — full file
+// lib/core/widgets/app_bottom_nav.dart
 
 import 'package:flutter/material.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
 
-enum AppNavTab { home, updates, requests, profile, none }
+enum AppNavTab { home, updates, members, profile, none }
 
 class AppAddFab extends StatelessWidget {
   final VoidCallback onPressed;
@@ -25,7 +25,7 @@ class AppBottomNav extends StatelessWidget {
   final AppNavTab activeTab;
   final VoidCallback onHome;
   final VoidCallback onUpdates;
-  final VoidCallback onRequests;
+  final VoidCallback onMembers;
   final VoidCallback onProfile;
 
   const AppBottomNav({
@@ -33,7 +33,7 @@ class AppBottomNav extends StatelessWidget {
     required this.activeTab,
     required this.onHome,
     required this.onUpdates,
-    required this.onRequests,
+    required this.onMembers,
     required this.onProfile,
   });
 
@@ -69,10 +69,10 @@ class AppBottomNav extends StatelessWidget {
               const SizedBox(width: 36),
               Expanded(
                 child: _NavItem(
-                  icon: Icons.assignment_rounded,
-                  label: 'Requests',
-                  isActive: activeTab == AppNavTab.requests,
-                  onTap: onRequests,
+                  icon: Icons.groups_rounded,
+                  label: 'Members',
+                  isActive: activeTab == AppNavTab.members,
+                  onTap: onMembers,
                 ),
               ),
               Expanded(

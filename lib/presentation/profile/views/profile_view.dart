@@ -22,7 +22,7 @@ class ProfileView extends GetView<ProfileController> {
       //   activeTab: AppNavTab.profile,
       //   onHome: () => Get.offNamed(AppRoutes.dashboard),
       //   onUpdates: () {},
-      //   onRequests: () {},
+      //   onrequests: () {},
       //   onProfile: () {},
       // ),
       body: Obx(() {

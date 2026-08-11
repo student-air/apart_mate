@@ -31,7 +31,7 @@ class AppSnackbar {
     Get.snackbar(
       title,
       message,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       backgroundColor: AppColors.surface,
       colorText: AppColors.textPrimary,
       titleText: Text(title, style: AppTextStyles.labelLarge.copyWith(color: AppColors.successGreenDark)),
@@ -60,4 +60,6 @@ static void info(String title, String message) {
       boxShadows: const [BoxShadow(color: Color(0x33000000), blurRadius: 12, offset: Offset(0, 4))],
     );
   }
+
+  static void show(String feature, String s, {required SnackPosition snackPosition, required EdgeInsets margin, required int borderRadius, required Duration duration}) {}
 }

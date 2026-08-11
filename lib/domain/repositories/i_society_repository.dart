@@ -2,10 +2,10 @@
 
 import 'package:apart_mate/data/models/society_model.dart';
 
-enum JoinRequestStatus { pending, approved, rejected }
+enum Joinrequeststatus { pending, approved, rejected }
 
 class JoinRequestInfo {
-  final JoinRequestStatus status;
+  final Joinrequeststatus status;
   final DateTime submittedAt;
 
   const JoinRequestInfo({

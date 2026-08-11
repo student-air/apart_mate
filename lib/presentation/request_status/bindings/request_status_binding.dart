@@ -6,11 +6,11 @@ import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 import 'package:apart_mate/presentation/request_status/controllers/request_status_controller.dart';
 
-class RequestStatusBinding extends Bindings {
+class requeststatusBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<RequestStatusController>(
-      () => RequestStatusController(
+    Get.lazyPut<requeststatusController>(
+      () => requeststatusController(
         Get.find<IAuthRepository>(),
         Get.find<ISocietyRepository>(),
         Get.find<IPropertyRepository>(),

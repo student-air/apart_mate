@@ -515,7 +515,7 @@ class _SocietyDropdown extends StatelessWidget {
                 ),
                 alignment: Alignment.center,
                 child: Icon(
-                  Icons.home_rounded,
+                  Icons.apartment_rounded,
                   size: 18,
                   color: isSelected
                       ? AppColors.accentGreenDark
@@ -628,7 +628,7 @@ class _SocietyDropdown extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.home_rounded,
+              Icons.apartment_rounded,
               size: 14,
               color: AppColors.accentGreenDark,
             ),
@@ -857,7 +857,7 @@ class _PropertyHeroCard extends StatelessWidget {
                   ),
           ),
           InkWell(
-  onTap: () => Get.toNamed(AppRoutes.manageProperties),
+  onTap: () => _showComingSoon('Edit Property'),
   borderRadius: BorderRadius.circular(AppDimens.radiusFull),
   child: Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1161,7 +1161,7 @@ class _QuickActionsCard extends StatelessWidget {
         'Edit Property',
         AppColors.pastelOrangeBg,
         AppColors.pastelOrangeIcon,
-        () => Get.toNamed(AppRoutes.manageProperties),
+        () => _showComingSoon('Edit Property'),
       ),
       (
         Icons.sync_alt_rounded,

@@ -81,7 +81,7 @@ class JoinSocietyController extends GetxController {
       AppSnackbar.success('Request sent', 'Your request to join ${matchedSociety.name} was submitted');
 
       if (user.role == 'tenant') {
-        Get.offNamed(AppRoutes.requestStatus, arguments: matchedSociety.id);
+        Get.offNamed(AppRoutes.requeststatus, arguments: matchedSociety.id);
       } else {
         Get.offNamed(AppRoutes.propertyDetails, arguments: matchedSociety.id);
       }
@@ -111,7 +111,9 @@ class JoinSocietyController extends GetxController {
     }
   }
 
-  void goBack() => Get.back();
+  void goBack() {
+    Get.back();
+  }
 
   @override
   void onClose() {

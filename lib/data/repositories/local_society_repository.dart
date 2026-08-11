@@ -33,11 +33,11 @@ class LocalSocietyRepository implements ISocietyRepository {
   late final Map<String, JoinRequestInfo> _requests = {
     // Demo accounts are pre-approved members of Gulshan Heights.
     '${LocalAuthRepository.demoGoogleUserId}:society_001': JoinRequestInfo(
-      status: JoinRequestStatus.approved,
+      status: Joinrequeststatus.approved,
       submittedAt: DateTime.now().subtract(const Duration(days: 30)),
     ),
     '${LocalAuthRepository.demoAppleUserId}:society_001': JoinRequestInfo(
-      status: JoinRequestStatus.approved,
+      status: Joinrequeststatus.approved,
       submittedAt: DateTime.now().subtract(const Duration(days: 30)),
     ),
   };
@@ -75,7 +75,7 @@ class LocalSocietyRepository implements ISocietyRepository {
   }) async {
     await _simulateLatency();
     _requests[_key(userId, societyId)] = JoinRequestInfo(
-      status: JoinRequestStatus.approved,
+      status: Joinrequeststatus.approved,
       submittedAt: DateTime.now(),
     );
   }
@@ -87,7 +87,7 @@ class LocalSocietyRepository implements ISocietyRepository {
   }) async {
     await _simulateLatency();
     return _requests[_key(userId, societyId)] ??
-        JoinRequestInfo(status: JoinRequestStatus.pending, submittedAt: DateTime.now());
+        JoinRequestInfo(status: Joinrequeststatus.pending, submittedAt: DateTime.now());
   }
 
   @override

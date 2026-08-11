@@ -10,6 +10,8 @@ import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 import 'package:apart_mate/data/repositories/local_society_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/data/repositories/local_property_repository.dart';
+import 'package:apart_mate/domain/repositories/i_update_repository.dart';
+import 'package:apart_mate/data/repositories/local_update_repository.dart';
 
 class InitialBinding extends Bindings {
   @override
@@ -18,5 +20,6 @@ class InitialBinding extends Bindings {
     Get.put<IProfileRepository>(LocalProfileRepository(), permanent: true);
     Get.put<ISocietyRepository>(LocalSocietyRepository(), permanent: true);
     Get.put<IPropertyRepository>(LocalPropertyRepository(), permanent: true);
+    Get.put<IUpdateRepository>(LocalUpdateRepository(), permanent: true);
   }
 }

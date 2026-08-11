@@ -43,7 +43,7 @@ class UpdatesView extends GetView<UpdatesController> {
               height: 48,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  Get.back();
+                  
                   controller.clearAll();
                 },
                 icon: const Icon(Icons.delete_outline, size: 18, color: Colors.white),
@@ -79,6 +79,21 @@ class UpdatesView extends GetView<UpdatesController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+  floatingActionButton: AppAddFab(
+    onPressed: () {
+      // TODO: open create update / post screen
+      // Get.toNamed(AppRoutes.createUpdate);
+    },
+  ),
+
+  bottomNavigationBar: AppBottomNav(
+    activeTab: AppNavTab.updates,          // ← important: mark Updates as active
+    onHome: () => Get.offNamed(AppRoutes.dashboard),
+    onUpdates: () {},                      // already on this page
+    onMembers: () {},
+    onProfile: () => Get.toNamed(AppRoutes.profile),
+  ),
       appBar: AppBar(
         titleSpacing: -10,
         elevation: 0,
@@ -103,17 +118,17 @@ class UpdatesView extends GetView<UpdatesController> {
           }),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      // floatingActionButton: AppAddFab(
-      //   // onPressed: showSendUpdateSheet,
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // // floatingActionButton: AppAddFab(
+      // //   // onPressed: showSendUpdateSheet,
+      // // ),
+      // bottomNavigationBar: AppBottomNav(
+      //   activeTab: AppNavTab.updates,
+      //   onHome: () => Get.offNamed(AppRoutes.dashboard),
+      //   onUpdates: () {}, // already here
+      //   onrequests: () {}, //=> Get.offNamed(AppRoutes.requests),
+      //   onProfile: () => Get.toNamed(AppRoutes.profile),
       // ),
-      bottomNavigationBar: AppBottomNav(
-        activeTab: AppNavTab.updates,
-        onHome: () => Get.offNamed(AppRoutes.dashboard),
-        onUpdates: () {}, // already here
-        onRequests: () {}, //=> Get.offNamed(AppRoutes.requests),
-        onProfile: () => Get.toNamed(AppRoutes.profile),
-      ),
       body: SafeArea(
         child: Obx(() {
           if (controller.isLoading.value && controller.updates.isEmpty) {

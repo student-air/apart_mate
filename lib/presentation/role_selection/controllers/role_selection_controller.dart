@@ -66,5 +66,7 @@ class RoleSelectionController extends GetxController {
     }
   }
 
-  void goBack() => Get.back();
+  void goBack() {
+    Get.back();
+  }
 }

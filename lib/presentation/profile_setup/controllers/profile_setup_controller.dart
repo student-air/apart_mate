@@ -91,8 +91,9 @@ class ProfileSetupController extends GetxController {
     }
   }
 
-  void goBack() => Get.back();
-
+  void goBack() {
+    Get.back();
+  }
   @override
   void onClose() {
     fullNameCtrl.dispose();

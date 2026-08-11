@@ -14,14 +14,14 @@ import 'package:apart_mate/data/models/society_model.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 import 'package:apart_mate/presentation/request_status/controllers/request_status_controller.dart';
 
-class RequestStatusView extends StatefulWidget {
-  const RequestStatusView({super.key});
+class requeststatusView extends StatefulWidget {
+  const requeststatusView({super.key});
 
   @override
-  State<RequestStatusView> createState() => _RequestStatusViewState();
+  State<requeststatusView> createState() => _requeststatusViewState();
 }
 
-class _RequestStatusViewState extends State<RequestStatusView>
+class _requeststatusViewState extends State<requeststatusView>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
 
@@ -42,7 +42,7 @@ class _RequestStatusViewState extends State<RequestStatusView>
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<RequestStatusController>();
+    final controller = Get.find<requeststatusController>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -115,13 +115,13 @@ class _RequestStatusViewState extends State<RequestStatusView>
 
                         // Actions
                         AppPrimaryButton(
-                          label: status == JoinRequestStatus.approved
+                          label: status == Joinrequeststatus.approved
                               ? 'Continue to Dashboard'
                               : 'Continue',
                           icon: Icons.arrow_forward_rounded,
                           onPressed: controller.continueToDashboard,
                         ),
-                        if (status == JoinRequestStatus.rejected) ...[
+                        if (status == Joinrequeststatus.rejected) ...[
                           const SizedBox(height: AppDimens.space12),
                           Center(
                             child: TextButton(
@@ -155,15 +155,15 @@ class _RequestStatusViewState extends State<RequestStatusView>
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _Header extends StatelessWidget {
-  final JoinRequestStatus status;
+  final Joinrequeststatus status;
   const _Header({required this.status});
 
   @override
   Widget build(BuildContext context) {
     final (String title, String subtitle) = switch (status) {
-      JoinRequestStatus.pending => ('Request Status', 'Awaiting admin review'),
-      JoinRequestStatus.approved => ('Request Status', 'You have been approved'),
-      JoinRequestStatus.rejected => ('Request Status', 'Request was declined'),
+      Joinrequeststatus.pending => ('Request Status', 'Awaiting admin review'),
+      Joinrequeststatus.approved => ('Request Status', 'You have been approved'),
+      Joinrequeststatus.rejected => ('Request Status', 'Request was declined'),
     };
 
     return Container(
@@ -232,23 +232,23 @@ class _Header extends StatelessWidget {
 }
 
 class _HeaderStatusPill extends StatelessWidget {
-  final JoinRequestStatus status;
+  final Joinrequeststatus status;
   const _HeaderStatusPill({required this.status});
 
   @override
   Widget build(BuildContext context) {
     final (Color bg, Color fg, String label) = switch (status) {
-      JoinRequestStatus.pending => (
+      Joinrequeststatus.pending => (
           AppColors.pendingBg,
           AppColors.pending,
           'PENDING'
         ),
-      JoinRequestStatus.approved => (
+      Joinrequeststatus.approved => (
           AppColors.pastelGreenBg,
           AppColors.successGreenDark,
           'APPROVED'
         ),
-      JoinRequestStatus.rejected => (
+      Joinrequeststatus.rejected => (
           AppColors.dangerBg,
           AppColors.danger,
           'DECLINED'
@@ -277,7 +277,7 @@ class _HeaderStatusPill extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _StatusHero extends StatelessWidget {
-  final JoinRequestStatus status;
+  final Joinrequeststatus status;
   final String? societyName;
   final AnimationController pulseController;
 
@@ -311,49 +311,49 @@ class _StatusHero extends StatelessWidget {
     );
   }
 
-  String _titleFor(JoinRequestStatus status) {
+  String _titleFor(Joinrequeststatus status) {
     switch (status) {
-      case JoinRequestStatus.pending:
+      case Joinrequeststatus.pending:
         return 'Request Submitted!';
-      case JoinRequestStatus.approved:
+      case Joinrequeststatus.approved:
         return 'You\'re In!';
-      case JoinRequestStatus.rejected:
+      case Joinrequeststatus.rejected:
         return 'Request Declined';
     }
   }
 
-  String _descriptionFor(JoinRequestStatus status, String? societyName) {
+  String _descriptionFor(Joinrequeststatus status, String? societyName) {
     final name = societyName ?? 'the society';
     switch (status) {
-      case JoinRequestStatus.pending:
+      case Joinrequeststatus.pending:
         return 'Your request to join $name has been sent. You\'ll be notified once the admin reviews it.';
-      case JoinRequestStatus.approved:
+      case Joinrequeststatus.approved:
         return 'Your request to join $name has been approved. Welcome aboard!';
-      case JoinRequestStatus.rejected:
+      case Joinrequeststatus.rejected:
         return 'Your request to join $name was not approved. Contact your society admin for details.';
     }
   }
 }
 
 class _StatusIcon extends StatelessWidget {
-  final JoinRequestStatus status;
+  final Joinrequeststatus status;
   final AnimationController pulseController;
   const _StatusIcon({required this.status, required this.pulseController});
 
   @override
   Widget build(BuildContext context) {
     final (Color bg, Color fg, IconData icon) = switch (status) {
-      JoinRequestStatus.pending => (
+      Joinrequeststatus.pending => (
           AppColors.pendingBg,
           AppColors.pending,
           Icons.hourglass_top_rounded
         ),
-      JoinRequestStatus.approved => (
+      Joinrequeststatus.approved => (
           AppColors.pastelGreenBg,
           AppColors.successGreenDark,
           Icons.check_circle_rounded
         ),
-      JoinRequestStatus.rejected => (
+      Joinrequeststatus.rejected => (
           AppColors.dangerBg,
           AppColors.danger,
           Icons.cancel_rounded
@@ -368,7 +368,7 @@ class _StatusIcon extends StatelessWidget {
       child: Icon(icon, size: 42, color: fg),
     );
 
-    if (status != JoinRequestStatus.pending) return core;
+    if (status != Joinrequeststatus.pending) return core;
 
     return AnimatedBuilder(
       animation: pulseController,
@@ -466,13 +466,13 @@ class _DetailRow extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ReviewTimeline extends StatelessWidget {
-  final JoinRequestStatus status;
+  final Joinrequeststatus status;
   final DateTime submittedAt;
   const _ReviewTimeline({required this.status, required this.submittedAt});
 
   @override
   Widget build(BuildContext context) {
-    final isResolved = status != JoinRequestStatus.pending;
+    final isResolved = status != Joinrequeststatus.pending;
 
     return Container(
       width: double.infinity,
@@ -502,17 +502,17 @@ class _ReviewTimeline extends StatelessWidget {
             isLast: false,
           ),
           _TimelineStep(
-            title: status == JoinRequestStatus.rejected ? 'Declined' : 'Decision',
+            title: status == Joinrequeststatus.rejected ? 'Declined' : 'Decision',
             subtitle: switch (status) {
-              JoinRequestStatus.pending => 'Pending',
-              JoinRequestStatus.approved => 'Approved — welcome aboard!',
-              JoinRequestStatus.rejected => 'Not approved this time',
+              Joinrequeststatus.pending => 'Pending',
+              Joinrequeststatus.approved => 'Approved — welcome aboard!',
+              Joinrequeststatus.rejected => 'Not approved this time',
             },
             isDone: isResolved,
             isActive: false,
             isLast: true,
             doneColor:
-                status == JoinRequestStatus.rejected ? AppColors.danger : null,
+                status == Joinrequeststatus.rejected ? AppColors.danger : null,
           ),
         ],
       ),
@@ -763,12 +763,12 @@ class _SpecChip extends StatelessWidget {
 }
 
 class _NotifyNote extends StatelessWidget {
-  final JoinRequestStatus status;
+  final Joinrequeststatus status;
   const _NotifyNote({required this.status});
 
   @override
   Widget build(BuildContext context) {
-    if (status != JoinRequestStatus.pending) return const SizedBox.shrink();
+    if (status != Joinrequeststatus.pending) return const SizedBox.shrink();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

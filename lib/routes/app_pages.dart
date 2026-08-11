@@ -27,6 +27,8 @@ import 'package:apart_mate/presentation/profile/bindings/profile_binding.dart';
 import 'package:apart_mate/presentation/profile/views/profile_view.dart';
 import 'package:apart_mate/presentation/updates/bindings/updates_binding.dart';
 import 'package:apart_mate/presentation/updates/views/updates_view.dart';
+import 'package:apart_mate/presentation/manage_properties/bindings/manage_properties_binding.dart';
+import 'package:apart_mate/presentation/manage_properties/views/manage_properties_view.dart';
 // import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
 // import 'package:apart_mate/presentation/edit_profile/views/edit_profile_view.dart';
 
@@ -83,9 +85,9 @@ GetPage(
       binding: UpdatesBinding(),
     ),
     GetPage(
-      name: AppRoutes.requestStatus,
-      page: () => const RequestStatusView(),
-      binding: RequestStatusBinding(),
+      name: AppRoutes.requeststatus,
+      page: () => const requeststatusView(),
+      binding: requeststatusBinding(),
     ),
     GetPage(
       name: AppRoutes.dashboard,
@@ -96,6 +98,11 @@ GetPage(
       name: AppRoutes.profile,
       page: () => const ProfileView(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.manageProperties,
+      page: () => const ManagePropertiesView(),
+      binding: ManagePropertiesBinding(),
     ),
     // GetPage(
     //   name: AppRoutes.editProfile,

@@ -8,15 +8,15 @@ import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 
-class RequestStatusController extends GetxController {
+class requeststatusController extends GetxController {
   final IAuthRepository _authRepository;
   final ISocietyRepository _societyRepository;
   final IPropertyRepository _propertyRepository;
-  RequestStatusController(this._authRepository, this._societyRepository, this._propertyRepository);
+  requeststatusController(this._authRepository, this._societyRepository, this._propertyRepository);
 
   final society = Rxn<SocietyModel>();
   final property = Rxn<PropertyModel>();
-  final status = Rx<JoinRequestStatus>(JoinRequestStatus.pending);
+  final status = Rx<Joinrequeststatus>(Joinrequeststatus.pending);
   final submittedAt = Rx<DateTime>(DateTime.now());
   final isLoading = true.obs;
 

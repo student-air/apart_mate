@@ -240,7 +240,7 @@ Future<void> signUpWithApple() async {
   }
 
   void goToSignup() => Get.toNamed(AppRoutes.signup);
-  void goToLogin() => Get.back();
+  void goToLogin() => Get.toNamed(AppRoutes.login);
 
   @override
   void onClose() {

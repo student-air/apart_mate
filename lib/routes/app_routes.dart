@@ -16,10 +16,11 @@ abstract class AppRoutes {
   static const roleSelection = '/role-selection';
   static const joinSociety = '/join-society';
   static const propertyDetails = '/property-details';
-  static const requestStatus = '/request-status';
+  static const requeststatus = '/request-status';
 
   // Main app
   static const dashboard = '/dashboard';
+  static const manageProperties = '/manage-properties';
   static const updates = '/updates';
   static const profile = '/profile';
   static const editProfile = '/edit-profile';
