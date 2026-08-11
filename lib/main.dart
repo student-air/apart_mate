@@ -6,11 +6,11 @@ import 'package:apart_mate/core/constants/app_strings.dart';
 import 'package:apart_mate/routes/app_pages.dart';
 
 void main() {
-  runApp(const ApartMateApp());
+  runApp(const apart_mateApp());
 }
 
-class ApartMateApp extends StatelessWidget {
-  const ApartMateApp({super.key});
+class apart_mateApp extends StatelessWidget {
+  const apart_mateApp({super.key});
 
   @override
   Widget build(BuildContext context) {

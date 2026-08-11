@@ -131,7 +131,7 @@ class _Header extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'How will you use ApartMate?',
+                    'How will you use apart_mate?',
                     style: AppTextStyles.bodySmall.copyWith(color: AppColors.textOnDarkMuted),
                   ),
                 ],

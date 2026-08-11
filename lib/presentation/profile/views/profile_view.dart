@@ -7,7 +7,7 @@ import 'package:apart_mate/routes/app_routes.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
-import 'package:apart_mate/core/widgets/app_bottom_nav.dart';
+//import 'package:apart_mate/core/widgets/app_bottom_nav.dart';
 import 'package:apart_mate/core/widgets/app_loading.dart';
 import 'package:apart_mate/presentation/profile/controllers/profile_controller.dart';
 
@@ -17,14 +17,14 @@ class ProfileView extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      bottomNavigationBar: AppBottomNav(
-        activeTab: AppNavTab.profile,
-        onHome: () => Get.offNamed(AppRoutes.dashboard),
-        onUpdates: () {},
-        onRequests: () {},
-        onProfile: () {},
-      ),
+      // backgroundColor: AppColors.background,
+      // bottomNavigationBar: AppBottomNav(
+      //   activeTab: AppNavTab.profile,
+      //   onHome: () => Get.offNamed(AppRoutes.dashboard),
+      //   onUpdates: () {},
+      //   onRequests: () {},
+      //   onProfile: () {},
+      // ),
       body: Obx(() {
         if (controller.isLoading.value || controller.user.value == null) {
           return const AppLoading();

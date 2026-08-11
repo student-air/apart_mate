@@ -51,7 +51,7 @@ class RoleSelectionController extends GetxController {
 
   Future<void> continueWithRole() async {
     if (selectedRole.value == null) {
-      AppSnackbar.error('Select a role', 'Please choose how you\'ll use ApartMate');
+      AppSnackbar.error('Select a role', 'Please choose how you\'ll use apart_mate');
       return;
     }
 

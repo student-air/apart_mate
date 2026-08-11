@@ -20,6 +20,7 @@ abstract class AppRoutes {
 
   // Main app
   static const dashboard = '/dashboard';
+  static const updates = '/updates';
   static const profile = '/profile';
   static const editProfile = '/edit-profile';
 }

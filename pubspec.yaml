@@ -41,6 +41,7 @@ dependencies:
   lucide_icons: ^0.257.0
   intl: ^0.20.3
   timeago: ^3.7.1
+  lottie: ^3.5.1
 
   
 

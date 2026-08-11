@@ -25,6 +25,8 @@ import 'package:apart_mate/presentation/dashboard/bindings/dashboard_binding.dar
 import 'package:apart_mate/presentation/dashboard/views/dashboard_view.dart';
 import 'package:apart_mate/presentation/profile/bindings/profile_binding.dart';
 import 'package:apart_mate/presentation/profile/views/profile_view.dart';
+import 'package:apart_mate/presentation/updates/bindings/updates_binding.dart';
+import 'package:apart_mate/presentation/updates/views/updates_view.dart';
 // import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
 // import 'package:apart_mate/presentation/edit_profile/views/edit_profile_view.dart';
 
@@ -75,7 +77,11 @@ GetPage(
       binding: PropertyDetailsBinding(),
     ),
     // TODO: register as each module is built
-    
+    GetPage(
+      name: AppRoutes.updates,
+      page: () => const UpdatesView(),
+      binding: UpdatesBinding(),
+    ),
     GetPage(
       name: AppRoutes.requestStatus,
       page: () => const RequestStatusView(),
