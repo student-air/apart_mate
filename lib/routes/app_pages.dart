@@ -33,6 +33,8 @@ import 'package:apart_mate/presentation/manage_properties/bindings/manage_proper
 import 'package:apart_mate/presentation/manage_properties/views/manage_properties_view.dart';
 import 'package:apart_mate/presentation/members/bindings/members_binding.dart';
 import 'package:apart_mate/presentation/members/views/members_view.dart';
+import 'package:apart_mate/presentation/add_manager/bindings/add_manager_binding.dart';
+import 'package:apart_mate/presentation/add_manager/views/add_manager_view.dart';
 
 // import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
 // import 'package:apart_mate/presentation/edit_profile/views/edit_profile_view.dart';
@@ -118,6 +120,11 @@ GetPage(
       name: AppRoutes.members,
       page: () => const MembersView(),
       binding: MembersBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.addManager,
+      page: () => const AddManagerView(),
+      binding: AddManagerBinding(),
     ),
     // GetPage(
     //   name: AppRoutes.editProfile,

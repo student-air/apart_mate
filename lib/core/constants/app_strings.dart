@@ -115,4 +115,18 @@ class AppStrings {
   static const switchToOwner = 'Switch to Owner';
 
   static const occupationHint = 'e.g. Engineer, Doctor...';
+
+  static String managerDetails = 'Manager Details';
+
+  static String managerDetailsSubtitle = 'Enter the manager’s basic information';
+
+  static String addManagerSubtitle = 'Invite a manager to your property';
+
+  static String addManager = 'Add Manager';
+
+  static String saveManager = 'Save Manager';
+
+  static String managerWillUseCode = 'Manager will use this code to join';
+
+  static String managerAdded = 'Manager Added!';
 }

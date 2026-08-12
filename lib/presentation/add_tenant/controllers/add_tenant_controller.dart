@@ -4,6 +4,8 @@ import 'package:apart_mate/core/constants/app_strings.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/core/widgets/app_button.dart';
+import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
+import 'package:apart_mate/presentation/members/controllers/members_controller.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,17 +26,16 @@ class AddTenantController extends GetxController {
   late final LocalTenantRepository _tenantRepo;
 
   List<PropertyModel> get vacantProperties {
-    // All properties that are not occupied
     final all = _dashboard.propertiesInCurrentSociety;
     return all.where((p) => !p.isOccupied).toList();
   }
 
   @override
-  void onInit() {
-    super.onInit();
-    _dashboard = Get.find<DashboardController>();
-    _tenantRepo = LocalTenantRepository();
-  }
+void onInit() {
+  super.onInit();
+  _dashboard = Get.find<DashboardController>();
+  _tenantRepo = Get.find<ITenantRepository>() as LocalTenantRepository;
+}
 
   void selectProperty(String id) {
     selectedPropertyId.value = id;
@@ -169,8 +170,15 @@ const SizedBox(height: 28),
 AppPrimaryButton(
   label: AppStrings.done,
   onPressed: () {
-    Get.back();
-    
+    Get.back(); // close sheet
+
+    // If MembersController is already open, refresh it
+    if (Get.isRegistered<MembersController>()) {
+      Get.find<MembersController>().loadMembers();
+    }
+
+    // Go to Members (replace add-tenant so back doesn't return to form)
+    Get.offNamed(AppRoutes.members);
   },
 ),
         ],

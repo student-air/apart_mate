@@ -189,10 +189,7 @@ Row(
                  _DrawerItem(
   icon: Icons.home_rounded,
   label: 'Home',
-  onTap: () {
-    
-    Get.offNamed(AppRoutes.dashboard);
-  },
+  onTap: () => Get.offNamed(AppRoutes.dashboard),
 ),
 _DrawerItem(
   icon: Icons.person_add_alt_1_rounded,
@@ -202,12 +199,7 @@ _DrawerItem(
 _DrawerItem(
   icon: Icons.badge_rounded,
   label: 'Add Manager',
-  onTap: () {
-    AppSnackbar.info(
-      'Add Manager',
-      'Coming soon',
-    );
-  },
+  onTap: () => Get.toNamed(AppRoutes.addManager),
 ),
 _DrawerItem(
   icon: Icons.campaign_rounded,
@@ -220,9 +212,7 @@ _DrawerItem(
 _DrawerItem(
   icon: Icons.groups_rounded,
   label: 'Members',
-  onTap: () {
-    
-  },
+  onTap: () => Get.toNamed(AppRoutes.members),
 ),
 _DrawerItem(
   icon: Icons.home_work_rounded,

@@ -1151,7 +1151,7 @@ class _QuickActionsCard extends StatelessWidget {
         'Add Manager',
         AppColors.pastelBlueBg,
         AppColors.pastelBlueIcon,
-        () => _showComingSoon('Add Manager'),
+        () => Get.toNamed(AppRoutes.addManager),
       ),
       (
         Icons.edit_rounded,
