@@ -34,7 +34,7 @@ class DashboardView extends GetView<DashboardController> {
         activeTab: AppNavTab.home,
         onHome: () => Get.offNamed(AppRoutes.dashboard),
         onUpdates: () => Get.toNamed(AppRoutes.updates),
-        onMembers: () {},
+        onMembers: () => Get.toNamed(AppRoutes.members),
         onProfile: () => Get.toNamed(AppRoutes.profile),
       ),
       body: Obx(() {
@@ -994,14 +994,11 @@ class _PropertyDropdown extends StatelessWidget {
                         if (onToggleOccupancy != null) {
                           onToggleOccupancy!(p);
                         } else {
-                          Get.snackbar(
+                          AppSnackbar.info(
                             'Occupancy',
                             p.isOccupied
                                 ? 'Mark as Vacant — coming soon'
                                 : 'Mark as Occupied — coming soon',
-                            snackPosition: SnackPosition.BOTTOM,
-                            margin: const EdgeInsets.all(16),
-                            borderRadius: 12,
                           );
                         }
                       });
@@ -1147,7 +1144,7 @@ class _QuickActionsCard extends StatelessWidget {
         'Add Tenant',
         AppColors.pastelGreenBg,
         AppColors.pastelGreenIcon,
-        () => _showComingSoon('Add Tenant'),
+        () => Get.toNamed(AppRoutes.addTenant),
       ),
       (
         Icons.badge_rounded,

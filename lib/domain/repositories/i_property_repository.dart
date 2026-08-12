@@ -6,4 +6,5 @@ abstract class IPropertyRepository {
   Future<void> saveProperty(PropertyModel property);
   Future<PropertyModel?> getPropertyForUser(String userId); // keep for backward compat
   Future<List<PropertyModel>> getPropertiesForUser(String userId); // NEW
+  Future<void> deleteProperty(String propertyId);
 }

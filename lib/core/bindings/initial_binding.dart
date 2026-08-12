@@ -1,7 +1,8 @@
 // lib/core/bindings/initial_binding.dart
 
+import 'package:apart_mate/data/repositories/local_tenant_repository.dart';
+import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
 import 'package:get/get.dart';
-
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/data/repositories/local_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_profile_repository.dart';
@@ -21,5 +22,6 @@ class InitialBinding extends Bindings {
     Get.put<ISocietyRepository>(LocalSocietyRepository(), permanent: true);
     Get.put<IPropertyRepository>(LocalPropertyRepository(), permanent: true);
     Get.put<IUpdateRepository>(LocalUpdateRepository(), permanent: true);
+    Get.put<ITenantRepository>(LocalTenantRepository(), permanent: true);
   }
 }

@@ -197,14 +197,7 @@ Row(
 _DrawerItem(
   icon: Icons.person_add_alt_1_rounded,
   label: 'Add Tenant',
-  onTap: () {
-    
-    AppSnackbar.info(
-      'Add Tenant',
-      'Coming soon',
-      
-    );
-  },
+  onTap: () => Get.toNamed(AppRoutes.addTenant),
 ),
 _DrawerItem(
   icon: Icons.badge_rounded,
@@ -233,10 +226,8 @@ _DrawerItem(
 ),
 _DrawerItem(
   icon: Icons.home_work_rounded,
-  label: 'My Property',
-  onTap: () {
-    
-  },
+  label: 'My Properties',
+  onTap: () => Get.toNamed(AppRoutes.manageProperties),
 ),
 
 // ── NEW ───────────────────────────────────────────

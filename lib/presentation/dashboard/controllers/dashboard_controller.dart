@@ -203,6 +203,18 @@ class DashboardController extends GetxController {
     }
   }
 
+  Future<void> deleteProperty(PropertyModel property) async {
+  await _propertyRepository.deleteProperty(property.id);
+
+  // If the deleted property was the selected one, clear it
+  if (this.property.value?.id == property.id) {
+    this.property.value = null;
+  }
+
+  // Refresh so lists update
+  await loadDashboard();
+}
+
   /// Switch property within current society (property card dropdown)
   void selectProperty(PropertyModel selected) {
     if (property.value?.id == selected.id) return;

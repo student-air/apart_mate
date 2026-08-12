@@ -1,15 +1,15 @@
-/// Centralized user-facing copy. Keeps text out of widgets and ready
-/// for future localization (l10n) without touching UI code.
+// lib/core/constants/app_strings.dart
+
 class AppStrings {
   AppStrings._();
 
-  // App
+  // ── App ──────────────────────────────────────────────
   static const appName = 'Apart Mate';
   static const appTagline = 'Management at Your Fingertips';
   static const tapToContinue = 'Tap to continue';
   static const appVersion = 'v1.0.0';
 
-  // Auth - Login
+  // ── Auth - Login ─────────────────────────────────────
   static const welcomeBack = 'Welcome Back';
   static const signInSubtitle = 'Sign in to manage your property with ease';
   static const username = 'Username';
@@ -24,7 +24,7 @@ class AppStrings {
   static const noAccount = "Don't have an account? ";
   static const signUp = 'Sign Up';
 
-  // Auth - Signup
+  // ── Auth - Signup ────────────────────────────────────
   static const createAccount = 'Create Account';
   static const signUpSubtitle = 'Join apart_mate as a resident or owner ';
   static const fullName = 'Full Name';
@@ -32,21 +32,14 @@ class AppStrings {
   static const email = 'Email';
   static const emailHint = 'Enter your email';
   static const phoneNumber = 'Phone Number';
-  static const phoneHint = '+92 300 1234567';
+  static const phoneHint = 'e.g. +92 300 1234567';
   static const createPasswordHint = 'Create a strong password';
   static const confirmPassword = 'Confirm Password';
   static const confirmPasswordHint = 'Re-enter your password';
   static const register = 'Register';
   static const alreadyHaveAccount = 'Already have an account? ';
-
-  // Society register
-  static const registerSociety = 'Register Society';
-  static const societyName = 'Society Name';
-  static const societyNameHint = 'e.g. Housing Society';
-  static const ownerName = 'Owner Name';
-  static const ownerNameHint = 'e.g. John Doe';
-  static const address = 'Address';
-  static const addressHint = 'Enter the society address';
+  static const cnic = 'CNIC';
+  static const cnicHint = 'e.g. 35202-1234567-8';
   static const city = 'City';
   static const cityHint = 'Select city';
   static const country = 'Country';
@@ -54,62 +47,72 @@ class AppStrings {
   static const contactNumber = 'Contact Number';
   static const contactNumberHint = '+92 300 1234567';
   static const descriptionOptional = 'Description (Optional)';
-  static const descriptionHint = 'Brief description about the society...';
-  static const submitRegistration = 'Submit Registration';
-  
-  // Society register - Registration status
-  static const registrationSubmitted = 'Registration Submitted!';
-  static const registrationSubmittedDesc = 'Your request has been sent. You will be notified via SMS and email once approved.';
-  static const status = 'Status';
-  static const pendingReview = 'PENDING REVIEW';
-  static const date = 'Date';
-  static const continueSetup = 'Continue Setup';
+  static const descriptionHint = 'Brief description about...';
 
+  // ── Common ───────────────────────────────────────────
+  static const cancel = 'Cancel';
+  static const delete = 'Delete';
+  static const save = 'Save';
+  static const done = 'Done';
+  static const retry = 'Retry';
+  static const viewAll = 'View All';
+  static const comingSoon = 'Coming soon';
 
-  // Society register
-  static const societyBuildings = 'Society Buildings';
-  static const noBuildingsAdded = 'No Buildings Added';
-  static const noBuildingsHint = 'Click the button below to add your first building.';
-  static const addBuilding = 'Add Building';
-  static const buildingName = 'Building Name';
-  static const buildingNameHint = 'e.g. Building A, Tower 1, Block North…';
-  static const saveBuilding = 'Save Building';
-  static const continueToStaffSetup = 'Save and Continue';
-  static const detailsConfigured = '✓ Details configured';
-  static const tapToAddDetails = 'Tap to add details';
-  static const buildingComplete = 'Complete';
-  static const buildingInProgress = 'In progress';
+  // ── Dashboard ────────────────────────────────────────
+  static const goodMorning = 'Good Morning';
+  static const goodAfternoon = 'Good Afternoon';
+  static const goodEvening = 'Good Evening';
+  static const owner = 'Owner';
+  static const tenant = 'Tenant';
+  static const todaysDate = "Today's Date";
+  static const quickActions = 'Quick Actions';
+  static const propertyDetails = 'Property Details';
+  static const latestUpdates = 'Latest Updates';
+  static const noUpdatesYet = 'No updates yet';
+  static const noPropertyFound = 'No property found on your account yet.';
 
-  // Building details
-  static const buildingConfiguration = 'Building Configuration';
-  static const structure = 'Structure';
-  static const totalFloors = 'Total Floors';
-  static const totalFloorsDesc = 'Number of floors in building';
-  static const flatsPerFloor = 'Flats per Floor';
-  static const flatsPerFloorDesc = 'Apartments on each level';
-  static const totalApartments = 'Total Apartments';
-  static const flatTypes = 'Flat Types';
-  static const parking = 'Parking';
-  static const dedicatedParking = 'Dedicated Parking';
-  static const dedicatedParkingDesc = 'Resident parking available';
-  static const parkingSlots = 'Parking Slots';
-  static const parkingSlotsDesc = 'Total available spots';
-  static const amenities = 'Amenities';
-  static const elevatorLift = 'Elevator / Lift';
-  static const elevatorLiftDesc = 'Passenger lift available';
-  static const saveBuildingDetails = 'Save Building Details';
-  // Staff management
-  static const managementStaff = 'Management Staff';
-  static const noStaffAdded = 'No Staff Added Yet';
-  static const noStaffHint = 'Click the button below to add staff members.';
-  static const addStaff = 'Add Staff';
-  static const addStaffMember = 'Add Staff Member';
-  static const cnic = 'CNIC';
-  static const cnicHint = 'e.g. 35202-1234567-8';
-  static const role = 'Role';
-  static const shift = 'Shift';
-  static const saveStaffMember = 'Save Staff Member';
-  static const saveAndGoToDashboard = 'Save & Go to Dashboard';
+  // ── My Properties ────────────────────────────────────
+  static const myProperties = 'My Properties';
+  static const edit = 'Edit';
+  static const active = 'Active';
+  static const occupied = 'Occupied';
+  static const vacant = 'Vacant';
+  static const deletePropertyTitle = 'Delete property?';
+  static String deletePropertyMessage(String flat) =>
+      'This will permanently remove "Flat $flat" from the list.';
+  static const propertyDeleted = 'Deleted';
+  static String propertyDeletedMessage(String flat) =>
+      'Flat $flat has been permanently removed';
 
-  static const flatNumberHint = 'e.g. E-101, A-202, A-1, B-2…';
+  // ── Add Tenant ───────────────────────────────────────
+  static const addTenant = 'Add Tenant';
+  static const addTenantSubtitle = 'Invite a tenant to your property';
+  static const tenantDetails = 'Tenant Details';
+  static const tenantDetailsSubtitle = 'Enter the tenant’s basic information';
+  static const selectVacantProperty = 'Select Vacant Property';
+  static const onlyVacantShown = 'Only vacant properties are shown';
+  static const noVacantProperties = 'No vacant properties available';
+  static const saveTenant = 'Save Tenant';
+  static const tenantAdded = 'Tenant Added!';
+  static String shareCodeWith(String name) => 'Share this code with $name';
+  static const tenantWillUseCode = 'Tenant will use this code to join';
+  static const missingFields = 'Please fill all fields';
+  static const selectProperty = 'Please select a vacant property';
+
+  // ── Drawer ───────────────────────────────────────────
+  static const home = 'Home';
+  static const updates = 'Updates';
+  static const requests = 'Requests';
+  static const myProperty = 'My Property';
+  static const documents = 'Documents';
+  static const maintenance = 'Maintenance';
+  static const complaints = 'Complaints';
+  static const contactAdmin = 'Contact Admin';
+  static const profile = 'Profile';
+  static const settings = 'Settings';
+  static const logout = 'Logout';
+  static const switchToTenant = 'Switch to Tenant';
+  static const switchToOwner = 'Switch to Owner';
+
+  static const occupationHint = 'e.g. Engineer, Doctor...';
 }

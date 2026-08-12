@@ -14,33 +14,36 @@ class ManagePropertiesView extends GetView<ManagePropertiesController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        titleSpacing: -10,
         elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          color: AppColors.textPrimary,
-          onPressed: () => Get.back(),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('My Properties', style: AppTextStyles.h4),
-            Obx(
-              () => Text(
-                controller.societyName.isEmpty
-                    ? 'Active society'
-                    : controller.societyName,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ),
-          ],
-        ),
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+  backgroundColor: AppColors.primaryDark,
+
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+    onPressed: () => Get.back(),
+  ),
+  title: Row(
+    children: [
+      Image.asset('assets/images/logo.png', height: 32, fit: BoxFit.cover),
+            const SizedBox(width: 2),
+      Text(
+        'My Properties',
+        style: AppTextStyles.h4.copyWith(color: Colors.white),
       ),
+    ],
+  ),
+  actions: [
+    // ➕ Add private property
+    IconButton(
+      onPressed: controller.addProperty,
+      icon: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
+    ),
+    const SizedBox(width: 4),
+  ],
+),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -91,7 +94,7 @@ class ManagePropertiesView extends GetView<ManagePropertiesController> {
         }
 
         return RefreshIndicator(
-          onRefresh: controller.refresh,
+          onRefresh: () => controller.refresh(),
           color: AppColors.accentGreenDark,
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
@@ -107,6 +110,7 @@ class ManagePropertiesView extends GetView<ManagePropertiesController> {
                 isSelected: isSelected,
                 onTap: () => controller.selectProperty(property),
                 onEdit: () => controller.editProperty(property),
+                 onDelete: () => controller.deleteProperty(property)
               );
             },
           ),
@@ -153,12 +157,14 @@ class _PropertyManageCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   const _PropertyManageCard({
     required this.property,
     required this.isSelected,
     required this.onTap,
     required this.onEdit,
+    required this.onDelete,
   });
 
   @override
@@ -218,6 +224,7 @@ class _PropertyManageCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Edit button
                   InkWell(
                     onTap: onEdit,
                     borderRadius: BorderRadius.circular(AppDimens.radiusFull),
@@ -260,35 +267,78 @@ class _PropertyManageCard extends StatelessWidget {
               const SizedBox(height: 12),
               const Divider(height: 1, color: AppColors.borderLight),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+
+              // Chips + Delete
+              Row(
                 children: [
-                  _Chip(
-                    label: property.propertyType,
-                    bg: AppColors.pastelBlueBg,
-                    fg: AppColors.pastelBlueIcon,
-                  ),
-                  _Chip(
-                    label: property.flatType.isEmpty ? '—' : property.flatType,
-                    bg: AppColors.surfaceMuted,
-                    fg: AppColors.textSecondary,
-                  ),
-                  _Chip(
-                    label: property.isOccupied ? 'Occupied' : 'Vacant',
-                    bg: property.isOccupied
-                        ? AppColors.pastelOrangeBg
-                        : AppColors.pastelGreenBg,
-                    fg: property.isOccupied
-                        ? AppColors.pastelOrangeIcon
-                        : AppColors.accentGreenDark,
-                  ),
-                  if (isSelected)
-                    const _Chip(
-                      label: 'Active',
-                      bg: AppColors.pastelGreenBg,
-                      fg: AppColors.accentGreenDark,
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _Chip(
+                          label: property.propertyType,
+                          bg: AppColors.pastelBlueBg,
+                          fg: AppColors.pastelBlueIcon,
+                        ),
+                        _Chip(
+                          label: property.flatType.isEmpty
+                              ? '—'
+                              : property.flatType,
+                          bg: AppColors.surfaceMuted,
+                          fg: AppColors.textSecondary,
+                        ),
+                        _Chip(
+                          label:
+                              property.isOccupied ? 'Occupied' : 'Vacant',
+                          bg: property.isOccupied
+                              ? AppColors.pastelOrangeBg
+                              : AppColors.pastelGreenBg,
+                          fg: property.isOccupied
+                              ? AppColors.pastelOrangeIcon
+                              : AppColors.accentGreenDark,
+                        ),
+                        if (isSelected)
+                          const _Chip(
+                            label: 'Active',
+                            bg: AppColors.pastelGreenBg,
+                            fg: AppColors.accentGreenDark,
+                          ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Delete button
+                  InkWell(
+                    onTap: onDelete,
+                    borderRadius:
+                        BorderRadius.circular(AppDimens.radiusFull),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.danger,
+                        borderRadius:
+                            BorderRadius.circular(AppDimens.radiusFull),
+                        border: Border.all(color: AppColors.dangerBorder),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.delete_rounded,
+                            size: 14,
+                            color: AppColors.background,
+                          ),
+                          const SizedBox(width: 1),
+                          
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],

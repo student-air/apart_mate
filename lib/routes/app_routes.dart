@@ -22,6 +22,8 @@ abstract class AppRoutes {
   static const dashboard = '/dashboard';
   static const manageProperties = '/manage-properties';
   static const updates = '/updates';
+  static const addTenant = '/add-tenant';
+  static const members = '/members';
   static const profile = '/profile';
   static const editProfile = '/edit-profile';
 }

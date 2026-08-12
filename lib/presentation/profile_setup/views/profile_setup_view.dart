@@ -1,6 +1,7 @@
 // lib/presentation/profile_setup/views/profile_setup_view.dart
 
 import 'dart:io';
+import 'package:apart_mate/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
@@ -36,7 +37,7 @@ class ProfileSetupView extends GetView<ProfileSetupController> {
                   const SizedBox(height: AppDimens.space32),
                   AppTextField(
                     label: 'Full Name',
-                    hint: 'Enter your full name',
+                    hint: AppStrings.fullNameHint,
                     controller: controller.fullNameCtrl,
                   ),
                   const SizedBox(height: AppDimens.space20),
@@ -52,19 +53,19 @@ class ProfileSetupView extends GetView<ProfileSetupController> {
                   const SizedBox(height: AppDimens.space20),
                   AppTextField(
                     label: 'City',
-                    hint: 'Enter your city',
+                    hint: AppStrings.cityHint,
                     controller: controller.cityCtrl,
                   ),
                   const SizedBox(height: AppDimens.space20),
                   AppTextField(
                     label: 'Occupation',
-                    hint: 'e.g. Engineer, Doctor...',
+                    hint: AppStrings.occupationHint,
                     controller: controller.occupationCtrl,
                   ),
                   const SizedBox(height: AppDimens.space20),
                   AppTextField(
                     label: 'Emergency Contact',
-                    hint: '+92 300 0000000',
+                    hint: AppStrings.phoneHint,
                     controller: controller.emergencyContactCtrl,
                     keyboardType: TextInputType.phone,
                   ),

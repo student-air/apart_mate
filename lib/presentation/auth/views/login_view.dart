@@ -178,7 +178,7 @@ class _LoginFormCardState extends State<_LoginFormCard> with SingleTickerProvide
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () => AppSnackbar.info('Forgot password', 'This will be added soon.'),
+                onPressed: () => AppSnackbar.error('Forgot password', 'This will be added soon.'),
                 child: Text(AppStrings.forgotPassword, style: AppTextStyles.labelLarge),
               ),
             ),

@@ -82,6 +82,12 @@ class LocalPropertyRepository implements IPropertyRepository {
   }
 
   @override
+  Future<void> deleteProperty(String propertyId) async {
+    await _simulateLatency();
+    _properties.remove(propertyId);
+  }
+
+  @override
   Future<PropertyModel?> getPropertyForUser(String userId) async {
     final list = await getPropertiesForUser(userId);
     return list.isEmpty ? null : list.first;

@@ -1,5 +1,7 @@
 // lib/routes/app_pages.dart
 
+import 'package:apart_mate/presentation/add_tenant/bindings/add_tenant_binding.dart';
+import 'package:apart_mate/presentation/add_tenant/views/add_tenant_view.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 
@@ -29,6 +31,9 @@ import 'package:apart_mate/presentation/updates/bindings/updates_binding.dart';
 import 'package:apart_mate/presentation/updates/views/updates_view.dart';
 import 'package:apart_mate/presentation/manage_properties/bindings/manage_properties_binding.dart';
 import 'package:apart_mate/presentation/manage_properties/views/manage_properties_view.dart';
+import 'package:apart_mate/presentation/members/bindings/members_binding.dart';
+import 'package:apart_mate/presentation/members/views/members_view.dart';
+
 // import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
 // import 'package:apart_mate/presentation/edit_profile/views/edit_profile_view.dart';
 
@@ -103,6 +108,16 @@ GetPage(
       name: AppRoutes.manageProperties,
       page: () => const ManagePropertiesView(),
       binding: ManagePropertiesBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.addTenant,
+      page: () => const AddTenantView(),
+      binding: AddTenantBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.members,
+      page: () => const MembersView(),
+      binding: MembersBinding(),
     ),
     // GetPage(
     //   name: AppRoutes.editProfile,

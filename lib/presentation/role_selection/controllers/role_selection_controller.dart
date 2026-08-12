@@ -26,7 +26,7 @@ class RoleSelectionController extends GetxController {
   static const roles = [
     RoleOption(
       value: 'owner',
-      title: 'Flat Owner',
+      title: 'Owner',
       description: 'I own a property in this society',
       icon: 'owner',
     ),
