@@ -3,7 +3,7 @@ import 'package:apart_mate/data/models/tenant_model.dart';
 import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
 
 class LocalTenantRepository implements ITenantRepository {
-  final Map<String, TenantModel> _tenants = {};
+  //final Map<String, TenantModel> _tenants = {};
 
   String _generateCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
@@ -58,4 +58,18 @@ class LocalTenantRepository implements ITenantRepository {
     await saveTenant(tenant);
     return tenant;
   }
+
+  final Map<String, TenantModel> _tenants = {
+  'tenant_demo_1': TenantModel(
+    id: 'tenant_demo_1',
+    fullName: 'Sara Ahmed',
+    phone: '03001234567',
+    cnic: '35202-1234567-8',
+    propertyId: 'property_demo_google_2',
+    propertyLabel: 'Flat B-501 · Block B',
+    inviteCode: 'T4QWE5',
+    status: 'pending',
+    createdAt: DateTime.now(),
+  ),
+};
 }

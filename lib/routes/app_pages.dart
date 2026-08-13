@@ -2,6 +2,8 @@
 
 import 'package:apart_mate/presentation/add_tenant/bindings/add_tenant_binding.dart';
 import 'package:apart_mate/presentation/add_tenant/views/add_tenant_view.dart';
+import 'package:apart_mate/presentation/tenant_confirm/bindings/tenant_confirm_binding.dart';
+import 'package:apart_mate/presentation/tenant_confirm/views/tenant_confirm_view.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 
@@ -35,7 +37,8 @@ import 'package:apart_mate/presentation/members/bindings/members_binding.dart';
 import 'package:apart_mate/presentation/members/views/members_view.dart';
 import 'package:apart_mate/presentation/add_manager/bindings/add_manager_binding.dart';
 import 'package:apart_mate/presentation/add_manager/views/add_manager_view.dart';
-
+import 'package:apart_mate/presentation/tenant_join_code/bindings/tenant_join_code_binding.dart';
+import 'package:apart_mate/presentation/tenant_join_code/views/tenant_join_code_view.dart';
 // import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
 // import 'package:apart_mate/presentation/edit_profile/views/edit_profile_view.dart';
 
@@ -125,6 +128,16 @@ GetPage(
       name: AppRoutes.addManager,
       page: () => const AddManagerView(),
       binding: AddManagerBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.tenantJoinCode,
+      page: () => const TenantJoinCodeView(),
+      binding: TenantJoinCodeBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.tenantConfirm,
+      page: () => const TenantConfirmView(),
+      binding: TenantConfirmBinding(),
     ),
     // GetPage(
     //   name: AppRoutes.editProfile,

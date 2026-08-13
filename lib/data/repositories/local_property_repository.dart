@@ -98,4 +98,10 @@ class LocalPropertyRepository implements IPropertyRepository {
     await _simulateLatency();
     return _properties.values.where((p) => p.userId == userId).toList();
   }
+
+  @override
+  Future<PropertyModel?> getPropertyById(String propertyId) async {
+    await _simulateLatency();
+    return _properties[propertyId];
+  }
 }

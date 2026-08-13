@@ -27,4 +27,7 @@ abstract class AppRoutes {
   static const members = '/members';
   static const profile = '/profile';
   static const editProfile = '/edit-profile';
+
+  static const tenantJoinCode = '/tenant-join-code';
+  static const tenantConfirm = '/tenant-confirm';
 }

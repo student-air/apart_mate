@@ -27,13 +27,13 @@ class RoleSelectionController extends GetxController {
     RoleOption(
       value: 'owner',
       title: 'Owner',
-      description: 'I own a property in this society',
+      description: 'I own property in a society',
       icon: 'owner',
     ),
     RoleOption(
       value: 'tenant',
       title: 'Tenant',
-      description: 'I rent a property in this society',
+      description: 'I rent a property ',
       icon: 'tenant',
     ),
     RoleOption(
@@ -58,7 +58,12 @@ class RoleSelectionController extends GetxController {
     isLoading.value = true;
     try {
       await _authRepository.updateUserRole(selectedRole.value!);
+
+      if (selectedRole.value == 'tenant') {
+        Get.offNamed(AppRoutes.tenantJoinCode);
+      } else {
       Get.offNamed(AppRoutes.joinSociety);
+      }
     } catch (e) {
       AppSnackbar.error('Something went wrong', 'Please try again');
     } finally {
