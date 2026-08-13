@@ -1,3 +1,5 @@
+import 'package:apart_mate/core/session/app_session.dart';
+import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/utils/validators.dart';
@@ -45,14 +47,25 @@ class AuthController extends GetxController {
 
   /// Routes the user to onboarding (new account) or straight to the
   /// dashboard (returning account) after any successful auth action.
-  Future<void> _navigateAfterAuth({bool isNewUser = false}) async {
-    if (isNewUser) {
-      Get.offAllNamed(AppRoutes.profileSetup);
-    } else {
-      AppSnackbar.success('Login successful', 'Welcome back!');
-      Get.offAllNamed(AppRoutes.dashboard);
-    }
+  /// Routes the user to onboarding (new account) or Home (returning account)
+/// after any successful auth action.
+Future<void> _navigateAfterAuth({bool isNewUser = false}) async {
+  if (isNewUser) {
+    Get.offAllNamed(AppRoutes.profileSetup);
+    return;
   }
+
+  // Returning user → set role from user, then go to correct Home
+  final user = _authRepository.currentUser;
+  final role = (user?.role ?? 'owner').toLowerCase();
+
+  if (Get.isRegistered<AppSession>()) {
+    Get.find<AppSession>().setRole(role);
+  }
+
+  AppSnackbar.success('Login successful', 'Welcome back!');
+  AppNavigation.goHome(); // owner → dashboard, tenant → tenant-dashboard
+}
 
   bool _isCancelled(Object e) {
     final msg = e.toString().toLowerCase();

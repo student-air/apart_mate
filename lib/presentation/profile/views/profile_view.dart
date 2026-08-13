@@ -5,14 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
-import 'package:apart_mate/core/constants/app_dimens.dart';
+// import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
+import 'package:apart_mate/core/session/app_session.dart';
+import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
+import 'package:apart_mate/core/widgets/app_bottom_nav.dart';
 import 'package:apart_mate/core/widgets/app_loading.dart';
-import 'package:apart_mate/data/models/profile_model.dart';
 import 'package:apart_mate/data/models/society_model.dart';
 import 'package:apart_mate/data/models/user_model.dart';
 import 'package:apart_mate/presentation/profile/controllers/profile_controller.dart';
+import 'package:apart_mate/routes/app_routes.dart';
 
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({super.key});
@@ -21,14 +24,56 @@ class ProfileView extends GetView<ProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
+      floatingActionButton: AppAddFab(onPressed: () {}),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: AppBottomNav(
+        items: [
+          NavItemData(
+            icon: Icons.home_rounded,
+            label: 'Home',
+            isActive: false,
+            onTap: AppNavigation.goHome,
+          ),
+          NavItemData(
+            icon: Icons.campaign_rounded,
+            label: 'Updates',
+            isActive: false,
+            onTap: () => Get.toNamed(AppRoutes.updates),
+          ),
+          NavItemData(
+            icon: AppNavigation.isTenant
+                ? Icons.report_problem_rounded
+                : Icons.groups_rounded,
+            label: AppNavigation.isTenant ? 'Complaints' : 'Members',
+            isActive: false,
+            onTap: () {
+              if (AppNavigation.isTenant) {
+                // Get.toNamed(AppRoutes.complaints);
+              } else {
+                Get.toNamed(AppRoutes.members);
+              }
+            },
+          ),
+          NavItemData(
+            icon: Icons.person_rounded,
+            label: 'Profile',
+            isActive: true,
+            onTap: () {},
+          ),
+        ],
+      ),
       body: Obx(() {
         if (controller.isLoading.value || controller.user.value == null) {
           return const AppLoading();
         }
 
         final user = controller.user.value!;
-        final profile = controller.profile.value;
         final society = controller.society.value;
+
+        // Rebuild role badge when session role changes
+        if (Get.isRegistered<AppSession>()) {
+          Get.find<AppSession>().currentRole.value;
+        }
 
         return RefreshIndicator(
           onRefresh: controller.refresh,
@@ -37,7 +82,6 @@ class ProfileView extends GetView<ProfileController> {
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
-                // ── Dark header + overlapping identity card ──
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -92,14 +136,20 @@ class ProfileView extends GetView<ProfileController> {
                 ),
 
                 const SizedBox(height: 16),
-                // ── Contact ──────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: _ContactCard(user: user),
                 ),
 
+                if (society != null) ...[
+                  const SizedBox(height: 14),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _SocietyCard(society: society),
+                  ),
+                ],
+
                 const SizedBox(height: 14),
-                // ── Settings ─────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Align(
@@ -117,12 +167,10 @@ class ProfileView extends GetView<ProfileController> {
                 const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _SettingsCard(),
+                  child: _SettingsCard(isTenant: controller.isTenant),
                 ),
 
                 const SizedBox(height: 14),
-
-                // ── Log out ──────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: _LogoutCard(onTap: controller.confirmLogout),
@@ -135,7 +183,7 @@ class ProfileView extends GetView<ProfileController> {
                     color: AppColors.textMuted,
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 100),
               ],
             ),
           ),
@@ -179,7 +227,6 @@ class _IdentityCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Centered avatar + name + role
           SizedBox(
             width: double.infinity,
             child: Column(
@@ -239,8 +286,6 @@ class _IdentityCard extends StatelessWidget {
               ],
             ),
           ),
-
-          // Edit button — top right
           Positioned(
             top: 0,
             right: 0,
@@ -266,6 +311,7 @@ class _IdentityCard extends StatelessWidget {
     );
   }
 }
+
 // ─────────────────────────────────────────────────────────────
 // CONTACT
 // ─────────────────────────────────────────────────────────────
@@ -471,9 +517,26 @@ class _SocietyCard extends StatelessWidget {
 // SETTINGS
 // ─────────────────────────────────────────────────────────────
 class _SettingsCard extends StatelessWidget {
+  final bool isTenant;
+  const _SettingsCard({required this.isTenant});
+
   @override
   Widget build(BuildContext context) {
     final items = <(IconData, Color, Color, String)>[
+      if (!isTenant)
+        (
+          Icons.home_work_rounded,
+          const Color(0xFFE8F8EF),
+          AppColors.accentGreenDark,
+          'My Properties',
+        ),
+      if (isTenant)
+        (
+          Icons.apartment_rounded,
+          const Color(0xFFE8F8EF),
+          AppColors.accentGreenDark,
+          'My Flat',
+        ),
       (
         Icons.notifications_none_rounded,
         const Color(0xFFE8F1FF),
@@ -513,7 +576,11 @@ class _SettingsCard extends StatelessWidget {
           return Column(
             children: [
               InkWell(
-                onTap: () {},
+                onTap: () {
+                  if (label == 'My Properties') {
+                    Get.toNamed(AppRoutes.manageProperties);
+                  }
+                },
                 borderRadius: BorderRadius.vertical(
                   top: i == 0 ? const Radius.circular(20) : Radius.zero,
                   bottom: isLast ? const Radius.circular(20) : Radius.zero,

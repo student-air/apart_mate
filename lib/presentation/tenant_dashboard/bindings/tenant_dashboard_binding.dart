@@ -4,6 +4,6 @@ import 'package:apart_mate/presentation/tenant_dashboard/controllers/tenant_dash
 class TenantDashboardBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<TenantDashboardController>(() => TenantDashboardController());
+    Get.lazyPut(() => TenantDashboardController());
   }
 }

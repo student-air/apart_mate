@@ -1,5 +1,6 @@
 // lib/presentation/dashboard/views/dashboard_view.dart
 
+import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -24,19 +25,42 @@ class DashboardView extends GetView<DashboardController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: AppDrawer(
-        userName: controller.userName,
-        roleLabel: controller.roleLabel,
-        societyName: controller.society.value?.name ?? '',
-      ),
+  userName: controller.userName,
+  roleLabel: controller.roleLabel,
+  societyName: controller.society.value?.name ?? '',
+  isTenant: AppNavigation.isTenant,
+),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: AppAddFab(onPressed: () {}),
       bottomNavigationBar: AppBottomNav(
-        activeTab: AppNavTab.home,
-        onHome: () => Get.offNamed(AppRoutes.dashboard),
-        onUpdates: () => Get.toNamed(AppRoutes.updates),
-        onMembers: () => Get.toNamed(AppRoutes.members),
-        onProfile: () => Get.toNamed(AppRoutes.profile),
-      ),
+  items: [
+    NavItemData(
+      icon: Icons.home_rounded,
+      label: 'Home',
+      isActive: true,
+      onTap: AppNavigation.goHome,
+    ),
+    NavItemData(
+      icon: Icons.campaign_rounded,
+      label: 'Updates',
+      isActive: false,
+      onTap: () => Get.toNamed(AppRoutes.updates),
+    ),
+    NavItemData(
+      icon: Icons.groups_rounded,
+      label: 'Members',
+      isActive: false,
+      onTap: () => Get.toNamed(AppRoutes.members),
+    ),
+    NavItemData(
+      icon: Icons.person_rounded,
+      label: 'Profile',
+      isActive: false,
+      onTap: () => Get.toNamed(AppRoutes.profile),
+    ),
+  ],
+),
+
       body: Obx(() {
         if (controller.isLoading.value) {
           return const AppLoading();

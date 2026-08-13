@@ -1,5 +1,6 @@
 // lib/core/widgets/app_drawer.dart
 
+import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
@@ -13,6 +14,7 @@ class AppDrawer extends StatelessWidget {
   final String roleLabel;
   final String societyName;
   final String? photoPath;
+  final bool isTenant; // NEW
 
   const AppDrawer({
     super.key,
@@ -20,6 +22,7 @@ class AppDrawer extends StatelessWidget {
     required this.roleLabel,
     required this.societyName,
     this.photoPath,
+    this.isTenant = false,
   });
 
   @override
@@ -152,12 +155,9 @@ Row(
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        
-                        AppSnackbar.info(
-                          'Switch Role',
-                          'Switched to Tenant mode',
-                        );
-                      },
+  Get.back(); // close drawer
+  AppNavigation.switchRoleAndGoHome();
+},
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.accentGreen,
                         side: BorderSide(
@@ -170,7 +170,7 @@ Row(
                       ),
                       icon: const Icon(Icons.swap_horiz_rounded, size: 18),
                       label: Text(
-                        'Switch to Tenant',
+  isTenant ? 'Switch to Owner' : 'Switch to Tenant',
                         style: AppTextStyles.labelLarge.copyWith(
                           color: AppColors.accentGreen,
                         ),
@@ -185,105 +185,94 @@ Row(
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                children: [
-                 _DrawerItem(
-  icon: Icons.home_rounded,
-  label: 'Home',
-  onTap: () => Get.offNamed(AppRoutes.dashboard),
-),
-_DrawerItem(
-  icon: Icons.person_add_alt_1_rounded,
-  label: 'Add Tenant',
-  onTap: () => Get.toNamed(AppRoutes.addTenant),
-),
-_DrawerItem(
-  icon: Icons.badge_rounded,
-  label: 'Add Manager',
-  onTap: () => Get.toNamed(AppRoutes.addManager),
-),
-_DrawerItem(
-  icon: Icons.campaign_rounded,
-  label: 'Updates',
-  onTap: () {
-    
-    Get.toNamed(AppRoutes.updates);
-  },
-),
-_DrawerItem(
-  icon: Icons.groups_rounded,
-  label: 'Members',
-  onTap: () => Get.toNamed(AppRoutes.members),
-),
-_DrawerItem(
-  icon: Icons.home_work_rounded,
-  label: 'My Properties',
-  onTap: () => Get.toNamed(AppRoutes.manageProperties),
-),
+                children: <Widget>[
+                  _DrawerItem(
+                    icon: Icons.home_rounded,
+                    label: 'Home',
+                    onTap: () {
+                      Get.back();
+                      AppNavigation.goHome();
+                    },
+                  ),
 
-// ── NEW ───────────────────────────────────────────
+                  if (!isTenant) ...[
+                    _DrawerItem(
+                      icon: Icons.person_add_alt_1_rounded,
+                      label: 'Add Tenant',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(AppRoutes.addTenant);
+                      },
+                    ),
+                    _DrawerItem(
+                      icon: Icons.badge_rounded,
+                      label: 'Add Manager',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(AppRoutes.addManager);
+                      },
+                    ),
+                    _DrawerItem(
+                      icon: Icons.groups_rounded,
+                      label: 'Members',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(AppRoutes.members);
+                      },
+                    ),
+                    _DrawerItem(
+                      icon: Icons.home_work_rounded,
+                      label: 'My Properties',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(AppRoutes.manageProperties);
+                      },
+                    ),
+                  ],
 
-// ──────────────────────────────────────────────────
+                  if (isTenant) ...[
+                    _DrawerItem(
+                      icon: Icons.apartment_rounded,
+                      label: 'My Flat',
+                      onTap: () {
+                        Get.back();
+                        // later: flat details
+                      },
+                    ),
+                    _DrawerItem(
+                      icon: Icons.report_problem_rounded,
+                      label: 'Complaints',
+                      onTap: () {
+                        Get.back();
+                        // later: complaints
+                      },
+                    ),
+                  ],
 
-_DrawerItem(
-  icon: Icons.build_rounded,
-  label: 'Maintenance',
-  onTap: () {
-    
-  },
-),
-_DrawerItem(
-  icon: Icons.report_problem_rounded,
-  label: 'Complaints',
-  onTap: () {
-    
-  },
-),
-_DrawerItem(
-  icon: Icons.support_agent_rounded,
-  label: 'Contact Admin',
-  onTap: () {
-    
-  },
-),
+                  _DrawerItem(
+                    icon: Icons.campaign_rounded,
+                    label: 'Updates',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.updates);
+                    },
+                  ),
+                  _DrawerItem(
+                    icon: Icons.support_agent_rounded,
+                    label: 'Contact Admin',
+                    onTap: () {
+                      Get.back();
+                    },
+                  ),
+                  _DrawerItem(
+                    icon: Icons.person_rounded,
+                    label: 'Profile',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.profile);
+                    },
+                  ),
                 ],
-              ),
-            ),
-
-            // ── Logout ────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: InkWell(
-                onTap: () {
-                  
-                  // Get.offAllNamed(AppRoutes.login);
-                },
-                borderRadius: BorderRadius.circular(14),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.dangerBg,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.dangerBorder),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.logout_rounded,
-                        size: 18,
-                        color: AppColors.danger,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Logout',
-                        style: AppTextStyles.labelLarge.copyWith(
-                          color: AppColors.danger,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
           ],
@@ -292,6 +281,7 @@ _DrawerItem(
     );
   }
 }
+
 
 class _DrawerItem extends StatelessWidget {
   final IconData icon;

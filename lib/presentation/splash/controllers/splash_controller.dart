@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:apart_mate/core/session/app_session.dart';
+import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 
@@ -25,7 +27,6 @@ class SplashController extends GetxController {
 
   Future<void> _goToNext() async {
     // Guard against skip() firing after _init() already navigated
-    // (e.g. user taps skip right as the delay finishes).
     if (Get.currentRoute != AppRoutes.splash) return;
 
     final authRepository = Get.find<IAuthRepository>();
@@ -37,11 +38,18 @@ class SplashController extends GetxController {
     }
 
     if (user.role.isEmpty) {
-      // Signed in but never finished onboarding.
+      // Signed in but never finished onboarding
       Get.offAllNamed(AppRoutes.roleSelection);
       return;
     }
 
-    Get.offAllNamed(AppRoutes.dashboard);
+    // Set session role from saved user
+    final role = user.role.toLowerCase();
+    if (Get.isRegistered<AppSession>()) {
+      Get.find<AppSession>().setRole(role);
+    }
+
+    // Owner → /dashboard, Tenant → /tenant-dashboard
+    AppNavigation.goHome();
   }
 }

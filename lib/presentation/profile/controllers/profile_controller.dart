@@ -2,6 +2,7 @@
 
 import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_dimens.dart';
+import 'package:apart_mate/core/session/app_session.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:apart_mate/data/models/profile_model.dart';
@@ -9,6 +10,7 @@ import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/data/models/society_model.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 import 'package:apart_mate/data/models/user_model.dart';
+import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_profile_repository.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
@@ -25,9 +27,19 @@ class ProfileController extends GetxController {
   final isLoading = true.obs;
 
   String get roleLabel {
-    final role = user.value?.role ?? '';
-    return role.isEmpty ? '' : role[0].toUpperCase() + role.substring(1);
+  // Prefer active session role (changes on Switch)
+  if (Get.isRegistered<AppSession>()) {
+    final sessionRole = Get.find<AppSession>().currentRole.value;
+    if (sessionRole.isNotEmpty) {
+      return sessionRole[0].toUpperCase() + sessionRole.substring(1);
+    }
   }
+  // Fallback to saved user role
+  final role = user.value?.role ?? '';
+  return role.isEmpty ? '' : role[0].toUpperCase() + role.substring(1);
+}
+
+bool get isTenant => AppNavigation.isTenant;
 
   @override
   void onInit() {

@@ -1,6 +1,8 @@
 // lib/presentation/role_selection/controllers/role_selection_controller.dart
 
 import 'package:get/get.dart';
+import 'package:apart_mate/core/session/app_session.dart';
+import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/routes/app_routes.dart';
@@ -27,13 +29,13 @@ class RoleSelectionController extends GetxController {
     RoleOption(
       value: 'owner',
       title: 'Owner',
-      description: 'I own property in a society',
+      description: 'I own a property in this society',
       icon: 'owner',
     ),
     RoleOption(
       value: 'tenant',
       title: 'Tenant',
-      description: 'I rent a property ',
+      description: 'I rent a property in this society',
       icon: 'tenant',
     ),
     RoleOption(
@@ -51,18 +53,35 @@ class RoleSelectionController extends GetxController {
 
   Future<void> continueWithRole() async {
     if (selectedRole.value == null) {
-      AppSnackbar.error('Select a role', 'Please choose how you\'ll use apart_mate');
+      AppSnackbar.error(
+        'Select a role',
+        'Please choose how you\'ll use apart_mate',
+      );
       return;
     }
 
+    final role = selectedRole.value!.toLowerCase();
+
     isLoading.value = true;
     try {
-      await _authRepository.updateUserRole(selectedRole.value!);
+      // Save role on user
+      await _authRepository.updateUserRole(role);
 
-      if (selectedRole.value == 'tenant') {
-        Get.offNamed(AppRoutes.tenantJoinCode);
+      // Save active session role
+      if (Get.isRegistered<AppSession>()) {
+        Get.find<AppSession>().setRole(role);
+      }
+
+      // Route by role
+      if (role == 'tenant') {
+        // Later: invite-code screen
+        // Get.offNamed(AppRoutes.tenantJoinCode);
+        AppNavigation.goHome(); // → tenant dashboard for now
+      } else if (role == 'owner') {
+        Get.offNamed(AppRoutes.joinSociety);
       } else {
-      Get.offNamed(AppRoutes.joinSociety);
+        // employee — keep simple for now
+        Get.offNamed(AppRoutes.joinSociety);
       }
     } catch (e) {
       AppSnackbar.error('Something went wrong', 'Please try again');

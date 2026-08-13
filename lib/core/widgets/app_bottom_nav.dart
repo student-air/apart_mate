@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
 
-enum AppNavTab { home, updates, members, profile, none }
-
 class AppAddFab extends StatelessWidget {
   final VoidCallback onPressed;
   const AppAddFab({super.key, required this.onPressed});
@@ -21,21 +19,27 @@ class AppAddFab extends StatelessWidget {
   }
 }
 
+class NavItemData {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isActive;
+
+  const NavItemData({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.isActive,
+  });
+}
+
 class AppBottomNav extends StatelessWidget {
-  final AppNavTab activeTab;
-  final VoidCallback onHome;
-  final VoidCallback onUpdates;
-  final VoidCallback onMembers;
-  final VoidCallback onProfile;
+  final List<NavItemData> items;
 
   const AppBottomNav({
     super.key,
-    required this.activeTab,
-    required this.onHome,
-    required this.onUpdates,
-    required this.onMembers,
-    required this.onProfile,
-  });
+    required this.items,
+  }) : assert(items.length == 4, 'AppBottomNav needs exactly 4 items');
 
   @override
   Widget build(BuildContext context) {
@@ -50,39 +54,11 @@ class AppBottomNav extends StatelessWidget {
           height: 56,
           child: Row(
             children: [
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.home_rounded,
-                  label: 'Home',
-                  isActive: activeTab == AppNavTab.home,
-                  onTap: onHome,
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.campaign_rounded,
-                  label: 'Updates',
-                  isActive: activeTab == AppNavTab.updates,
-                  onTap: onUpdates,
-                ),
-              ),
+              Expanded(child: _NavItem(data: items[0])),
+              Expanded(child: _NavItem(data: items[1])),
               const SizedBox(width: 36),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.groups_rounded,
-                  label: 'Members',
-                  isActive: activeTab == AppNavTab.members,
-                  onTap: onMembers,
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.person_rounded,
-                  label: 'Profile',
-                  isActive: activeTab == AppNavTab.profile,
-                  onTap: onProfile,
-                ),
-              ),
+              Expanded(child: _NavItem(data: items[2])),
+              Expanded(child: _NavItem(data: items[3])),
             ],
           ),
         ),
@@ -92,23 +68,15 @@ class AppBottomNav extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
+  final NavItemData data;
+  const _NavItem({required this.data});
 
   @override
   Widget build(BuildContext context) {
-    final Color color = isActive ? AppColors.accentGreen : AppColors.textMuted;
+    final color = data.isActive ? AppColors.accentGreen : AppColors.textMuted;
+
     return InkWell(
-      onTap: onTap,
+      onTap: data.onTap,
       customBorder: const CircleBorder(),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -116,16 +84,17 @@ class _NavItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20, color: color),
+            Icon(data.icon, size: 20, color: color),
             const SizedBox(height: 1),
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
-                label,
+                data.label,
                 maxLines: 1,
                 style: AppTextStyles.bodySmall.copyWith(
                   color: color,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight:
+                      data.isActive ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 9.5,
                 ),
               ),

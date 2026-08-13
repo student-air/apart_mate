@@ -1,3 +1,4 @@
+import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -90,18 +91,43 @@ class UpdatesView extends GetView<UpdatesController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: AppAddFab(
-        onPressed: () {
-          // TODO: open create update
-        },
-      ),
-      bottomNavigationBar: AppBottomNav(
-        activeTab: AppNavTab.updates,
-        onHome: () => Get.offNamed(AppRoutes.dashboard),
-        onUpdates: () {},
-        onMembers: () => Get.toNamed(AppRoutes.members),
-        onProfile: () => Get.toNamed(AppRoutes.profile),
-      ),
+      floatingActionButton: AppAddFab(onPressed: () {}),
+bottomNavigationBar: AppBottomNav(
+  items: [
+    NavItemData(
+      icon: Icons.home_rounded,
+      label: 'Home',
+      isActive: false,
+      onTap: AppNavigation.goHome,
+    ),
+    NavItemData(
+      icon: Icons.campaign_rounded,
+      label: 'Updates',
+      isActive: true,
+      onTap: () {},
+    ),
+    NavItemData(
+      icon: AppNavigation.isTenant
+          ? Icons.report_problem_rounded
+          : Icons.groups_rounded,
+      label: AppNavigation.isTenant ? 'Complaints' : 'Members',
+      isActive: false,
+      onTap: () {
+        if (AppNavigation.isTenant) {
+          // Get.toNamed(AppRoutes.complaints);
+        } else {
+          Get.toNamed(AppRoutes.members);
+        }
+      },
+    ),
+    NavItemData(
+      icon: Icons.person_rounded,
+      label: 'Profile',
+      isActive: false,
+      onTap: () => Get.toNamed(AppRoutes.profile),
+    ),
+  ],
+),
       body: Column(
         children: [
           // ── Header (Members style) ────────────────────────────────────
