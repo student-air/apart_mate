@@ -39,6 +39,8 @@ import 'package:apart_mate/presentation/add_manager/bindings/add_manager_binding
 import 'package:apart_mate/presentation/add_manager/views/add_manager_view.dart';
 import 'package:apart_mate/presentation/tenant_join_code/bindings/tenant_join_code_binding.dart';
 import 'package:apart_mate/presentation/tenant_join_code/views/tenant_join_code_view.dart';
+import 'package:apart_mate/presentation/tenant_dashboard/bindings/tenant_dashboard_binding.dart';
+import 'package:apart_mate/presentation/tenant_dashboard/views/tenant_dashboard_view.dart';
 // import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
 // import 'package:apart_mate/presentation/edit_profile/views/edit_profile_view.dart';
 
@@ -138,6 +140,11 @@ GetPage(
       name: AppRoutes.tenantConfirm,
       page: () => const TenantConfirmView(),
       binding: TenantConfirmBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.tenantDashboard,
+      page: () => const TenantDashboardView(),
+      binding: TenantDashboardBinding(),
     ),
     // GetPage(
     //   name: AppRoutes.editProfile,

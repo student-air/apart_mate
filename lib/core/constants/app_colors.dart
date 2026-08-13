@@ -89,6 +89,9 @@ class AppColors {
   // Dashboard — header building illustration backdrop (the green dome/arc
   // behind the building graphic).
   static const Color headerIllustrationAccent = Color(0xFF6EE7B7);
+
+  static const pastelPinkBg = Color(0xFFFCE7F3);   // soft pink background
+static const pastelPinkIcon = Color(0xFFDB2777); // deeper pink for icons
 }
 
 extension ColorValues on Color {
