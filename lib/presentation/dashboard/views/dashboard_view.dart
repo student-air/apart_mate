@@ -904,6 +904,7 @@ class _PropertyDropdown extends StatelessWidget {
     required this.selected,
     required this.properties,
     this.onSelected,
+    // ignore: unused_element_parameter
     this.onToggleOccupancy,
   });
 

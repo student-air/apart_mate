@@ -2,13 +2,16 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:apart_mate/routes/app_routes.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
-//import 'package:apart_mate/core/widgets/app_bottom_nav.dart';
+import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/core/widgets/app_loading.dart';
+import 'package:apart_mate/data/models/profile_model.dart';
+import 'package:apart_mate/data/models/society_model.dart';
+import 'package:apart_mate/data/models/user_model.dart';
 import 'package:apart_mate/presentation/profile/controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -17,14 +20,7 @@ class ProfileView extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: AppColors.background,
-      // bottomNavigationBar: AppBottomNav(
-      //   activeTab: AppNavTab.profile,
-      //   onHome: () => Get.offNamed(AppRoutes.dashboard),
-      //   onUpdates: () {},
-      //   onrequests: () {},
-      //   onProfile: () {},
-      // ),
+      backgroundColor: const Color(0xFFF5F6F8),
       body: Obx(() {
         if (controller.isLoading.value || controller.user.value == null) {
           return const AppLoading();
@@ -40,35 +36,106 @@ class ProfileView extends GetView<ProfileController> {
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Header(user: user, roleLabel: controller.roleLabel),
+                // ── Dark header + overlapping identity card ──
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).padding.top + 6,
+                        bottom: 62,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryDark,
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(32),
+                          bottomRight: Radius.circular(32),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: 56,
+                            height: 56,
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.villa_rounded,
+                                color: AppColors.accentGreen,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'My Profile',
+                            style: AppTextStyles.h3.copyWith(
+                              color: Colors.white,
+                              fontSize: 22,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 150, 20, 0),
+                      child: _IdentityCard(
+                        user: user,
+                        roleLabel: controller.roleLabel,
+                        onEdit: controller.goToEditProfile,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+                // ── Contact ──────────────────────────────────
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppDimens.space20,
-                    AppDimens.space20,
-                    AppDimens.space20,
-                    AppDimens.space24,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (society != null) ...[
-                        Text('SOCIETY', style: AppTextStyles.overline),
-                        const SizedBox(height: AppDimens.space10),
-                        _SocietyCard(society: society),
-                        const SizedBox(height: AppDimens.space20),
-                      ],
-                      Text('PERSONAL INFORMATION', style: AppTextStyles.overline),
-                      const SizedBox(height: AppDimens.space10),
-                      _InfoCard(user: user, profile: profile),
-                      const SizedBox(height: AppDimens.space20),
-                      Text('SETTINGS', style: AppTextStyles.overline),
-                      const SizedBox(height: AppDimens.space10),
-                      _MenuList(controller: controller),
-                    ],
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _ContactCard(user: user),
+                ),
+
+                const SizedBox(height: 14),
+                // ── Settings ─────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'SETTINGS',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.textMuted,
+                        letterSpacing: 0.9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _SettingsCard(),
+                ),
+
+                const SizedBox(height: 14),
+
+                // ── Log out ──────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _LogoutCard(onTap: controller.confirmLogout),
+                ),
+
+                const SizedBox(height: 20),
+                Text(
+                  'Apart Mate v1.0.0',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 28),
               ],
             ),
           ),
@@ -78,181 +145,418 @@ class ProfileView extends GetView<ProfileController> {
   }
 }
 
-class _Header extends StatelessWidget {
-  final dynamic user; // UserModel
+// ─────────────────────────────────────────────────────────────
+// IDENTITY CARD
+// ─────────────────────────────────────────────────────────────
+class _IdentityCard extends StatelessWidget {
+  final UserModel user;
   final String roleLabel;
-  const _Header({required this.user, required this.roleLabel});
+  final VoidCallback onEdit;
+
+  const _IdentityCard({
+    required this.user,
+    required this.roleLabel,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final photoPath = user.photoPath as String?;
+    final photoPath = user.photoPath;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-        AppDimens.space20,
-        AppDimens.space16,
-        AppDimens.space20,
-        AppDimens.space28,
+      padding: const EdgeInsets.fromLTRB(10, 14, 12, 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.primaryDark,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(AppDimens.headerRadius),
-          bottomRight: Radius.circular(AppDimens.headerRadius),
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
+        children: [
+          // Centered avatar + name + role
+          SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text('Profile', style: AppTextStyles.h3.copyWith(color: AppColors.textOnDark)),
-                InkWell(
-                  onTap: () {},
-                  borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-                  child: const Icon(Icons.settings_outlined, color: AppColors.textOnDark, size: 22),
+                Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryDark,
+                    shape: BoxShape.circle,
+                    image: (photoPath != null && photoPath.isNotEmpty)
+                        ? DecorationImage(
+                            image: FileImage(File(photoPath)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  alignment: Alignment.center,
+                  child: (photoPath == null || photoPath.isEmpty)
+                      ? Text(
+                          user.initials,
+                          style: AppTextStyles.h1.copyWith(
+                            color: AppColors.accentGreen,
+                            fontSize: 28,
+                          ),
+                        )
+                      : null,
                 ),
+                const SizedBox(height: 14),
+                Text(
+                  user.fullName,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.h3.copyWith(fontSize: 20),
+                ),
+                if (roleLabel.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F8EF),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      roleLabel.toUpperCase(),
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.accentGreenDark,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
-            const SizedBox(height: AppDimens.space20),
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                color: AppColors.pastelGreenBg,
-                shape: BoxShape.circle,
-                image: (photoPath != null && photoPath.isNotEmpty)
-                    ? DecorationImage(image: FileImage(File(photoPath)), fit: BoxFit.cover)
-                    : null,
-              ),
-              alignment: Alignment.center,
-              child: (photoPath == null || photoPath.isEmpty)
-                  ? Text(
-                      (user.initials as String),
-                      style: AppTextStyles.h1.copyWith(color: AppColors.pastelGreenIcon, fontSize: 30),
-                    )
-                  : null,
-            ),
-            const SizedBox(height: AppDimens.space12),
-            Text(user.fullName as String, style: AppTextStyles.h3.copyWith(color: AppColors.textOnDark)),
-            const SizedBox(height: 4),
-            Text(user.email as String, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textOnDarkMuted)),
-            if (roleLabel.isNotEmpty) ...[
-              const SizedBox(height: AppDimens.space10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(
-                  color: AppColors.accentGreen,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusFull),
+          ),
+
+          // Edit button — top right
+          Positioned(
+            top: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: onEdit,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF0F2F5),
+                  shape: BoxShape.circle,
                 ),
-                child: Text(roleLabel, style: AppTextStyles.labelMedium.copyWith(color: AppColors.primaryDark)),
+                child: const Icon(
+                  Icons.edit_rounded,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
               ),
-            ],
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+// ─────────────────────────────────────────────────────────────
+// CONTACT
+// ─────────────────────────────────────────────────────────────
+class _ContactCard extends StatelessWidget {
+  final UserModel user;
+  const _ContactCard({required this.user});
 
-class _SocietyCard extends StatelessWidget {
-  final dynamic society; // SocietyModel
-  const _SocietyCard({required this.society});
+  void _copy(String label, String value) {
+    if (value.isEmpty) return;
+    Clipboard.setData(ClipboardData(text: value));
+    AppSnackbar.success('Copied', '$label copied');
+  }
 
   @override
   Widget build(BuildContext context) {
+    final phone = user.phone.isEmpty ? '—' : user.phone;
+    final email = user.email.isEmpty ? '—' : user.email;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppDimens.space16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 12, 8),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimens.radius2xl),
-        border: Border.all(color: AppColors.borderLight),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: AppColors.pastelGreenBg, shape: BoxShape.circle),
-            alignment: Alignment.center,
-            child: const Icon(Icons.apartment_rounded, size: 24, color: AppColors.pastelGreenIcon),
-          ),
-          const SizedBox(width: AppDimens.space12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(society.name as String, style: AppTextStyles.h4),
-                Text(
-                  '${society.address}, ${society.city}',
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                ),
-              ],
+          Text(
+            'CONTACT INFORMATION',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.textMuted,
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          if (society.isVerified as bool)
-            const Icon(Icons.verified_rounded, size: 18, color: AppColors.accentGreenDark),
+          const SizedBox(height: 12),
+          _ContactRow(
+            icon: Icons.phone_rounded,
+            title: 'Phone Number',
+            value: phone,
+            onCopy: () => _copy('Phone', user.phone),
+          ),
+          _ContactRow(
+            icon: Icons.email_outlined,
+            title: 'Email Address',
+            value: email,
+            onCopy: () => _copy('Email', user.email),
+            isLast: true,
+          ),
         ],
       ),
     );
   }
 }
 
-class _InfoCard extends StatelessWidget {
-  final dynamic user; // UserModel
-  final dynamic profile; // ProfileModel?
-  const _InfoCard({required this.user, required this.profile});
+class _ContactRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final VoidCallback onCopy;
+  final bool isLast;
+
+  const _ContactRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onCopy,
+    this.isLast = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final rows = <(IconData, String, String)>[
-      (Icons.call_rounded, 'Phone', (user.phone as String).isEmpty ? '—' : user.phone as String),
-      if (profile != null) ...[
-        (Icons.wc_rounded, 'Gender', (profile.gender as String).isEmpty ? '—' : profile.gender as String),
-        (Icons.location_city_rounded, 'City', (profile.city as String).isEmpty ? '—' : profile.city as String),
-        (Icons.work_outline_rounded, 'Occupation', (profile.occupation as String).isEmpty ? '—' : profile.occupation as String),
-        (
-          Icons.emergency_rounded,
-          'Emergency Contact',
-          (profile.emergencyContact as String).isEmpty ? '—' : profile.emergencyContact as String,
-        ),
-      ],
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 8 : 14),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF0F2F5),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 18, color: AppColors.textSecondary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: onCopy,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF0F2F5),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.copy_rounded,
+                size: 16,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// SOCIETY
+// ─────────────────────────────────────────────────────────────
+class _SocietyCard extends StatelessWidget {
+  final SocietyModel society;
+  const _SocietyCard({required this.society});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'SOCIETY ASSIGNMENT',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.textMuted,
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF0F2F5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.location_on_rounded,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      society.name,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${society.address}, ${society.city}',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// SETTINGS
+// ─────────────────────────────────────────────────────────────
+class _SettingsCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final items = <(IconData, Color, Color, String)>[
+      (
+        Icons.notifications_none_rounded,
+        const Color(0xFFE8F1FF),
+        const Color(0xFF3B82F6),
+        'Notification Preferences',
+      ),
+      (
+        Icons.shield_outlined,
+        const Color(0xFFFFE8EC),
+        const Color(0xFFEF4444),
+        'Privacy & Security',
+      ),
+      (
+        Icons.help_outline_rounded,
+        const Color(0xFFE8F8EF),
+        AppColors.accentGreenDark,
+        'Help & Support',
+      ),
+      (
+        Icons.description_outlined,
+        const Color(0xFFF0F2F5),
+        AppColors.textSecondary,
+        'Terms of Service',
+      ),
     ];
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimens.radius2xl),
-        border: Border.all(color: AppColors.borderLight),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
-        children: List.generate(rows.length, (i) {
-          final (icon, label, value) = rows[i];
-          final isLast = i == rows.length - 1;
-          return Container(
-            padding: const EdgeInsets.all(AppDimens.space16),
-            decoration: BoxDecoration(
-              border: isLast ? null : const Border(bottom: BorderSide(color: AppColors.borderLight)),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, size: 19, color: AppColors.textSecondary),
-                const SizedBox(width: AppDimens.space12),
-                Expanded(child: Text(label, style: AppTextStyles.bodyMedium)),
-                Flexible(
-                  child: Text(
-                    value,
-                    textAlign: TextAlign.right,
-                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+        children: List.generate(items.length, (i) {
+          final (icon, bg, fg, label) = items[i];
+          final isLast = i == items.length - 1;
+          return Column(
+            children: [
+              InkWell(
+                onTap: () {},
+                borderRadius: BorderRadius.vertical(
+                  top: i == 0 ? const Radius.circular(20) : Radius.zero,
+                  bottom: isLast ? const Radius.circular(20) : Radius.zero,
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: bg,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, size: 20, color: fg),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          label,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 20,
+                        color: AppColors.textMuted,
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              if (!isLast)
+                const Divider(
+                  height: 1,
+                  indent: 68,
+                  color: AppColors.borderLight,
+                ),
+            ],
           );
         }),
       ),
@@ -260,75 +564,71 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-class _MenuList extends StatelessWidget {
-  final ProfileController controller;
-  const _MenuList({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimens.radius2xl),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Column(
-        children: [
-          _MenuTile(
-            icon: Icons.edit_rounded,
-            label: 'Edit Profile',
-            onTap: controller.goToEditProfile,
-          ),
-          _MenuTile(icon: Icons.description_outlined, label: 'Documents', onTap: () {}),
-          _MenuTile(icon: Icons.notifications_none_rounded, label: 'Notifications', onTap: () {}),
-          _MenuTile(icon: Icons.help_outline_rounded, label: 'Help & Support', onTap: () {}),
-          _MenuTile(
-            icon: Icons.logout_rounded,
-            label: 'Log Out',
-            isDestructive: true,
-            isLast: true,
-            onTap: controller.confirmLogout,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MenuTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
+// ─────────────────────────────────────────────────────────────
+// LOG OUT
+// ─────────────────────────────────────────────────────────────
+class _LogoutCard extends StatelessWidget {
   final VoidCallback onTap;
-  final bool isDestructive;
-  final bool isLast;
-
-  const _MenuTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.isDestructive = false,
-    this.isLast = false,
-  });
+  const _LogoutCard({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? AppColors.danger : AppColors.textPrimary;
-
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppDimens.space16),
-        decoration: BoxDecoration(
-          border: isLast ? null : const Border(bottom: BorderSide(color: AppColors.borderLight)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: color),
-            const SizedBox(width: AppDimens.space12),
-            Expanded(child: Text(label, style: AppTextStyles.bodyMedium.copyWith(color: color))),
-            if (!isDestructive) const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textMuted),
-          ],
+    return Material(
+      color: const Color(0xFFFFEBEE),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFFFCDD2)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.danger,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.logout_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Log Out',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.danger,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Sign out of your ApartMate account',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.danger.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.danger.withValues(alpha: 0.7),
+              ),
+            ],
+          ),
         ),
       ),
     );
