@@ -1,367 +1,95 @@
-// lib/presentation/tenant_confirm/controllers/tenant_confirm_controller.dart
-
-import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
-import 'package:apart_mate/presentation/dashboard/controllers/dashboard_controller.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:apart_mate/core/constants/app_colors.dart';
-import 'package:apart_mate/core/constants/app_dimens.dart';
-import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/session/app_session.dart';
-import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/data/models/property_model.dart';
+import 'package:apart_mate/data/models/society_model.dart';
 import 'package:apart_mate/data/models/tenant_model.dart';
-import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
-import 'package:apart_mate/routes/app_routes.dart';
+import 'package:apart_mate/data/models/update_model.dart';
+import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
+import 'package:apart_mate/domain/repositories/i_property_repository.dart';
+import 'package:apart_mate/domain/repositories/i_society_repository.dart';
+import 'package:apart_mate/domain/repositories/i_update_repository.dart';
 
-class TenantConfirmController extends GetxController {
-  late final TenantModel tenant;
-  late final PropertyModel property;
-  final isLoading = false.obs;
-  final agreedToDetails = false.obs;
+class TenantDashboardController extends GetxController {
+  final tenant = Rxn<TenantModel>();
+  final property = Rxn<PropertyModel>();
+  final society = Rxn<SocietyModel>();
+  final latestUpdates = <UpdateModel>[].obs;
+  final isLoading = true.obs;
 
-  late final ITenantRepository _tenantRepo;
+  // Initialize immediately — NOT late
+  final IAuthRepository _auth = Get.find<IAuthRepository>();
+  final IPropertyRepository _propertyRepo = Get.find<IPropertyRepository>();
+  final ISocietyRepository _societyRepo = Get.find<ISocietyRepository>();
+  final IUpdateRepository _updateRepo = Get.find<IUpdateRepository>();
+
+  String get userName =>
+      tenant.value?.fullName ?? _auth.currentUser?.fullName ?? '';
+
+  String get roleLabel => 'Tenant';
+
+  String get societyName => society.value?.name ?? '';
+
+  String get propertyLabel {
+    final t = tenant.value;
+    if (t != null && t.propertyLabel.isNotEmpty) return t.propertyLabel;
+    final p = property.value;
+    if (p == null) return '—';
+    return 'Flat ${p.flatNumber} · ${p.building}';
+  }
+
+  String get greetingName {
+    final name = userName.trim();
+    if (name.isEmpty) return 'there';
+    return name.split(' ').first;
+  }
 
   @override
   void onInit() {
     super.onInit();
-    _tenantRepo = Get.find<ITenantRepository>();
-    final args = Get.arguments as Map?;
-    if (args == null ||
-        args['tenant'] is! TenantModel ||
-        args['property'] is! PropertyModel) {
-      Get.back();
-      return;
-    }
-    tenant = args['tenant'] as TenantModel;
-    property = args['property'] as PropertyModel;
+    load();
   }
 
-  /// Who should the tenant contact?
-  /// Later: look up manager assigned to this property.
-  String get contactRole {
-    return 'Owner';
-  }
-
-  String get contactName {
-    return contactRole == 'Manager' ? 'Property Manager' : 'Property Owner';
-  }
-
-  void toggleAgreement(bool? value) {
-    agreedToDetails.value = value ?? false;
-  }
-
-  Future<void> continueToDashboard() async {
-    if (!agreedToDetails.value) {
-      AppSnackbar.info(
-        'Confirm details',
-        'Please confirm that the details are correct',
-      );
-      return;
-    }
-
+  Future<void> load() async {
     isLoading.value = true;
     try {
-      final updatedTenant = TenantModel(
-        id: tenant.id,
-        fullName: tenant.fullName,
-        phone: tenant.phone,
-        cnic: tenant.cnic,
-        propertyId: tenant.propertyId,
-        propertyLabel: tenant.propertyLabel,
-        inviteCode: tenant.inviteCode,
-        status: 'joined',
-        createdAt: tenant.createdAt,
-      );
+      final args = Get.arguments;
+      TenantModel? t;
+      PropertyModel? p;
 
-      await _tenantRepo.saveTenant(updatedTenant);
+      if (args is Map) {
+        if (args['tenant'] is TenantModel) t = args['tenant'] as TenantModel;
+        if (args['property'] is PropertyModel) {
+          p = args['property'] as PropertyModel;
+        }
+      }
 
-      // Task 5: mark tenant role registered (switch without dialog next time)
-      Get.find<AppSession>().registerTenant();
+      if (t != null && p == null && t.propertyId.isNotEmpty) {
+        p = await _propertyRepo.getPropertyById(t.propertyId);
+      }
 
-      AppSnackbar.success('Welcome', 'You’re all set as a tenant');
+      tenant.value = t;
+      property.value = p;
 
-      Get.offAllNamed(
-        AppRoutes.tenantDashboard,
-        arguments: {
-          'tenant': updatedTenant,
-          'property': property,
-        },
-      );
+      if (p != null) {
+        society.value = await _societyRepo.getSocietyById(p.societyId);
+      }
+
+      if (Get.isRegistered<AppSession>()) {
+        final session = Get.find<AppSession>();
+        if (!session.hasTenantRole.value) {
+          session.registerTenant();
+        } else {
+          session.setRole('tenant');
+        }
+      }
+
+      final updates = await _updateRepo.getUpdates();
+      updates.sort((a, b) => b.postedAt.compareTo(a.postedAt));
+      latestUpdates.assignAll(updates.take(5).toList());
     } finally {
       isLoading.value = false;
     }
   }
 
-  void reportWrongDetails() {
-    Get.bottomSheet(
-      SafeArea(
-        child: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 14, 20, 22),
-                decoration: const BoxDecoration(
-                  color: AppColors.primaryDark,
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: AppColors.accentGreen.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.report_problem_rounded,
-                        color: AppColors.accentGreen,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      'Report incorrect details',
-                      style: AppTextStyles.h3.copyWith(
-                        color: AppColors.textOnDark,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'We’ll connect you with the right person to fix this',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textOnDarkMuted,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius:
-                            BorderRadius.circular(AppDimens.radiusXl),
-                        border: Border.all(color: AppColors.borderLight),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              color: contactRole == 'Manager'
-                                  ? AppColors.pastelBlueBg
-                                  : AppColors.pastelGreenBg,
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: Icon(
-                              contactRole == 'Manager'
-                                  ? Icons.badge_rounded
-                                  : Icons.person_rounded,
-                              color: contactRole == 'Manager'
-                                  ? AppColors.pastelBlueIcon
-                                  : AppColors.pastelGreenIcon,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  contactName,
-                                  style: AppTextStyles.labelLarge.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Can update your tenant & property info',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: contactRole == 'Manager'
-                                  ? AppColors.pastelBlueBg
-                                  : AppColors.pastelGreenBg,
-                              borderRadius: BorderRadius.circular(
-                                AppDimens.radiusFull,
-                              ),
-                            ),
-                            child: Text(
-                              contactRole,
-                              style: AppTextStyles.labelSmall.copyWith(
-                                color: contactRole == 'Manager'
-                                    ? AppColors.pastelBlueIcon
-                                    : AppColors.accentGreenDark,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color:
-                            AppColors.pastelOrangeBg.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            size: 18,
-                            color: AppColors.pastelOrangeIcon,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Don’t continue until the $contactRole corrects your details.',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.pastelOrangeIcon,
-                                fontWeight: FontWeight.w500,
-                                height: 1.35,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          AppSnackbar.info(
-                            'Contact $contactRole',
-                            'Messaging $contactName — coming soon',
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryDark,
-                          foregroundColor: AppColors.accentGreen,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.chat_rounded, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Contact $contactRole',
-                              style: AppTextStyles.labelLarge.copyWith(
-                                color: AppColors.accentGreen,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: () => Get.back(),
-                        icon: const Icon(
-                          Icons.close_rounded,
-                          size: 18,
-                          color: Colors.white,
-                        ),
-                        label: Text(
-                          'Cancel',
-                          style: AppTextStyles.labelLarge.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.danger,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppDimens.radiusFull),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-    );
-  }
-
-  void goBack() => Get.back();
-
-}
-
-class TenantDashboardController extends GetxController {
-  String get userName {
-    final auth = Get.find<IAuthRepository>();
-    return auth.currentUser?.fullName ?? '';
-  }
-
-  String get roleLabel => 'Tenant';
-
-  String get societyName {
-    if (Get.isRegistered<DashboardController>()) {
-      return Get.find<DashboardController>().society.value?.name ?? '';
-    }
-    return '';
-  }
+  Future<void> refresh() => load();
 }

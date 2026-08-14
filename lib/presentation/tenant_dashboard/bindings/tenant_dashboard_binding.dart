@@ -4,6 +4,7 @@ import 'package:apart_mate/presentation/tenant_dashboard/controllers/tenant_dash
 class TenantDashboardBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => TenantDashboardController());
+    // fenix: recreate after being removed so arguments are read again
+    Get.lazyPut(() => TenantDashboardController(), fenix: true);
   }
 }

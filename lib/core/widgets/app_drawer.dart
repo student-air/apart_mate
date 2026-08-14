@@ -7,7 +7,7 @@ import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/routes/app_routes.dart';
-import 'package:apart_mate/core/utils/app_snackbar.dart';
+// import 'package:apart_mate/core/utils/app_snackbar.dart';
 
 class AppDrawer extends StatelessWidget {
   final String userName;

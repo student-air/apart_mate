@@ -28,47 +28,46 @@ class AppNavigation {
 
   /// Call this from the drawer switch button
   static Future<void> handleSwitchRole() async {
-    final session = _session;
-    final wantTenant = !session.isTenant;
+  final session = _session;
+  final wantTenant = !session.isTenant;
 
-    // Both roles registered → switch and go home
-    if (session.canSwitchRole) {
-      session.switchRole();
-      if (Get.key.currentState?.canPop() == true) {
-        Get.back(); // close drawer if open
-      }
-      goHome();
-      return;
-    }
-
-    // Owner only → offer to register as tenant
-    if (wantTenant && !session.hasTenantRole.value) {
-      if (Get.key.currentState?.canPop() == true) Get.back();
-      final yes = await _confirmDialog(
-        title: 'Register as Tenant?',
-        message:
-            'You are only using the owner role. Do you want to register yourself as a tenant?',
-      );
-      if (yes == true) {
-        Get.toNamed(AppRoutes.tenantJoinCode); // or roleSelection if you prefer
-      }
-      return;
-    }
-
-    // Tenant only → offer to register as owner
-    if (!wantTenant && !session.hasOwnerRole.value) {
-      if (Get.key.currentState?.canPop() == true) Get.back();
-      final yes = await _confirmDialog(
-        title: 'Register as Owner?',
-        message:
-            'You are only using the tenant role. Do you want to register yourself as an owner?',
-      );
-      if (yes == true) {
-        Get.toNamed(AppRoutes.joinSociety); // or roleSelection if you prefer
-      }
-      return;
-    }
+  // Both roles fully registered → instant switch
+  if (session.canSwitchRole) {
+    session.switchRole();
+    if (Get.key.currentState?.canPop() == true) Get.back();
+    goHome();
+    return;
   }
+
+  // Owner only → register as tenant
+  if (wantTenant && !session.hasTenantRole.value) {
+    if (Get.key.currentState?.canPop() == true) Get.back();
+    final yes = await _confirmDialog(
+      title: 'Register as Tenant?',
+      message:
+          'You are only using the owner role. Do you want to register yourself as a tenant?',
+    );
+    if (yes == true) {
+      Get.toNamed(AppRoutes.tenantJoinCode);
+    }
+    return;
+  }
+
+  // Tenant only → register as owner → SOCIETY JOIN (not owner dashboard)
+  if (!wantTenant && !session.hasOwnerRole.value) {
+    if (Get.key.currentState?.canPop() == true) Get.back();
+    final yes = await _confirmDialog(
+      title: 'Register as Owner?',
+      message:
+          'You are only using the tenant role. Do you want to register yourself as an owner?',
+    );
+    if (yes == true) {
+      // IMPORTANT: join society flow, NOT dashboard
+      Get.toNamed(AppRoutes.joinSociety);
+    }
+    return;
+  }
+}
 
   static Future<bool?> _confirmDialog({
     required String title,

@@ -145,7 +145,8 @@ class DashboardController extends GetxController {
     }
 
     final session = Get.find<AppSession>();
-if (!session.hasOwnerRole.value) {
+
+if (society.value != null && !session.hasOwnerRole.value) {
   session.registerOwner();
 }
   }
