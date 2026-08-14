@@ -1,18 +1,19 @@
 // lib/routes/app_pages.dart
 
-import 'package:apart_mate/presentation/add_tenant/bindings/add_tenant_binding.dart';
-import 'package:apart_mate/presentation/add_tenant/views/add_tenant_view.dart';
-import 'package:apart_mate/presentation/tenant_confirm/bindings/tenant_confirm_binding.dart';
-import 'package:apart_mate/presentation/tenant_confirm/views/tenant_confirm_view.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 
+// Splash
 import 'package:apart_mate/presentation/splash/bindings/splash_binding.dart';
 import 'package:apart_mate/presentation/splash/views/splash_view.dart';
+
+// Auth
 import 'package:apart_mate/presentation/auth/bindings/auth_binding.dart';
 import 'package:apart_mate/presentation/auth/views/login_view.dart';
 import 'package:apart_mate/presentation/auth/views/signup_view.dart';
 import 'package:apart_mate/presentation/auth/views/signup_handoff_view.dart';
+
+// Onboarding
 import 'package:apart_mate/presentation/profile_setup/bindings/profile_setup_binding.dart';
 import 'package:apart_mate/presentation/profile_setup/views/profile_setup_view.dart';
 import 'package:apart_mate/presentation/role_selection/bindings/role_selection_binding.dart';
@@ -21,10 +22,10 @@ import 'package:apart_mate/presentation/join_society/bindings/join_society_bindi
 import 'package:apart_mate/presentation/join_society/views/join_society_view.dart';
 import 'package:apart_mate/presentation/property_details/bindings/property_details_binding.dart';
 import 'package:apart_mate/presentation/property_details/views/property_details_view.dart';
-
-// TODO: uncomment as each module's binding/view is built
 import 'package:apart_mate/presentation/request_status/bindings/request_status_binding.dart';
 import 'package:apart_mate/presentation/request_status/views/request_status_view.dart';
+
+// Main (owner / manager)
 import 'package:apart_mate/presentation/dashboard/bindings/dashboard_binding.dart';
 import 'package:apart_mate/presentation/dashboard/views/dashboard_view.dart';
 import 'package:apart_mate/presentation/profile/bindings/profile_binding.dart';
@@ -35,21 +36,25 @@ import 'package:apart_mate/presentation/manage_properties/bindings/manage_proper
 import 'package:apart_mate/presentation/manage_properties/views/manage_properties_view.dart';
 import 'package:apart_mate/presentation/members/bindings/members_binding.dart';
 import 'package:apart_mate/presentation/members/views/members_view.dart';
+import 'package:apart_mate/presentation/add_tenant/bindings/add_tenant_binding.dart';
+import 'package:apart_mate/presentation/add_tenant/views/add_tenant_view.dart';
 import 'package:apart_mate/presentation/add_manager/bindings/add_manager_binding.dart';
 import 'package:apart_mate/presentation/add_manager/views/add_manager_view.dart';
+
+// Tenant flow
 import 'package:apart_mate/presentation/tenant_join_code/bindings/tenant_join_code_binding.dart';
 import 'package:apart_mate/presentation/tenant_join_code/views/tenant_join_code_view.dart';
+import 'package:apart_mate/presentation/tenant_confirm/bindings/tenant_confirm_binding.dart';
+import 'package:apart_mate/presentation/tenant_confirm/views/tenant_confirm_view.dart';
 import 'package:apart_mate/presentation/tenant_dashboard/bindings/tenant_dashboard_binding.dart';
 import 'package:apart_mate/presentation/tenant_dashboard/views/tenant_dashboard_view.dart';
-// import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
-// import 'package:apart_mate/presentation/edit_profile/views/edit_profile_view.dart';
 
 class AppPages {
   AppPages._();
 
   static const initial = AppRoutes.splash;
 
-  static final routes = [
+  static final routes = <GetPage>[
     GetPage(
       name: AppRoutes.splash,
       page: () => const SplashView(),
@@ -75,7 +80,7 @@ class AppPages {
       page: () => const ProfileSetupView(),
       binding: ProfileSetupBinding(),
     ),
-GetPage(
+    GetPage(
       name: AppRoutes.roleSelection,
       page: () => const RoleSelectionView(),
       binding: RoleSelectionBinding(),
@@ -89,12 +94,6 @@ GetPage(
       name: AppRoutes.propertyDetails,
       page: () => const PropertyDetailsView(),
       binding: PropertyDetailsBinding(),
-    ),
-    // TODO: register as each module is built
-    GetPage(
-      name: AppRoutes.updates,
-      page: () => const UpdatesView(),
-      binding: UpdatesBinding(),
     ),
     GetPage(
       name: AppRoutes.requeststatus,
@@ -110,6 +109,11 @@ GetPage(
       name: AppRoutes.profile,
       page: () => const ProfileView(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.updates,
+      page: () => const UpdatesView(),
+      binding: UpdatesBinding(),
     ),
     GetPage(
       name: AppRoutes.manageProperties,
@@ -146,10 +150,5 @@ GetPage(
       page: () => const TenantDashboardView(),
       binding: TenantDashboardBinding(),
     ),
-    // GetPage(
-    //   name: AppRoutes.editProfile,
-    //   page: () => const EditProfileView(),
-    //   binding: EditProfileBinding(),
-    // ),
   ];
 }

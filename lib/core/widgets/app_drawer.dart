@@ -154,10 +154,7 @@ Row(
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () {
-  Get.back(); // close drawer
-  AppNavigation.switchRoleAndGoHome();
-},
+                      onPressed: () => AppNavigation.handleSwitchRole(),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.accentGreen,
                         side: BorderSide(

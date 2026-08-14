@@ -19,7 +19,7 @@ class TenantDashboardView extends GetView<TenantDashboardController> {
         userName: controller.userName,
         roleLabel: controller.roleLabel,
         societyName: controller.societyName,
-        isTenant: true, // always tenant on this screen
+        isTenant: true,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: AppAddFab(onPressed: () {}),
@@ -57,7 +57,6 @@ class TenantDashboardView extends GetView<TenantDashboardController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Simple header with menu button to open drawer
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(

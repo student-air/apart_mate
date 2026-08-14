@@ -8,7 +8,7 @@ import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/widgets/app_button.dart';
 import 'package:apart_mate/core/widgets/app_text_field.dart';
 import 'package:apart_mate/core/widgets/app_dropdown_field.dart';
-import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
+// import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/presentation/property_details/controllers/property_details_controller.dart';
 
 class PropertyDetailsView extends StatefulWidget {

@@ -1,5 +1,6 @@
 // lib/presentation/dashboard/controllers/dashboard_controller.dart
 
+import 'package:apart_mate/core/session/app_session.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/data/models/society_model.dart';
@@ -142,6 +143,11 @@ class DashboardController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+
+    final session = Get.find<AppSession>();
+if (!session.hasOwnerRole.value) {
+  session.registerOwner();
+}
   }
 
   Future<void> _loadApprovalAndUpdates(
