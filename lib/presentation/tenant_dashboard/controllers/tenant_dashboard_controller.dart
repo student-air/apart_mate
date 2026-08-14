@@ -1,3 +1,4 @@
+import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/session/app_session.dart';
 import 'package:apart_mate/data/models/property_model.dart';
@@ -21,6 +22,7 @@ class TenantDashboardController extends GetxController {
   final IPropertyRepository _propertyRepo = Get.find<IPropertyRepository>();
   final ISocietyRepository _societyRepo = Get.find<ISocietyRepository>();
   final IUpdateRepository _updateRepo = Get.find<IUpdateRepository>();
+  final ITenantRepository _tenantRepo = Get.find<ITenantRepository>();
 
   String get userName =>
       tenant.value?.fullName ?? _auth.currentUser?.fullName ?? '';
@@ -49,13 +51,14 @@ class TenantDashboardController extends GetxController {
     load();
   }
 
-  Future<void> load() async {
+    Future<void> load() async {
     isLoading.value = true;
     try {
-      final args = Get.arguments;
       TenantModel? t;
       PropertyModel? p;
 
+      // 1) Prefer route arguments (coming from confirm)
+      final args = Get.arguments;
       if (args is Map) {
         if (args['tenant'] is TenantModel) t = args['tenant'] as TenantModel;
         if (args['property'] is PropertyModel) {
@@ -63,6 +66,15 @@ class TenantDashboardController extends GetxController {
         }
       }
 
+      // 2) Fallback: load joined tenant for this user
+      if (t == null) {
+        final userId = _auth.currentUser?.id;
+        if (userId != null && userId.isNotEmpty) {
+          t = await _tenantRepo.getTenantForUser(userId);
+        }
+      }
+
+      // 3) Resolve property if needed
       if (t != null && p == null && t.propertyId.isNotEmpty) {
         p = await _propertyRepo.getPropertyById(t.propertyId);
       }
@@ -72,6 +84,8 @@ class TenantDashboardController extends GetxController {
 
       if (p != null) {
         society.value = await _societyRepo.getSocietyById(p.societyId);
+      } else {
+        society.value = null;
       }
 
       if (Get.isRegistered<AppSession>()) {
@@ -90,6 +104,5 @@ class TenantDashboardController extends GetxController {
       isLoading.value = false;
     }
   }
-
   Future<void> refresh() => load();
 }

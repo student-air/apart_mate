@@ -80,10 +80,10 @@ class JoinSocietyController extends GetxController {
       await _societyRepository.joinSociety(userId: user.id, societyId: matchedSociety.id);
       AppSnackbar.success('Request sent', 'Your request to join ${matchedSociety.name} was submitted');
 
-      if (user.role == 'tenant') {
-        Get.offNamed(AppRoutes.requeststatus, arguments: matchedSociety.id);
-      } else {
+      if (user.role == 'tenant' || user.role == 'owner') {
         Get.offNamed(AppRoutes.propertyDetails, arguments: matchedSociety.id);
+      } else {
+        AppSnackbar.info('Next step', 'Please select your role to continue');
       }
     } finally {
       isJoining.value = false;

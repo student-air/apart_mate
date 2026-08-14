@@ -118,7 +118,7 @@ class _NoDataState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.info_outline_rounded,
+                Icons.home_work_outlined,
                 size: 32,
                 color: AppColors.textMuted,
               ),
@@ -131,15 +131,55 @@ class _NoDataState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppDimens.space16),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            const SizedBox(height: AppDimens.space8),
+            Text(
+              'Add a property to continue. You’ll join a society, enter property details, then see request status.',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textMuted,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppDimens.space24),
+
+            // Only this primary action
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () => Get.toNamed(AppRoutes.joinSociety),
+                icon: const Icon(Icons.add_home_rounded, size: 20),
+                label: const Text('Add property'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryDark,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Optional cancel / dismiss
+            TextButton(
+              onPressed: () {
+                // Stay on dashboard (or use Get.back() if this was opened on top)
+                onRetry();
+              },
+              child: Text(
+                'Cancel',
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Owner Dashboard
 // ─────────────────────────────────────────────────────────────────────────────

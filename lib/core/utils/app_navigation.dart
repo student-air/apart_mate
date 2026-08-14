@@ -53,21 +53,14 @@ class AppNavigation {
     return;
   }
 
-  // Tenant only → register as owner → SOCIETY JOIN (not owner dashboard)
+   // Tenant only → not registered as owner → go straight to join society
   if (!wantTenant && !session.hasOwnerRole.value) {
-    if (Get.key.currentState?.canPop() == true) Get.back();
-    final yes = await _confirmDialog(
-      title: 'Register as Owner?',
-      message:
-          'You are only using the tenant role. Do you want to register yourself as an owner?',
-    );
-    if (yes == true) {
-      // IMPORTANT: join society flow, NOT dashboard
-      Get.toNamed(AppRoutes.joinSociety);
-    }
+    if (Get.key.currentState?.canPop() == true) Get.back(); // close drawer
+    Get.toNamed(AppRoutes.joinSociety);
     return;
   }
-}
+  
+  }
 
   static Future<bool?> _confirmDialog({
     required String title,

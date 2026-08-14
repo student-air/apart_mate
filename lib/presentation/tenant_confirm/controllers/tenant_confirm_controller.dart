@@ -1,5 +1,6 @@
 // lib/presentation/tenant_confirm/controllers/tenant_confirm_controller.dart
 
+import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
@@ -70,6 +71,14 @@ class TenantConfirmController extends GetxController {
     );
 
     await _tenantRepo.saveTenant(updatedTenant);
+
+    final userId = Get.find<IAuthRepository>().currentUser?.id;
+    if (userId != null && userId.isNotEmpty) {
+      await _tenantRepo.linkTenantToUser(
+        userId: userId,
+        tenant: updatedTenant,
+      );
+    }
 
     // REQUIRED: mark tenant role + set active role to tenant
     Get.find<AppSession>().registerTenant();
