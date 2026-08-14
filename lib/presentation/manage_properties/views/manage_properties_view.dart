@@ -14,108 +14,175 @@ class ManagePropertiesView extends GetView<ManagePropertiesController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        titleSpacing: -10,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-  backgroundColor: AppColors.primaryDark,
-
-  leading: IconButton(
-    icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-    onPressed: () => Get.back(),
-  ),
-  title: Row(
-    children: [
-      Image.asset('assets/images/logo.png', height: 32, fit: BoxFit.cover),
-            const SizedBox(width: 2),
-      Text(
-        'My Properties',
-        style: AppTextStyles.h4.copyWith(color: Colors.white),
-      ),
-    ],
-  ),
-  actions: [
-    // ➕ Add private property
-    IconButton(
-      onPressed: controller.addProperty,
-      icon: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
-    ),
-    const SizedBox(width: 4),
-  ],
-),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final list = controller.properties;
-
-        if (list.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          // ── Header (Updates style) ─────────────────────────────
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            decoration: const BoxDecoration(
+              color: AppColors.primaryDark,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(AppDimens.headerRadius),
+                bottomRight: Radius.circular(AppDimens.headerRadius),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Row(
                 children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: const BoxDecoration(
-                      color: AppColors.surfaceMuted,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.home_work_outlined,
-                      size: 32,
-                      color: AppColors.textMuted,
+                  GestureDetector(
+                    onTap: () => Get.back(),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.textOnDark.withValues(alpha: 0.12),
+                        borderRadius:
+                            BorderRadius.circular(AppDimens.radiusMd),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.textOnDark,
+                        size: 20,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No properties in this society yet',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'My Properties',
+                      style: AppTextStyles.h3.copyWith(
+                        color: AppColors.textOnDark,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tap Add Property below to add your first one',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textMuted,
+                  GestureDetector(
+                    onTap: controller.addProperty,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.textOnDark.withValues(alpha: 0.12),
+                        borderRadius:
+                            BorderRadius.circular(AppDimens.radiusMd),
+                      ),
+                      child: const Icon(
+                        Icons.add_rounded,
+                        color: AppColors.textOnDark,
+                        size: 22,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 46,
+                    height: 46,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.accentGreen,
+                          borderRadius:
+                              BorderRadius.circular(AppDimens.radiusSm),
+                        ),
+                        child: const Icon(
+                          Icons.villa_rounded,
+                          size: 22,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: () => controller.refresh(),
-          color: AppColors.accentGreenDark,
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-            itemCount: list.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final property = list[index];
-              final isSelected =
-                  controller.selectedProperty?.id == property.id;
-
-              return _PropertyManageCard(
-                property: property,
-                isSelected: isSelected,
-                onTap: () => controller.selectProperty(property),
-                onEdit: () => controller.editProperty(property),
-                 onDelete: () => controller.deleteProperty(property)
-              );
-            },
           ),
-        );
-      }),
+
+          // ── Body ───────────────────────────────────────────────
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.accentGreenDark,
+                  ),
+                );
+              }
+
+              final list = controller.properties;
+
+              if (list.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 72,
+                          height: 72,
+                          decoration: const BoxDecoration(
+                            color: AppColors.surfaceMuted,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.home_work_outlined,
+                            size: 32,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No properties yet',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tap + to add your first property',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: controller.refresh,
+                color: AppColors.accentGreenDark,
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+                  itemCount: list.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final property = list[index];
+                    final isSelected =
+                        controller.selectedProperty?.id == property.id;
+
+                    return _PropertyManageCard(
+                      property: property,
+                      isSelected: isSelected,
+                      onTap: () => controller.selectProperty(property),
+                      onEdit: () => controller.editProperty(property),
+                      onSold: () => controller.markAsSold(property),
+                      onDelete: () => controller.deleteProperty(property),
+                    );
+                  },
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
@@ -157,6 +224,7 @@ class _PropertyManageCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onEdit;
+  final VoidCallback onSold;
   final VoidCallback onDelete;
 
   const _PropertyManageCard({
@@ -164,6 +232,7 @@ class _PropertyManageCard extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.onEdit,
+    required this.onSold,
     required this.onDelete,
   });
 
@@ -224,51 +293,73 @@ class _PropertyManageCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Edit button
-                  InkWell(
-                    onTap: onEdit,
-                    borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
+                  PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    icon: Container(
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
-                        color: AppColors.pastelGreenBg,
-                        borderRadius:
-                            BorderRadius.circular(AppDimens.radiusFull),
-                        border: Border.all(
-                          color:
-                              AppColors.accentGreen.withValues(alpha: 0.25),
-                        ),
+                        color: AppColors.surfaceMuted,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.edit_rounded,
-                            size: 14,
-                            color: AppColors.accentGreenDark,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Edit',
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.accentGreenDark,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
+                      child: const Icon(
+                        Icons.more_vert_rounded,
+                        size: 20,
+                        color: AppColors.textPrimary,
                       ),
                     ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    color: AppColors.surface,
+                    onSelected: (value) {
+                      if (value == 'edit') onEdit();
+                      if (value == 'sold') onSold();
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.edit_rounded,
+                              size: 18,
+                              color: AppColors.textPrimary,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Edit property',
+                              style: AppTextStyles.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'sold',
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.sell_rounded,
+                              size: 18,
+                              color: AppColors.danger,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Mark as sold',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.danger,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               const Divider(height: 1, color: AppColors.borderLight),
               const SizedBox(height: 12),
-
-              // Chips + Delete
               Row(
                 children: [
                   Expanded(
@@ -277,7 +368,9 @@ class _PropertyManageCard extends StatelessWidget {
                       runSpacing: 8,
                       children: [
                         _Chip(
-                          label: property.propertyType,
+                          label: property.propertyType.isEmpty
+                              ? '—'
+                              : property.propertyType,
                           bg: AppColors.pastelBlueBg,
                           fg: AppColors.pastelBlueIcon,
                         ),
@@ -289,8 +382,7 @@ class _PropertyManageCard extends StatelessWidget {
                           fg: AppColors.textSecondary,
                         ),
                         _Chip(
-                          label:
-                              property.isOccupied ? 'Occupied' : 'Vacant',
+                          label: property.isOccupied ? 'Occupied' : 'Vacant',
                           bg: property.isOccupied
                               ? AppColors.pastelOrangeBg
                               : AppColors.pastelGreenBg,
@@ -308,12 +400,9 @@ class _PropertyManageCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-
-                  // Delete button
                   InkWell(
                     onTap: onDelete,
-                    borderRadius:
-                        BorderRadius.circular(AppDimens.radiusFull),
+                    borderRadius: BorderRadius.circular(AppDimens.radiusFull),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -323,19 +412,11 @@ class _PropertyManageCard extends StatelessWidget {
                         color: AppColors.danger,
                         borderRadius:
                             BorderRadius.circular(AppDimens.radiusFull),
-                        border: Border.all(color: AppColors.dangerBorder),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.delete_rounded,
-                            size: 14,
-                            color: AppColors.background,
-                          ),
-                          const SizedBox(width: 1),
-                          
-                        ],
+                      child: const Icon(
+                        Icons.delete_rounded,
+                        size: 14,
+                        color: AppColors.textOnDark,
                       ),
                     ),
                   ),
@@ -363,7 +444,7 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(AppDimens.radiusFull),

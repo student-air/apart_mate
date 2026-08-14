@@ -232,6 +232,11 @@ if (society.value != null && !session.hasOwnerRole.value) {
     property.value = selected;
   }
 
+  Future<void> releaseProperty(PropertyModel property) async {
+  await _propertyRepository.releaseProperty(property.id);
+  await refresh();
+}
+
   Future<void> refresh() => loadDashboard();
 }
 

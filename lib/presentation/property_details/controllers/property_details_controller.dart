@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
+import 'package:apart_mate/core/utils/property_unit_key.dart';
 import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
@@ -49,15 +50,15 @@ class PropertyDetailsController extends GetxController {
   ];
 
   // ── Controllers ─────────────────────────────────────────────
-  final flatNumberCtrl = TextEditingController(); // House Name in independent mode
-  final addressCtrl = TextEditingController(); // independent only
+  final flatNumberCtrl = TextEditingController();
+  final addressCtrl = TextEditingController();
   final areaCtrl = TextEditingController();
   final bathroomsCtrl = TextEditingController();
 
   // ── Observables ─────────────────────────────────────────────
   final selectedBuilding = RxnString();
   final selectedFloor = RxnString();
-  final selectedHouseType = RxnString(); // independent only
+  final selectedHouseType = RxnString();
   final isOccupied = true.obs;
   final occupiedBy = 'owner'.obs;
   final selectedPropertyType = RxnString();
@@ -82,7 +83,6 @@ class PropertyDetailsController extends GetxController {
       return existingProperty!.societyId.isEmpty;
     }
     final args = Get.arguments;
-    // We pass null from continueAsIndependentOwner()
     return args == null;
   }
 
@@ -127,7 +127,6 @@ class PropertyDetailsController extends GetxController {
     bathroomsCtrl.text = p.bathrooms;
 
     if (p.societyId.isEmpty) {
-      // independent
       selectedHouseType.value = p.building.isNotEmpty ? p.building : null;
     } else {
       selectedBuilding.value = p.building.isNotEmpty ? p.building : null;
@@ -197,7 +196,6 @@ class PropertyDetailsController extends GetxController {
           AppSnackbar.error('Missing info', 'Please enter house name');
           return false;
         }
-        // Address not required when editing (may not be stored on model)
         if (addressCtrl.text.trim().isEmpty && !isEditMode) {
           AppSnackbar.error('Missing info', 'Please enter address');
           return false;
@@ -235,48 +233,75 @@ class PropertyDetailsController extends GetxController {
             ? ''
             : (Get.arguments is String ? Get.arguments as String : ''));
 
+    final building = isIndependent
+        ? (selectedHouseType.value ?? '')
+        : (selectedBuilding.value ?? '');
+    final floor = isIndependent ? '' : (selectedFloor.value ?? '');
+    final flatNumber = flatNumberCtrl.text.trim();
+
     isLoading.value = true;
     try {
-      await _propertyRepository.saveProperty(
-        PropertyModel(
-          id: isEditMode
-              ? existingProperty!.id
-              : 'property_${DateTime.now().millisecondsSinceEpoch}',
-          userId: user.id,
+      // ── Uniqueness check (create only) ──────────────────────
+      if (!isEditMode) {
+        final unitKey = buildPropertyUnitKey(
           societyId: societyId,
-          building: isIndependent
-              ? (selectedHouseType.value ?? '')
-              : selectedBuilding.value!,
-          floor: isIndependent ? '' : selectedFloor.value!,
-          flatNumber: flatNumberCtrl.text.trim(),
-          isOccupied: isOccupied.value,
-          occupiedBy: occupiedBy.value,
-          propertyType:
-              selectedPropertyType.value ?? (isIndependent ? 'House' : ''),
-          areaSqFt: areaCtrl.text.trim(),
-          bathrooms: bathroomsCtrl.text.trim(),
-          flatType: selectedFlatType.value ?? '',
-          hasBalcony: hasBalcony.value,
-          hasElectricity: hasElectricity.value,
-          hasGas: hasGas.value,
-          meterType: selectedMeterType.value ?? '',
-          waterConnection: selectedWaterConnection.value ?? '',
-          furnishing: selectedFurnishing.value ?? '',
-          createdAt:
-              isEditMode ? existingProperty!.createdAt : DateTime.now(),
-        ),
+          building: building,
+          floor: floor,
+          flatNumber: flatNumber,
+        );
+
+        final existingClaim =
+            await _propertyRepository.findActiveClaimByUnitKey(unitKey);
+
+        if (existingClaim != null && existingClaim.userId != user.id) {
+          AppSnackbar.error(
+            'Already registered',
+            'This property is already registered to another user',
+          );
+          return;
+        }
+      }
+
+      final property = PropertyModel(
+        id: isEditMode
+            ? existingProperty!.id
+            : 'property_${DateTime.now().millisecondsSinceEpoch}',
+        userId: user.id,
+        societyId: societyId,
+        building: building,
+        floor: floor,
+        flatNumber: flatNumber,
+        isOccupied: isOccupied.value,
+        occupiedBy: occupiedBy.value,
+        propertyType:
+            selectedPropertyType.value ?? (isIndependent ? 'House' : ''),
+        areaSqFt: areaCtrl.text.trim(),
+        bathrooms: bathroomsCtrl.text.trim(),
+        flatType: selectedFlatType.value ?? '',
+        hasBalcony: hasBalcony.value,
+        hasElectricity: hasElectricity.value,
+        hasGas: hasGas.value,
+        meterType: selectedMeterType.value ?? '',
+        waterConnection: selectedWaterConnection.value ?? '',
+        furnishing: selectedFurnishing.value ?? '',
+        createdAt: isEditMode ? existingProperty!.createdAt : DateTime.now(),
+        claimStatus:
+            isEditMode ? existingProperty!.claimStatus : 'active',
       );
+
+      await _propertyRepository.saveProperty(property);
 
       if (isEditMode) {
         AppSnackbar.success('Updated', 'Property details saved');
-        Get.back();
         if (Get.isRegistered<DashboardController>()) {
           await Get.find<DashboardController>().refresh();
         }
+        Get.offNamed(AppRoutes.manageProperties);
       } else if (isIndependent) {
-        // Independent owners go straight to dashboard (no approval needed)
+        // Independent owners → dashboard (no society admin approval)
         Get.offAllNamed(AppRoutes.dashboard);
       } else {
+        // Society property → request status (admin approval path)
         Get.offNamed(AppRoutes.requeststatus, arguments: societyId);
       }
     } finally {

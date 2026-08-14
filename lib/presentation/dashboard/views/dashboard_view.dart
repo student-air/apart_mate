@@ -249,21 +249,11 @@ class _OwnerDashboardBody extends StatelessWidget {
                         Flexible(
   child: Align(
     alignment: Alignment.centerLeft,
-    child: controller.hasMultipleSocieties
-        ? _SocietyDropdown(
+    child: _SocietyDropdown(
             societies: controller.societies,
             selected: society,
             onSelected: controller.selectSociety,
           )
-        : Text(
-            society.name.toUpperCase(),
-            style: AppTextStyles.labelMedium.copyWith(
-              color: AppColors.textSecondary,
-              letterSpacing: 0.6,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
   ),
 ),
                         Container(
@@ -1230,7 +1220,7 @@ class _QuickActionsCard extends StatelessWidget {
         'Transfer',
         AppColors.pastelPurpleBg,
         AppColors.pastelPurpleIcon,
-        () => _showComingSoon('Transfer Ownership'),
+        () => Get.toNamed(AppRoutes.manageProperties),
       ),
       (
         Icons.build_rounded,

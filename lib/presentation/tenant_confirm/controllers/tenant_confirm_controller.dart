@@ -86,12 +86,12 @@ class TenantConfirmController extends GetxController {
     AppSnackbar.success('Welcome', 'You’re all set as a tenant');
 
     Get.offAllNamed(
-      AppRoutes.tenantDashboard,
-      arguments: {
-        'tenant': updatedTenant,
-        'property': property,
-      },
-    );
+  AppRoutes.tenantDashboard,
+  arguments: {
+    'tenant': updatedTenant,
+    'property': property,
+  },
+);
   } finally {
     isLoading.value = false;
   }

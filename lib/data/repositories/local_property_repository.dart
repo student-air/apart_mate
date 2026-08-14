@@ -1,5 +1,6 @@
 // lib/data/repositories/local_property_repository.dart
 
+import 'package:apart_mate/core/utils/property_unit_key.dart';
 import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/data/repositories/local_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
@@ -72,6 +73,13 @@ class LocalPropertyRepository implements IPropertyRepository {
     ),
   };
 
+  String _unitKeyOf(PropertyModel p) => buildPropertyUnitKey(
+      societyId: p.societyId,
+      building: p.building,
+      floor: p.floor,
+      flatNumber: p.flatNumber,
+    );
+
   Future<void> _simulateLatency() =>
       Future.delayed(const Duration(milliseconds: 500));
 
@@ -94,14 +102,47 @@ class LocalPropertyRepository implements IPropertyRepository {
   }
 
   @override
-  Future<List<PropertyModel>> getPropertiesForUser(String userId) async {
-    await _simulateLatency();
-    return _properties.values.where((p) => p.userId == userId).toList();
-  }
-
-  @override
   Future<PropertyModel?> getPropertyById(String propertyId) async {
     await _simulateLatency();
     return _properties[propertyId];
   }
+
+  @override
+Future<PropertyModel?> findActiveClaimByUnitKey(String unitKey) async {
+  await _simulateLatency();
+  for (final p in _properties.values) {
+    if (p.isClaimActive && _unitKeyOf(p) == unitKey) {
+      return p;
+    }
+  }
+  return null;
+}
+
+@override
+Future<void> releaseProperty(String propertyId) async {
+  await _simulateLatency();
+  final p = _properties[propertyId];
+  if (p == null) {
+    throw Exception('Property not found');
+  }
+  // Block if tenant still on the unit
+  if (p.isOccupied && p.occupiedBy.toLowerCase() == 'tenant') {
+    throw Exception('TENANT_LINKED');
+  }
+  _properties[propertyId] = p.copyWith(
+    claimStatus: 'released',
+    // optional: clear occupancy when releasing vacant/owner-occupied
+    isOccupied: false,
+    occupiedBy: '',
+  );
+}
+
+@override
+Future<List<PropertyModel>> getPropertiesForUser(String userId) async {
+  await _simulateLatency();
+  // Only active claims show on owner dashboard
+  return _properties.values
+      .where((p) => p.userId == userId && p.isClaimActive)
+      .toList();
+}
 }

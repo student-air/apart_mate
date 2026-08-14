@@ -209,6 +209,14 @@ Row(
                         Get.toNamed(AppRoutes.addManager);
                       },
                     ),
+                     _DrawerItem(
+                      icon: Icons.sync_alt_rounded,
+                      label: 'Transfer Ownership',
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(AppRoutes.manageProperties);
+                      },
+                    ),
                     _DrawerItem(
                       icon: Icons.groups_rounded,
                       label: 'Members',
