@@ -476,7 +476,7 @@ SliverPadding(
                 _MetricCardsRow(property: property),
                 const SizedBox(height: 20),
 
-                // Property hero + dropdown (same society only)
+                // Property hero + dropdown (same society Wednesday Monday go almost hot I got horrig अच्छा late backmodel thum sharing shell sheer goingplaying barrel thought liha backing s baking pulling me knock to melta rug mama both d d d d dya fit recalking to keep magic barabra snaps to grow smek lamda startly soonly)
                 _PropertyHeroCard(
                   property: property,
                   properties: controller.propertiesInCurrentSociety,
