@@ -1,5 +1,6 @@
 // lib/presentation/manage_properties/views/manage_properties_view.dart
 
+import 'package:apart_mate/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
@@ -33,7 +34,7 @@ class ManagePropertiesView extends GetView<ManagePropertiesController> {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () => Get.toNamed( AppRoutes.dashboard),
                     child: Container(
                       width: 40,
                       height: 40,

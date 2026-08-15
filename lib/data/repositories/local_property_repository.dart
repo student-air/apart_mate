@@ -27,7 +27,7 @@ class LocalPropertyRepository implements IPropertyRepository {
       meterType: 'WAPDA Meter',
       waterConnection: 'Municipal',
       furnishing: 'Furnished',
-      createdAt: DateTime.now().subtract(const Duration(days: 30)), maintenanceBy: '',
+      createdAt: DateTime.now().subtract(const Duration(days: 30)), maintenanceBy: 'Property Owner', maintenanceAmount: '5000',
     ),
     'property_demo_google_2': PropertyModel(
       id: 'property_demo_google_2',
@@ -48,7 +48,10 @@ class LocalPropertyRepository implements IPropertyRepository {
       meterType: 'WAPDA Meter',
       waterConnection: 'Municipal',
       furnishing: 'Semi-Furnished',
-      createdAt: DateTime.now().subtract(const Duration(days: 10)), maintenanceBy: '',
+      createdAt: DateTime.now().subtract(const Duration(days: 10)),
+       maintenanceBy: 'Property Owner',
+        maintenanceAmount: '5000',
+      
     ),
     'property_demo_google_3': PropertyModel(
       id: 'property_demo_google_3',
@@ -70,7 +73,8 @@ class LocalPropertyRepository implements IPropertyRepository {
       waterConnection: 'Bore',
       furnishing: 'Furnished',
       createdAt: DateTime.now().subtract(const Duration(days: 5)), 
-      maintenanceBy: '',
+      maintenanceBy: 'Property Owner',
+      maintenanceAmount: '5000',
     ),
   };
 

@@ -694,10 +694,7 @@ class _QuickActionsCard extends StatelessWidget {
                   label: 'Maintenance',
                   bg: AppColors.surfaceMuted,
                   fg: AppColors.textSecondary,
-                  onTap: () => AppSnackbar.info(
-                    'Maintenance',
-                    'Coming soon',
-                  ),
+                  onTap: () => Get.toNamed(AppRoutes.maintenance),
                 ),
               ),
               const SizedBox(width: 10),

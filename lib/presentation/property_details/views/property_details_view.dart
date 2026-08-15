@@ -465,6 +465,24 @@ Obx(() {
     ],
   );
 }), 
+
+Obx(() {
+  if (controller.maintenanceBy.value != 'property_owner') {
+    return const SizedBox.shrink();
+  }
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: AppDimens.space16),
+      AppTextField(
+        label: 'Monthly maintenance (Rs.)',
+        hint: 'e.g. 5000',
+        controller: controller.maintenanceAmountCtrl,
+        keyboardType: TextInputType.number,
+      ),
+    ],
+  );
+}),
           ],
         ),
       ),

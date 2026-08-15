@@ -21,7 +21,7 @@ class PropertyModel {
   final String furnishing;
   final DateTime createdAt;
   final String maintenanceBy;
-
+  final String maintenanceAmount;
   /// active = claimed by an owner (blocks new registration)
   /// released = owner marked sold / gave up (unit free again)
   final String claimStatus; // 'active' | 'released'
@@ -47,6 +47,7 @@ class PropertyModel {
     required this.furnishing,
     required this.createdAt,
     required this.maintenanceBy,
+    required this.maintenanceAmount,
     this.claimStatus = 'active',
   });
 
@@ -76,6 +77,7 @@ class PropertyModel {
     DateTime? createdAt,
     String? claimStatus,
     String? maintenanceBy,
+    String? maintenanceAmount,
   }) {
     return PropertyModel(
       id: id ?? this.id,
@@ -99,6 +101,7 @@ class PropertyModel {
       createdAt: createdAt ?? this.createdAt,
       claimStatus: claimStatus ?? this.claimStatus,
       maintenanceBy: maintenanceBy ?? this.maintenanceBy,
+      maintenanceAmount: maintenanceAmount ?? this.maintenanceAmount,
     );
   }
 }

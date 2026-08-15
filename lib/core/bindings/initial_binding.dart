@@ -2,8 +2,10 @@
 
 import 'package:apart_mate/core/session/app_session.dart';
 import 'package:apart_mate/data/repositories/local_complaint_repository.dart';
+import 'package:apart_mate/data/repositories/local_maintenance_repository.dart';
 import 'package:apart_mate/data/repositories/local_tenant_repository.dart';
 import 'package:apart_mate/domain/repositories/i_complaint_repository.dart';
+import 'package:apart_mate/domain/repositories/i_maintenance_repository.dart';
 import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
@@ -30,6 +32,7 @@ class InitialBinding extends Bindings {
     Get.put<ITenantRepository>(LocalTenantRepository(), permanent: true);
     Get.put<IManagerRepository>(LocalManagerRepository(), permanent: true);
     Get.put<IComplaintRepository>(LocalComplaintRepository(), permanent: true);
+    Get.put<IMaintenanceRepository>(LocalMaintenanceRepository(), permanent: true);
     Get.put(AppSession(), permanent: true);
   }
 }

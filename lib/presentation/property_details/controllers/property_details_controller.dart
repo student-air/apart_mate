@@ -70,6 +70,7 @@ class PropertyDetailsController extends GetxController {
   final selectedWaterConnection = RxnString();
   final selectedFurnishing = RxnString();
   final maintenanceBy = 'property_owner'.obs;
+  final maintenanceAmountCtrl = TextEditingController();
   final isLoading = false.obs;
 
   /// Existing property when opened from Edit. Null = create flow.
@@ -125,6 +126,7 @@ class PropertyDetailsController extends GetxController {
     flatNumberCtrl.text = p.flatNumber;
     areaCtrl.text = p.areaSqFt;
     bathroomsCtrl.text = p.bathrooms;
+    maintenanceAmountCtrl.text = p.maintenanceAmount;
 
     if (p.societyId.isEmpty) {
       selectedHouseType.value = p.building.isNotEmpty ? p.building : null;
@@ -293,6 +295,9 @@ Future<void> saveAndContinue() async {
       createdAt: isEditMode ? existingProperty!.createdAt : DateTime.now(),
       claimStatus: isEditMode ? existingProperty!.claimStatus : 'active',
       maintenanceBy: maintenanceBy.value,
+maintenanceAmount: maintenanceBy.value == 'property_owner'
+    ? maintenanceAmountCtrl.text.trim()
+    : '',
     );
 
     await _propertyRepository.saveProperty(property);
@@ -323,6 +328,7 @@ Future<void> saveAndContinue() async {
     addressCtrl.dispose();
     areaCtrl.dispose();
     bathroomsCtrl.dispose();
+    maintenanceAmountCtrl.dispose();
     super.onClose();
   }
 }
