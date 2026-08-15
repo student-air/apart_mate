@@ -435,62 +435,36 @@ class _BasicInfoStep extends StatelessWidget {
               ),
             ],
 
-            const SizedBox(height: AppDimens.space24),
-            Text('Is this property occupied?', style: AppTextStyles.labelLarge),
-            const SizedBox(height: AppDimens.space12),
-            Obx(
-              () => Row(
-                children: [
-                  Expanded(
-                    child: _ModernPill(
-                      label: 'Yes',
-                      icon: Icons.check_circle_rounded,
-                      isSelected: controller.isOccupied.value,
-                      onTap: () => controller.isOccupied.value = true,
-                    ),
-                  ),
-                  const SizedBox(width: AppDimens.space12),
-                  Expanded(
-                    child: _ModernPill(
-                      label: 'No',
-                      isSelected: !controller.isOccupied.value,
-                      onTap: () => controller.isOccupied.value = false,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Obx(() {
-              if (!controller.isOccupied.value) return const SizedBox.shrink();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: AppDimens.space20),
-                  Text('Occupied by', style: AppTextStyles.labelLarge),
-                  const SizedBox(height: AppDimens.space12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ModernPill(
-                          label: 'Owner',
-                          isSelected: controller.occupiedBy.value == 'owner',
-                          onTap: () => controller.occupiedBy.value = 'owner',
-                        ),
-                      ),
-                      const SizedBox(width: AppDimens.space12),
-                      Expanded(
-                        child: _ModernPill(
-                          label: 'Tenant',
-                          isSelected: controller.occupiedBy.value == 'tenant',
-                          onTap: () => controller.occupiedBy.value = 'tenant',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            }),
+            Text('Maintenance handled by', style: AppTextStyles.h4),
+const SizedBox(height: 6),
+Text(
+  'Who recieive the mantenance expenses?',
+  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+),
+const SizedBox(height: 12),
+Obx(() {
+  return Row(
+    children: [
+      Expanded(
+        child: _ModernPill( // or your existing pill widget
+          label: 'Property Owner',
+          icon: Icons.person_rounded,
+          isSelected: controller.maintenanceBy.value == 'property_owner',
+          onTap: () => controller.setMaintenanceBy('property_owner'),
+        ),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: _ModernPill(
+          label: 'Society Admin',
+          icon: Icons.home_rounded,
+          isSelected: controller.maintenanceBy.value == 'society_admin',
+          onTap: () => controller.setMaintenanceBy('society_admin'),
+        ),
+      ),
+    ],
+  );
+}), 
           ],
         ),
       ),

@@ -24,6 +24,8 @@ abstract class AppRoutes {
   static const updates = '/updates';
   static const addTenant = '/add-tenant';
   static const addManager = '/add-manager';
+  static const maintenance = '/maintenance';
+  static const complaint = '/complaint';
   static const members = '/members';
   static const profile = '/profile';
   static const editProfile = '/edit-profile';

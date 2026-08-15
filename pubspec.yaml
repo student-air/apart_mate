@@ -9,7 +9,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # followed by an optional build number separated by a +.
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
+# In Android, build- or boskar bash d basker purpose my soya to charge in plonica find share may in catrony dwarf to cal me kidshara d means kidney
 # Read more about Android versioning at https://developer.android.com/studio/publish/versioning
 # In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
 # Read more about iOS versioning at
@@ -42,7 +42,9 @@ dependencies:
   intl: ^0.20.3
   timeago: ^3.7.1
   lottie: ^3.5.1
+  flutter_launcher_icons: ^0.14.4
 
+ 
   
 
 dev_dependencies:
@@ -100,3 +102,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+fluter:
+
+ flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21

@@ -20,6 +20,7 @@ class PropertyModel {
   final String waterConnection;
   final String furnishing;
   final DateTime createdAt;
+  final String maintenanceBy;
 
   /// active = claimed by an owner (blocks new registration)
   /// released = owner marked sold / gave up (unit free again)
@@ -45,10 +46,13 @@ class PropertyModel {
     required this.waterConnection,
     required this.furnishing,
     required this.createdAt,
+    required this.maintenanceBy,
     this.claimStatus = 'active',
   });
 
   bool get isClaimActive => claimStatus == 'active';
+  bool get isMaintenanceByOwner => maintenanceBy == 'property_owner';
+  bool get isMaintenanceByAdmin => maintenanceBy == 'society_admin';
 
   PropertyModel copyWith({
     String? id,
@@ -71,6 +75,7 @@ class PropertyModel {
     String? furnishing,
     DateTime? createdAt,
     String? claimStatus,
+    String? maintenanceBy,
   }) {
     return PropertyModel(
       id: id ?? this.id,
@@ -93,6 +98,7 @@ class PropertyModel {
       furnishing: furnishing ?? this.furnishing,
       createdAt: createdAt ?? this.createdAt,
       claimStatus: claimStatus ?? this.claimStatus,
+      maintenanceBy: maintenanceBy ?? this.maintenanceBy,
     );
   }
 }

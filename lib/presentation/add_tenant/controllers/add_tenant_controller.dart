@@ -9,6 +9,7 @@ import 'package:apart_mate/presentation/members/controllers/members_controller.d
 import 'package:apart_mate/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/data/models/tenant_model.dart';
 import 'package:apart_mate/data/repositories/local_tenant_repository.dart';
@@ -24,6 +25,7 @@ class AddTenantController extends GetxController {
 
   late final DashboardController _dashboard;
   late final LocalTenantRepository _tenantRepo;
+  late final IPropertyRepository _propertyRepo;
 
   List<PropertyModel> get vacantProperties {
     final all = _dashboard.propertiesInCurrentSociety;
@@ -35,6 +37,8 @@ void onInit() {
   super.onInit();
   _dashboard = Get.find<DashboardController>();
   _tenantRepo = Get.find<ITenantRepository>() as LocalTenantRepository;
+  _propertyRepo = Get.find<IPropertyRepository>();
+
 }
 
   void selectProperty(String id) {
@@ -42,39 +46,69 @@ void onInit() {
   }
 
   Future<void> saveTenant() async {
-    final name = fullNameCtrl.text.trim();
-    final phone = phoneCtrl.text.trim();
-    final cnic = cnicCtrl.text.trim();
-    final propId = selectedPropertyId.value;
+  final name = fullNameCtrl.text.trim();
+  final phone = phoneCtrl.text.trim();
+  final cnic = cnicCtrl.text.trim();
+  final propId = selectedPropertyId.value;
 
-    if (name.isEmpty || phone.isEmpty || cnic.isEmpty) {
-      AppSnackbar.info('Missing fields', 'Please fill all fields');
-      return;
-    }
-    if (propId == null) {
-      AppSnackbar.info('Select property', 'Please select a vacant property');
-      return;
-    }
-
-    final property = vacantProperties.firstWhere((p) => p.id == propId);
-    final label = 'Flat ${property.flatNumber} · ${property.building}';
-
-    isLoading.value = true;
-    try {
-      final tenant = await _tenantRepo.createTenant(
-        fullName: name,
-        phone: phone,
-        cnic: cnic,
-        propertyId: propId,
-        propertyLabel: label,
-      );
-
-      // Show confirmation sheet with code
-      await _showInviteCodeSheet(tenant);
-    } finally {
-      isLoading.value = false;
-    }
+  if (name.isEmpty || phone.isEmpty || cnic.isEmpty) {
+    AppSnackbar.info('Missing fields', 'Please fill all fields');
+    return;
   }
+  if (propId == null) {
+    AppSnackbar.info('Select property', 'Please select a vacant property');
+    return;
+  }
+
+  final property = vacantProperties.firstWhere((p) => p.id == propId);
+  final label = 'Flat ${property.flatNumber} · ${property.building}';
+
+  isLoading.value = true;
+  try {
+    // 1) Save tenant
+    final tenant = await _tenantRepo.createTenant(
+  fullName: name,
+  phone: phone,
+  cnic: cnic,
+  propertyId: propId,
+  propertyLabel: label,
+);
+
+// Mark property occupied
+await _propertyRepo.saveProperty(
+  property.copyWith(
+    isOccupied: true,
+    occupiedBy: 'tenant',
+  ),
+);
+
+// Refresh lists
+if (Get.isRegistered<DashboardController>()) {
+  await _dashboard.refresh();
+}
+
+await _showInviteCodeSheet(tenant);
+
+    // 2) Mark property as occupied by tenant
+    final updatedProperty = property.copyWith(
+      isOccupied: true,
+      occupiedBy: 'tenant',
+    );
+    await _propertyRepo.saveProperty(updatedProperty);
+
+    // 3) Refresh dashboard lists (vacant / occupied chips, etc.)
+    if (Get.isRegistered<DashboardController>()) {
+      await _dashboard.refresh();
+    }
+
+    // 4) Show invite code sheet
+    await _showInviteCodeSheet(tenant);
+  } catch (e) {
+    AppSnackbar.error('Failed', 'Could not add tenant. Please try again.');
+  } finally {
+    isLoading.value = false;
+  }
+}
 
   Future<void> _showInviteCodeSheet(TenantModel tenant) async {
   await Get.bottomSheet(

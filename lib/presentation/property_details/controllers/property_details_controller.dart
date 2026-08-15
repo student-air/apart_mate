@@ -9,7 +9,7 @@ import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/presentation/dashboard/controllers/dashboard_controller.dart';
 import 'package:apart_mate/routes/app_routes.dart';
-
+ 
 class PropertyDetailsController extends GetxController {
   final IAuthRepository _authRepository;
   final IPropertyRepository _propertyRepository;
@@ -69,7 +69,7 @@ class PropertyDetailsController extends GetxController {
   final selectedMeterType = RxnString();
   final selectedWaterConnection = RxnString();
   final selectedFurnishing = RxnString();
-
+  final maintenanceBy = 'property_owner'.obs;
   final isLoading = false.obs;
 
   /// Existing property when opened from Edit. Null = create flow.
@@ -146,7 +146,12 @@ class PropertyDetailsController extends GetxController {
         p.waterConnection.isNotEmpty ? p.waterConnection : null;
     selectedFurnishing.value =
         p.furnishing.isNotEmpty ? p.furnishing : null;
+        maintenanceBy.value = p.maintenanceBy;
   }
+
+  void setMaintenanceBy(String value) {
+  maintenanceBy.value = value;
+}
 
   // ── Validation ──────────────────────────────────────────────
   bool validateStep(int step) {
@@ -218,96 +223,97 @@ class PropertyDetailsController extends GetxController {
     }
   }
 
-  // ── Save ────────────────────────────────────────────────────
-  Future<void> saveAndContinue() async {
-    final user = _authRepository.currentUser;
-    if (user == null) {
-      AppSnackbar.error('Not signed in', 'Please sign in again');
-      Get.offAllNamed(AppRoutes.login);
-      return;
-    }
+// ── Save ────────────────────────────────────────────────────
+Future<void> saveAndContinue() async {
+  final user = _authRepository.currentUser;
+  if (user == null) {
+    AppSnackbar.error('Not signed in', 'Please sign in again');
+    Get.offAllNamed(AppRoutes.login);
+    return;
+  }
 
-    final societyId = isEditMode
-        ? existingProperty!.societyId
-        : (isIndependent
-            ? ''
-            : (Get.arguments is String ? Get.arguments as String : ''));
+  final societyId = isEditMode
+      ? existingProperty!.societyId
+      : (isIndependent
+          ? ''
+          : (Get.arguments is String ? Get.arguments as String : ''));
 
-    final building = isIndependent
-        ? (selectedHouseType.value ?? '')
-        : (selectedBuilding.value ?? '');
-    final floor = isIndependent ? '' : (selectedFloor.value ?? '');
-    final flatNumber = flatNumberCtrl.text.trim();
+  final building = isIndependent
+      ? (selectedHouseType.value ?? '')
+      : (selectedBuilding.value ?? '');
+  final floor = isIndependent ? '' : (selectedFloor.value ?? '');
+  final flatNumber = flatNumberCtrl.text.trim();
 
-    isLoading.value = true;
-    try {
-      // ── Uniqueness check (create only) ──────────────────────
-      if (!isEditMode) {
-        final unitKey = buildPropertyUnitKey(
-          societyId: societyId,
-          building: building,
-          floor: floor,
-          flatNumber: flatNumber,
-        );
-
-        final existingClaim =
-            await _propertyRepository.findActiveClaimByUnitKey(unitKey);
-
-        if (existingClaim != null && existingClaim.userId != user.id) {
-          AppSnackbar.error(
-            'Already registered',
-            'This property is already registered to another user',
-          );
-          return;
-        }
-      }
-
-      final property = PropertyModel(
-        id: isEditMode
-            ? existingProperty!.id
-            : 'property_${DateTime.now().millisecondsSinceEpoch}',
-        userId: user.id,
+  isLoading.value = true;
+  try {
+    // ── Uniqueness check (create only) ──────────────────────
+    if (!isEditMode) {
+      final unitKey = buildPropertyUnitKey(
         societyId: societyId,
         building: building,
         floor: floor,
         flatNumber: flatNumber,
-        isOccupied: isOccupied.value,
-        occupiedBy: occupiedBy.value,
-        propertyType:
-            selectedPropertyType.value ?? (isIndependent ? 'House' : ''),
-        areaSqFt: areaCtrl.text.trim(),
-        bathrooms: bathroomsCtrl.text.trim(),
-        flatType: selectedFlatType.value ?? '',
-        hasBalcony: hasBalcony.value,
-        hasElectricity: hasElectricity.value,
-        hasGas: hasGas.value,
-        meterType: selectedMeterType.value ?? '',
-        waterConnection: selectedWaterConnection.value ?? '',
-        furnishing: selectedFurnishing.value ?? '',
-        createdAt: isEditMode ? existingProperty!.createdAt : DateTime.now(),
-        claimStatus:
-            isEditMode ? existingProperty!.claimStatus : 'active',
       );
 
-      await _propertyRepository.saveProperty(property);
+      final existingClaim =
+          await _propertyRepository.findActiveClaimByUnitKey(unitKey);
 
-      if (isEditMode) {
-        AppSnackbar.success('Updated', 'Property details saved');
-        if (Get.isRegistered<DashboardController>()) {
-          await Get.find<DashboardController>().refresh();
-        }
-        Get.offNamed(AppRoutes.manageProperties);
-      } else if (isIndependent) {
-        // Independent owners → dashboard (no society admin approval)
-        Get.offAllNamed(AppRoutes.dashboard);
-      } else {
-        // Society property → request status (admin approval path)
-        Get.offNamed(AppRoutes.requeststatus, arguments: societyId);
+      if (existingClaim != null && existingClaim.userId != user.id) {
+        AppSnackbar.error(
+          'Already registered',
+          'This property is already registered to another user',
+        );
+        return;
       }
-    } finally {
-      isLoading.value = false;
     }
+
+    final property = PropertyModel(
+      id: isEditMode
+          ? existingProperty!.id
+          : 'property_${DateTime.now().millisecondsSinceEpoch}',
+      userId: user.id,
+      societyId: societyId,
+      building: building,
+      floor: floor,
+      flatNumber: flatNumber,
+      // New property → always vacant; edit keeps current occupancy
+      isOccupied: isEditMode ? existingProperty!.isOccupied : false,
+      occupiedBy: isEditMode ? existingProperty!.occupiedBy : '',
+      propertyType:
+          selectedPropertyType.value ?? (isIndependent ? 'House' : ''),
+      areaSqFt: areaCtrl.text.trim(),
+      bathrooms: bathroomsCtrl.text.trim(),
+      flatType: selectedFlatType.value ?? '',
+      hasBalcony: hasBalcony.value,
+      hasElectricity: hasElectricity.value,
+      hasGas: hasGas.value,
+      meterType: selectedMeterType.value ?? '',
+      waterConnection: selectedWaterConnection.value ?? '',
+      furnishing: selectedFurnishing.value ?? '',
+      createdAt: isEditMode ? existingProperty!.createdAt : DateTime.now(),
+      claimStatus: isEditMode ? existingProperty!.claimStatus : 'active',
+      maintenanceBy: maintenanceBy.value,
+    );
+
+    await _propertyRepository.saveProperty(property);
+
+    if (isEditMode) {
+      AppSnackbar.success('Updated', 'Property details saved');
+      if (Get.isRegistered<DashboardController>()) {
+        await Get.find<DashboardController>().refresh();
+      }
+      Get.offNamed(AppRoutes.manageProperties);
+    } else if (isIndependent) {
+      // Independent owners → dashboard (no society admin approval)
+      Get.offAllNamed(AppRoutes.dashboard);
+    } else {
+      // Society property → request status (admin approval path)
+      Get.offNamed(AppRoutes.requeststatus, arguments: societyId);
+    }
+  } finally {
+    isLoading.value = false;
   }
+}
 
   void goBack() => Get.back();
 

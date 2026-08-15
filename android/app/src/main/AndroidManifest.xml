@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="apart_mate"
+        android:label="Apart Mate"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

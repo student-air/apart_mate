@@ -1,19 +1,11 @@
-// lib/routes/app_pages.dart
-
 import 'package:get/get.dart';
 import 'package:apart_mate/routes/app_routes.dart';
-
-// Splash
 import 'package:apart_mate/presentation/splash/bindings/splash_binding.dart';
 import 'package:apart_mate/presentation/splash/views/splash_view.dart';
-
-// Auth
 import 'package:apart_mate/presentation/auth/bindings/auth_binding.dart';
 import 'package:apart_mate/presentation/auth/views/login_view.dart';
 import 'package:apart_mate/presentation/auth/views/signup_view.dart';
 import 'package:apart_mate/presentation/auth/views/signup_handoff_view.dart';
-
-// Onboarding
 import 'package:apart_mate/presentation/profile_setup/bindings/profile_setup_binding.dart';
 import 'package:apart_mate/presentation/profile_setup/views/profile_setup_view.dart';
 import 'package:apart_mate/presentation/role_selection/bindings/role_selection_binding.dart';
@@ -24,8 +16,6 @@ import 'package:apart_mate/presentation/property_details/bindings/property_detai
 import 'package:apart_mate/presentation/property_details/views/property_details_view.dart';
 import 'package:apart_mate/presentation/request_status/bindings/request_status_binding.dart';
 import 'package:apart_mate/presentation/request_status/views/request_status_view.dart';
-
-// Main (owner / manager)
 import 'package:apart_mate/presentation/dashboard/bindings/dashboard_binding.dart';
 import 'package:apart_mate/presentation/dashboard/views/dashboard_view.dart';
 import 'package:apart_mate/presentation/profile/bindings/profile_binding.dart';
@@ -40,14 +30,16 @@ import 'package:apart_mate/presentation/add_tenant/bindings/add_tenant_binding.d
 import 'package:apart_mate/presentation/add_tenant/views/add_tenant_view.dart';
 import 'package:apart_mate/presentation/add_manager/bindings/add_manager_binding.dart';
 import 'package:apart_mate/presentation/add_manager/views/add_manager_view.dart';
-
-// Tenant flow
 import 'package:apart_mate/presentation/tenant_join_code/bindings/tenant_join_code_binding.dart';
 import 'package:apart_mate/presentation/tenant_join_code/views/tenant_join_code_view.dart';
 import 'package:apart_mate/presentation/tenant_confirm/bindings/tenant_confirm_binding.dart';
 import 'package:apart_mate/presentation/tenant_confirm/views/tenant_confirm_view.dart';
 import 'package:apart_mate/presentation/tenant_dashboard/bindings/tenant_dashboard_binding.dart';
 import 'package:apart_mate/presentation/tenant_dashboard/views/tenant_dashboard_view.dart';
+import 'package:apart_mate/presentation/maintenance/bindings/maintenance_binding.dart';
+import 'package:apart_mate/presentation/maintenance/views/maintenance_view.dart';
+import 'package:apart_mate/presentation/complaint/bindings/complaint_binding.dart';
+import 'package:apart_mate/presentation/complaint/views/complaint_view.dart';
 
 class AppPages {
   AppPages._();
@@ -149,6 +141,16 @@ class AppPages {
       name: AppRoutes.tenantDashboard,
       page: () => const TenantDashboardView(),
       binding: TenantDashboardBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.maintenance,
+      page: () => const MaintenanceView(),
+      binding: MaintenanceBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.complaint,
+      page: () => const ComplaintView(),
+      binding: ComplaintBinding(),
     ),
   ];
 }

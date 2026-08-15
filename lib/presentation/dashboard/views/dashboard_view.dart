@@ -476,7 +476,7 @@ SliverPadding(
                 _MetricCardsRow(property: property),
                 const SizedBox(height: 20),
 
-                // Property hero + dropdown (same society Wednesday Monday go almost hot I got horrig अच्छा late backmodel thum sharing shell sheer goingplaying barrel thought liha backing s baking pulling me knock to melta rug mama both d d d d dya fit recalking to keep magic barabra snaps to grow smek lamda startly soonly)
+                // Property hero + dropdown (same society Wednesday Monday go almost hot I got horrig अच्छा late backmodel thum sharing shell sheer goingplaying barrel thought liha backing s baking pulling me knock to melta rug mama both d d d d dya fit recalking to keep magic barabra snaps to grow smek lamda startly so new philosopher no phi to battle and short shitgoal melening it s whatsapp login to fly maximum to beginbarrier no setonly)
                 _PropertyHeroCard(
                   property: property,
                   properties: controller.propertiesInCurrentSociety,
@@ -1227,14 +1227,14 @@ class _QuickActionsCard extends StatelessWidget {
         'Maintenance',
         AppColors.surfaceMuted,
         AppColors.textSecondary,
-        () => _showComingSoon('Maintenance Request'),
+        () => Get.toNamed(AppRoutes.maintenance),
       ),
       (
-        Icons.support_agent_rounded,
-        'Contact Admin',
+        Icons.report_problem_rounded,
+        'Complaints',
         AppColors.pastelRedBg,
         AppColors.pastelRedIcon,
-        () => _showComingSoon('Contact Admin'),
+        () => Get.toNamed(AppRoutes.complaint),
       ),
     ];
 

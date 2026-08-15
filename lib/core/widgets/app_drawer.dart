@@ -1,6 +1,7 @@
 // lib/core/widgets/app_drawer.dart
 
 import 'package:apart_mate/core/utils/app_navigation.dart';
+import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
@@ -226,6 +227,14 @@ Row(
                       },
                     ),
                     _DrawerItem(
+  icon: Icons.build_rounded,
+  label: 'Maintenance',
+  onTap: () {
+    Get.back();
+    Get.toNamed(AppRoutes.maintenance);
+  },
+),
+                    _DrawerItem(
                       icon: Icons.home_work_rounded,
                       label: 'My Properties',
                       onTap: () {
@@ -249,7 +258,7 @@ Row(
                       label: 'Complaints',
                       onTap: () {
                         Get.back();
-                        // later: complaints
+                        Get.toNamed(AppRoutes.complaint);
                       },
                     ),
                   ],
@@ -267,6 +276,7 @@ Row(
                     label: 'Contact Admin',
                     onTap: () {
                       Get.back();
+                      AppSnackbar.info('Coming Soon', 'This feature is under development');
                     },
                   ),
                   _DrawerItem(
