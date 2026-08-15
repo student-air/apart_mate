@@ -152,15 +152,52 @@ class ComplaintView extends GetView<ComplaintListController> {
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
                   itemCount: list.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) => _ComplaintCard(
-                    complaint: list[i],
-                    isInbox: !controller.isTenant &&
-                        controller.selectedTab.value == 0,
-                    onStatus: controller.isTenant
-                        ? null
-                        : (status) =>
-                            controller.updateStatus(list[i].id, status),
+                  itemBuilder: (_, i) {
+  final c = list[i];
+  return Dismissible(
+    key: ValueKey(c.id),
+    direction: DismissDirection.endToStart, // swipe left
+    background: Container(
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: 20),
+      decoration: BoxDecoration(
+        color: AppColors.danger,
+        borderRadius: BorderRadius.circular(AppDimens.radius2xl),
+      ),
+      child: const Icon(Icons.delete_rounded, color: Colors.white, size: 26),
+    ),
+    confirmDismiss: (_) async {
+      return await Get.dialog<bool>(
+            AlertDialog(
+              title: const Text('Delete complaint?'),
+              content: const Text('This cannot be undone.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Get.back(result: false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Get.back(result: true),
+                  child: Text(
+                    'Delete',
+                    style: TextStyle(color: AppColors.danger),
                   ),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+    },
+    onDismissed: (_) => controller.deleteComplaint(c.id),
+    child: _ComplaintCard(
+      complaint: c,
+      isInbox: !controller.isTenant && controller.selectedTab.value == 0,
+      onStatus: controller.isTenant
+          ? null
+          : (status) => controller.updateStatus(c.id, status),
+    ),
+  );
+},
                 ),
               );
             }),
@@ -618,6 +655,7 @@ class _ComplaintCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Text(
@@ -627,12 +665,14 @@ class _ComplaintCard extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: _statusBg,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusFull),
+                  borderRadius:
+                      BorderRadius.circular(AppDimens.radiusFull),
                 ),
                 child: Text(
                   complaint.status.toUpperCase(),
@@ -645,15 +685,38 @@ class _ComplaintCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            complaint.description,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
+Text(
+  complaint.description,
+  // no maxLines / overflow — full content
+  style: AppTextStyles.bodyMedium.copyWith(
+    color: AppColors.textSecondary,
+    height: 1.4,
+  ),
+),
           const SizedBox(height: 10),
+
+          // Flat · Floor · Building  e.g. B-501 · 5th Floor · Building B
+          if (complaint.propertyLabel.isNotEmpty) ...[
+  const SizedBox(height: 10),
+  Row(
+    children: [
+      Icon(Icons.home_work_outlined,
+          size: 16, color: AppColors.accentGreenDark),
+      const SizedBox(width: 6),
+      Expanded(
+        child: Text(
+          complaint.propertyLabel, // flat · floor · building
+          style: AppTextStyles.labelMedium.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    ],
+  ),
+],
+          
+          const SizedBox(height: 10),
+
           Wrap(
             spacing: 8,
             runSpacing: 6,
@@ -661,10 +724,6 @@ class _ComplaintCard extends StatelessWidget {
               _MetaChip(
                 icon: Icons.category_outlined,
                 label: complaint.category,
-              ),
-              _MetaChip(
-                icon: Icons.home_outlined,
-                label: complaint.propertyLabel,
               ),
               if (isInbox)
                 _MetaChip(
@@ -678,7 +737,7 @@ class _ComplaintCard extends StatelessWidget {
             ],
           ),
           if (isInbox && onStatus != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Row(
               children: [
                 if (complaint.status != 'reviewed')

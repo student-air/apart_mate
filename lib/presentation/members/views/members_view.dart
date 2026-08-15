@@ -1,9 +1,11 @@
+// lib/presentation/members/views/members_view.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
-//import 'package:apart_mate/core/constants/app_strings.dart';
+import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:apart_mate/presentation/members/controllers/members_controller.dart';
 
 class MembersView extends GetView<MembersController> {
@@ -29,58 +31,58 @@ class MembersView extends GetView<MembersController> {
             child: SafeArea(
               bottom: false,
               child: Row(
-  children: [
-    // Back
-    GestureDetector(
-      onTap: () => Get.back(),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.textOnDark.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-        ),
-        child: const Icon(
-          Icons.arrow_back_rounded,
-          color: AppColors.textOnDark,
-          size: 20,
-        ),
-      ),
-    ),
-    const SizedBox(width: 12),
-
-    // Title
-    Expanded(
-      child: Text(
-        'Members',
-        style: AppTextStyles.h3.copyWith(
-          color: AppColors.textOnDark,
-        ),
-      ),
-    ),
-
-    // Logo (right side)
-    SizedBox(
-      width: 46,
-      height: 46,
-      child: Image.asset(
-        'assets/images/logo.png',
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Container(
-          decoration: BoxDecoration(
-            color: AppColors.accentGreen,
-            borderRadius: BorderRadius.circular(AppDimens.radiusSm),
-          ),
-          child: const Icon(
-            Icons.villa_rounded,
-            size: 22,
-            color: AppColors.primaryDark,
-          ),
-        ),
-      ),
-    ),
-  ],
-)
+                children: [
+                  GestureDetector(
+                    // IMPORTANT: do NOT use Get.back()
+                    // that returns to Add Tenant + invite sheet
+                    onTap: AppNavigation.goHome,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color:
+                            AppColors.textOnDark.withValues(alpha: 0.12),
+                        borderRadius:
+                            BorderRadius.circular(AppDimens.radiusMd),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.textOnDark,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Members',
+                      style: AppTextStyles.h3.copyWith(
+                        color: AppColors.textOnDark,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 46,
+                    height: 46,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.accentGreen,
+                          borderRadius:
+                              BorderRadius.circular(AppDimens.radiusSm),
+                        ),
+                        child: const Icon(
+                          Icons.villa_rounded,
+                          size: 22,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 

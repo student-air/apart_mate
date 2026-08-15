@@ -47,4 +47,10 @@ class LocalComplaintRepository implements IComplaintRepository {
       updatedAt: DateTime.now(),
     );
   }
+@override
+Future<void> deleteComplaint(String complaintId) async {
+  await Future.delayed(const Duration(milliseconds: 200));
+  _complaints.remove(complaintId);
+}
+  
 }

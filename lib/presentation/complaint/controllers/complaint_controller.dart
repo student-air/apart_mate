@@ -50,4 +50,10 @@ class ComplaintListController extends GetxController {
     await _repo.updateStatus(id, status);
     await load();
   }
+
+  Future<void> deleteComplaint(String id) async {
+  await _repo.deleteComplaint(id);
+  inbox.removeWhere((c) => c.id == id);
+  mine.removeWhere((c) => c.id == id);
+}
 }

@@ -86,9 +86,6 @@ await _propertyRepo.saveProperty(
 if (Get.isRegistered<DashboardController>()) {
   await _dashboard.refresh();
 }
-
-await _showInviteCodeSheet(tenant);
-
     // 2) Mark property as occupied by tenant
     final updatedProperty = property.copyWith(
       isOccupied: true,
@@ -203,15 +200,21 @@ const SizedBox(height: 28),
 // Done button
 AppPrimaryButton(
   label: AppStrings.done,
-  onPressed: () {
-    Get.back(); // close sheet
+  onPressed: () async {
+    // 1) Close the invite code sheet only
+    if (Get.isBottomSheetOpen == true) {
+      Get.back();
+    }
 
-    // If MembersController is already open, refresh it
+    // 2) Let the sheet finish closing before changing routes
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // 3) Refresh members if already registered
     if (Get.isRegistered<MembersController>()) {
       Get.find<MembersController>().loadMembers();
     }
 
-    // Go to Members (replace add-tenant so back doesn't return to form)
+    // 4) Replace Add Tenant with Members (no sheet left under it)
     Get.offNamed(AppRoutes.members);
   },
 ),

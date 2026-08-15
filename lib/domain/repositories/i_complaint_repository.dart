@@ -5,4 +5,5 @@ abstract class IComplaintRepository {
   Future<List<ComplaintModel>> getComplaintsRaisedBy(String userId);
   Future<List<ComplaintModel>> getComplaintsForOwner(String ownerUserId);
   Future<void> updateStatus(String complaintId, String status);
+  Future<void> deleteComplaint(String complaintId);
 }

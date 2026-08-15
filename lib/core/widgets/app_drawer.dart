@@ -242,6 +242,15 @@ Row(
                         Get.toNamed(AppRoutes.manageProperties);
                       },
                     ),
+
+                    _DrawerItem(
+  icon: Icons.report_problem_rounded,
+  label: 'Complaints',
+  onTap: () {
+    Get.back(); // close drawer
+    Get.toNamed(AppRoutes.complaint);
+  },
+),
                   ],
 
                   if (isTenant) ...[

@@ -42,9 +42,7 @@ class TenantDashboardView extends GetView<TenantDashboardController> {
         activeTab: TenantNavTab.home,
         onHome: AppNavigation.goHome,
         onUpdates: () => Get.toNamed(AppRoutes.updates),
-        onComplaints: () {
-          AppSnackbar.info('Complaints', 'Complaints will be available soon');
-        },
+        onComplaints: () => Get.toNamed(AppRoutes.complaint),
         onProfile: () => Get.toNamed(AppRoutes.profile),
       ),
       body: Obx(() {
@@ -677,13 +675,10 @@ class _QuickActionsCard extends StatelessWidget {
               Expanded(
                 child: _ActionTile(
                   icon: Icons.report_problem_rounded,
-                  label: 'Complaint',
+                  label: 'Complaints',
                   bg: AppColors.pastelRedBg,
                   fg: AppColors.pastelRedIcon,
-                  onTap: () => AppSnackbar.info(
-                    'Complaints',
-                    'Coming soon',
-                  ),
+                  onTap: () => Get.toNamed(AppRoutes.complaint, arguments: {'tab': 1})
                 ),
               ),
               const SizedBox(width: 10),
