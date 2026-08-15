@@ -1,6 +1,7 @@
 // lib/presentation/profile/views/profile_view.dart
 
 import 'dart:io';
+import 'package:apart_mate/core/widgets/send_complaint_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -24,7 +25,7 @@ class ProfileView extends GetView<ProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
-      floatingActionButton: AppAddFab(onPressed: () {}),
+      floatingActionButton: AppAddFab(onPressed: () => SendComplaintSheet.open(),),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: AppBottomNav(
         items: [

@@ -1,4 +1,5 @@
 import 'package:apart_mate/core/utils/app_navigation.dart';
+import 'package:apart_mate/core/widgets/send_complaint_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -91,7 +92,7 @@ class UpdatesView extends GetView<UpdatesController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: AppAddFab(onPressed: () {}),
+      floatingActionButton: AppAddFab(onPressed: () => SendComplaintSheet.open(),),
 bottomNavigationBar: AppBottomNav(
   items: [
     NavItemData(

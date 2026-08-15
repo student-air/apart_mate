@@ -1,5 +1,6 @@
 // lib/presentation/tenant_dashboard/views/tenant_dashboard_view.dart
 
+import 'package:apart_mate/core/widgets/send_complaint_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -34,9 +35,7 @@ class TenantDashboardView extends GetView<TenantDashboardController> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: AppAddFab(
-        onPressed: () {
-          AppSnackbar.info('Complaints', 'Complaint filing will be available soon');
-        },
+        onPressed: () => SendComplaintSheet.open(),
       ),
       // ── KEEP TENANT NAV AS-IS ───────────────────────────────────────────
       bottomNavigationBar: AppTenantBottomNav(
