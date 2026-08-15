@@ -1,17 +1,17 @@
+// lib/core/widgets/send_complaint_sheet.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
-import 'package:apart_mate/core/constants/app_dimens.dart';
+// import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
-import 'package:apart_mate/core/widgets/app_button.dart';
-import 'package:apart_mate/core/widgets/app_text_field.dart';
 import 'package:apart_mate/data/models/complaint_model.dart';
-import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_complaint_repository.dart';
-import 'package:apart_mate/domain/repositories/i_property_repository.dart';
+import 'package:apart_mate/domain/repositories/i_society_repository.dart';
+import 'package:apart_mate/presentation/dashboard/controllers/dashboard_controller.dart';
 
 class SendComplaintSheet extends StatefulWidget {
   const SendComplaintSheet({super.key});
@@ -31,37 +31,20 @@ class SendComplaintSheet extends StatefulWidget {
 class _SendComplaintSheetState extends State<SendComplaintSheet> {
   final titleCtrl = TextEditingController();
   final descriptionCtrl = TextEditingController();
+
   final categories = const [
     'Plumbing',
     'Electrical',
-    'Noise',
-    'Cleaning',
+    'Cleanliness',
     'Security',
-    'Other',
+    'Noise',
+    'General',
   ];
 
-  String? selectedCategory;
-  String? selectedPropertyId;
-  List<PropertyModel> properties = [];
+  String selectedCategory = 'General';
   bool isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadProperties();
-  }
-
-  Future<void> _loadProperties() async {
-    final auth = Get.find<IAuthRepository>();
-    final user = auth.currentUser;
-    if (user == null) return;
-    final repo = Get.find<IPropertyRepository>();
-    final list = await repo.getPropertiesForUser(user.id);
-    setState(() {
-      properties = list;
-      if (list.length == 1) selectedPropertyId = list.first.id;
-    });
-  }
+  bool get _isTenant => AppNavigation.isTenant;
 
   Future<void> _submit() async {
     final auth = Get.find<IAuthRepository>();
@@ -75,42 +58,38 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
       AppSnackbar.info('Missing fields', 'Enter title and description');
       return;
     }
-    if (selectedCategory == null) {
-      AppSnackbar.info('Category', 'Select a category');
+
+    String? societyId;
+    if (Get.isRegistered<DashboardController>()) {
+      societyId = Get.find<DashboardController>().society.value?.id;
+    }
+    if (societyId == null || societyId.isEmpty) {
+      societyId =
+          await Get.find<ISocietyRepository>().getSocietyIdForUser(user.id);
+    }
+    if (societyId == null || societyId.isEmpty) {
+      AppSnackbar.info(
+        'No society',
+        'Select a society on the dashboard first',
+      );
       return;
     }
-    if (selectedPropertyId == null) {
-      AppSnackbar.info('Property', 'Select a property');
-      return;
-    }
-
-    final property = properties.firstWhere((p) => p.id == selectedPropertyId);
-    final isTenant = AppNavigation.isTenant;
-
-    // Routing:
-    // - Tenant → owner if property_owner, else society_admin
-    // - Owner filing → always society_admin (My Complaints)
-    final assignedTo = isTenant
-        ? (property.maintenanceBy == 'society_admin'
-            ? 'society_admin'
-            : 'owner')
-        : 'society_admin';
 
     setState(() => isLoading = true);
     try {
       final complaint = ComplaintModel(
         id: 'complaint_${DateTime.now().millisecondsSinceEpoch}',
-        propertyId: property.id,
-        societyId: property.societyId,
+        propertyId: '',
+        societyId: societyId,
         raisedByUserId: user.id,
-        raisedByRole: isTenant ? 'tenant' : 'owner',
+        raisedByRole: _isTenant ? 'tenant' : 'owner',
         raisedByName: user.fullName,
         title: title,
         description: desc,
-        category: selectedCategory!,
+        category: selectedCategory,
         status: 'open',
-        assignedTo: assignedTo,
-        propertyLabel: 'Flat ${property.flatNumber} · ${property.building}',
+        assignedTo: 'society_admin',
+        propertyLabel: 'Society complaint',
         createdAt: DateTime.now(),
       );
 
@@ -119,9 +98,7 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
       Get.back();
       AppSnackbar.success(
         'Submitted',
-        assignedTo == 'society_admin'
-            ? 'Complaint sent to society admin'
-            : 'Complaint sent to property owner',
+        'Complaint sent to society admin',
       );
     } catch (_) {
       AppSnackbar.error('Failed', 'Could not submit complaint');
@@ -137,141 +114,256 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
     super.dispose();
   }
 
+  InputDecoration _decoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textMuted),
+      filled: true,
+      fillColor: AppColors.background,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.borderLight),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.borderLight),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.accentGreen, width: 1.4),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+    final maxH = MediaQuery.of(context).size.height * 0.92;
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
-      ),
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 16 + bottom),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: SingleChildScrollView(
+    return SafeArea(
+      child: Container(
+        constraints: BoxConstraints(maxHeight: maxH),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+            // Dark header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
+              decoration: const BoxDecoration(
+                color: AppColors.primaryDark,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text('Send Complaint', style: AppTextStyles.h3),
-            const SizedBox(height: 6),
-            Text(
-              'Describe the issue and submit',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 18),
-            AppTextField(
-              label: 'Title',
-              hint: 'e.g. Water leakage',
-              controller: titleCtrl,
-            ),
-            const SizedBox(height: 12),
-            AppTextField(
-              label: 'Description',
-              hint: 'What happened?',
-              controller: descriptionCtrl,
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            Text('Category', style: AppTextStyles.labelLarge),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: categories.map((c) {
-                final selected = selectedCategory == c;
-                return GestureDetector(
-                  onTap: () => setState(() => selectedCategory = c),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
                     decoration: BoxDecoration(
-                      color: selected
-                          ? AppColors.pastelGreenBg
-                          : AppColors.surfaceMuted,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected
-                            ? AppColors.accentGreen
-                            : AppColors.border,
-                      ),
-                    ),
-                    child: Text(
-                      c,
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: selected
-                            ? AppColors.successGreenDark
-                            : AppColors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                );
-              }).toList(),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentGreen.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.report_problem_rounded,
+                          color: AppColors.accentGreen,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'File a complaint',
+                              style: AppTextStyles.h4.copyWith(
+                                color: AppColors.textOnDark,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _isTenant
+                                  ? 'Sent for your active society (owner or admin)'
+                                  : 'Sent to the society admin for your active society',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.textOnDarkMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Text('Property', style: AppTextStyles.labelLarge),
-            const SizedBox(height: 8),
-            if (properties.isEmpty)
-              Text(
-                'No property found',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textMuted,
-                ),
-              )
-            else
-              ...properties.map((p) {
-                final selected = selectedPropertyId == p.id;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: GestureDetector(
-                    onTap: () => setState(() => selectedPropertyId = p.id),
-                    child: Container(
+
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(20, 18, 20, 12 + bottom),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Title', style: AppTextStyles.labelLarge),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: titleCtrl,
+                      style: AppTextStyles.bodyMedium,
+                      decoration:
+                          _decoration('e.g. Water leakage in kitchen'),
+                    ),
+                    const SizedBox(height: 14),
+                    Text('Description', style: AppTextStyles.labelLarge),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: descriptionCtrl,
+                      maxLines: 4,
+                      style: AppTextStyles.bodyMedium,
+                      decoration:
+                          _decoration('Describe the issue clearly…'),
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Category', style: AppTextStyles.labelLarge),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: categories.map((c) {
+                        final selected = selectedCategory == c;
+                        return GestureDetector(
+                          onTap: () =>
+                              setState(() => selectedCategory = c),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? AppColors.pastelGreenBg
+                                  : AppColors.background,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: selected
+                                    ? AppColors.accentGreen
+                                        .withValues(alpha: 0.55)
+                                    : AppColors.borderLight,
+                              ),
+                            ),
+                            child: Text(
+                              c,
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: selected
+                                    ? AppColors.accentGreenDark
+                                    : AppColors.textSecondary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: selected
-                            ? AppColors.pastelGreenBg
-                            : AppColors.surfaceMuted,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: selected
-                              ? AppColors.accentGreen
-                              : AppColors.border,
-                        ),
+                        color: AppColors.pastelBlueBg.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        'Flat ${p.flatNumber} · ${p.building}',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 18,
+                            color: AppColors.pastelBlueIcon,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _isTenant
+                                  ? 'This will be filed under your active society and routed automatically.'
+                                  : 'This will be filed under your selected society and sent to the society admin.',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.pastelBlueIcon,
+                                height: 1.35,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryDark,
+                          foregroundColor: AppColors.accentGreen,
+                          disabledBackgroundColor:
+                              AppColors.primaryDark.withValues(alpha: 0.5),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  color: AppColors.accentGreen,
+                                ),
+                              )
+                            : Text(
+                                'Submit complaint',
+                                style: AppTextStyles.labelLarge.copyWith(
+                                  color: AppColors.accentGreen,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: TextButton(
+                        onPressed: isLoading ? null : () => Get.back(),
+                        child: Text(
+                          'Cancel',
+                          style: AppTextStyles.labelLarge.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
-            const SizedBox(height: 20),
-            AppPrimaryButton(
-              label: 'Submit Complaint',
-              isLoading: isLoading,
-              onPressed: _submit,
+                  ],
+                ),
+              ),
             ),
           ],
         ),

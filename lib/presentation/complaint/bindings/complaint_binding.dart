@@ -4,6 +4,6 @@ import 'package:apart_mate/presentation/complaint/controllers/complaint_controll
 class ComplaintBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => ComplaintController());
+    Get.lazyPut<ComplaintListController>(() => ComplaintListController());
   }
 }
