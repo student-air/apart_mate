@@ -445,12 +445,24 @@ class _ContactRow extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 // SOCIETY
 // ─────────────────────────────────────────────────────────────
-class _SocietyCard extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────
+// SOCIETY (expandable)
+// ─────────────────────────────────────────────────────────────
+class _SocietyCard extends StatefulWidget {
   final SocietyModel society;
   const _SocietyCard({required this.society});
 
   @override
+  State<_SocietyCard> createState() => _SocietyCardState();
+}
+
+class _SocietyCardState extends State<_SocietyCard> {
+  bool expanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    final s = widget.society;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -470,43 +482,91 @@ class _SocietyCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF0F2F5),
-                  shape: BoxShape.circle,
+
+          // Header row — tap to expand
+          InkWell(
+            onTap: () => setState(() => expanded = !expanded),
+            borderRadius: BorderRadius.circular(12),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF0F2F5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.location_city_rounded,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.location_on_rounded,
-                  size: 18,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      society.name,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w700,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        s.name,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${society.address}, ${society.city}',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textSecondary,
+                      const SizedBox(height: 2),
+                      Text(
+                        expanded ? 'Tap to collapse' : 'Tap for society details',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                AnimatedRotation(
+                  turns: expanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Expanded details
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.only(top: 14),
+              child: Column(
+                children: [
+                  _SocietyDetailRow(
+                    icon: Icons.phone_rounded,
+                    label: 'Phone',
+                    value: s.phone.isEmpty ? '—' : s.phone,
+                  ),
+                  const SizedBox(height: 10),
+                  _SocietyDetailRow(
+                    icon: Icons.email_outlined,
+                    label: 'Email',
+                    value: s.email.isEmpty ? '—' : s.email,
+                  ),
+                  const SizedBox(height: 10),
+                  _SocietyDetailRow(
+                    icon: Icons.place_outlined,
+                    label: 'Full address',
+                    value: s.fullAddress,
+                  ),
+                  
+                ],
               ),
-            ],
+            ),
+            crossFadeState: expanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 220),
           ),
         ],
       ),
@@ -514,6 +574,48 @@ class _SocietyCard extends StatelessWidget {
   }
 }
 
+class _SocietyDetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _SocietyDetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: AppColors.textMuted),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
 // ─────────────────────────────────────────────────────────────
 // SETTINGS
 // ─────────────────────────────────────────────────────────────
@@ -533,7 +635,7 @@ class _SettingsCard extends StatelessWidget {
         ),
       if (isTenant)
         (
-          Icons.apartment_rounded,
+          Icons.home_rounded,
           const Color(0xFFE8F8EF),
           AppColors.accentGreenDark,
           'My Flat',
@@ -683,7 +785,7 @@ class _LogoutCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Sign out of your ApartMate account',
+                      'Sign out of your Apart Mate account',
                       style: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.danger.withValues(alpha: 0.75),
                       ),
