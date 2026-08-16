@@ -353,4 +353,13 @@ class LocalAuthRepository implements IAuthRepository {
     // TODO: implement updateUserPropertyType
     throw UnimplementedError();
   }
+
+  @override
+Future<UserModel> updateCurrentUser(UserModel user) async {
+  await Future.delayed(const Duration(milliseconds: 200));
+  // replace current user in memory / map
+  _currentUser = user;
+  _users[user.id] = user; // if you keep a map
+  return user;
+}
 }

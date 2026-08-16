@@ -152,5 +152,10 @@ class AppPages {
       page: () => const ComplaintView(),
       binding: ComplaintBinding(),
     ),
+    GetPage(
+      name: AppRoutes.editProfile,
+      page: () => const ProfileView(),
+      binding: ProfileBinding(),
+    ),
   ];
 }
