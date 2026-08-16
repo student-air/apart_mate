@@ -44,6 +44,7 @@ class DashboardController extends GetxController {
 
   String get userName => _authRepository.currentUser?.fullName ?? '';
   String get userRole => _authRepository.currentUser?.role ?? '';
+
   String get roleLabel =>
       userRole.isEmpty ? '' : userRole[0].toUpperCase() + userRole.substring(1);
   bool get isTenant => userRole == 'tenant';
@@ -65,6 +66,12 @@ class DashboardController extends GetxController {
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
   }
+
+  String? get photoPath {
+  final p = _authRepository.currentUser?.photoPath;
+  if (p == null || p.isEmpty) return null;
+  return p;
+}
 
   @override
   void onInit() {

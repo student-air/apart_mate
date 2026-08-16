@@ -75,6 +75,12 @@ class LocalTenantRepository implements ITenantRepository {
     return _tenants[tenantId];
   }
 
+  @override
+Future<void> deleteTenant(String tenantId) async {
+  await Future.delayed(const Duration(milliseconds: 200));
+  _tenants.remove(tenantId);
+}
+
   /// Create + save invite (owner contact exported for tenant profile)
   Future<TenantModel> createTenant({
     required String fullName,

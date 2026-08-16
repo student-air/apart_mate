@@ -14,7 +14,7 @@ class AppAddFab extends StatelessWidget {
       backgroundColor: Colors.black,
       elevation: 3,
       onPressed: onPressed,
-      child: const Icon(Icons.add, color: AppColors.accentGreen, size: 26),
+      child: const Icon(Icons.add, color: AppColors.accentGreen, size: 30),
     );
   }
 }
@@ -46,17 +46,17 @@ class AppBottomNav extends StatelessWidget {
     return BottomAppBar(
       color: AppColors.surface,
       shape: const CircularNotchedRectangle(),
-      notchMargin: 6,
+      notchMargin: 8,
       padding: EdgeInsets.zero,
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 56,
+          height: 46,
           child: Row(
             children: [
               Expanded(child: _NavItem(data: items[0])),
               Expanded(child: _NavItem(data: items[1])),
-              const SizedBox(width: 36),
+              const SizedBox(width: 56),
               Expanded(child: _NavItem(data: items[2])),
               Expanded(child: _NavItem(data: items[3])),
             ],
@@ -84,7 +84,7 @@ class _NavItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(data.icon, size: 20, color: color),
+            Icon(data.icon, size: 22, color: color),
             const SizedBox(height: 1),
             FittedBox(
               fit: BoxFit.scaleDown,
