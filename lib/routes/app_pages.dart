@@ -1,3 +1,5 @@
+import 'package:apart_mate/presentation/edit_profile/bindings/edit_profile_binding.dart';
+import 'package:apart_mate/presentation/edit_profile/viewa/edit_profile_view.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 import 'package:apart_mate/presentation/splash/bindings/splash_binding.dart';
@@ -154,8 +156,8 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.editProfile,
-      page: () => const ProfileView(),
-      binding: ProfileBinding(),
+      page: () => const EditProfileView(),
+      binding: EditProfileBinding(),
     ),
   ];
 }

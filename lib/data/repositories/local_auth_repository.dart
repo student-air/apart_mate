@@ -357,9 +357,18 @@ class LocalAuthRepository implements IAuthRepository {
   @override
 Future<UserModel> updateCurrentUser(UserModel user) async {
   await Future.delayed(const Duration(milliseconds: 200));
-  // replace current user in memory / map
+
   _currentUser = user;
-  _users[user.id] = user; // if you keep a map
+
+  final index = _accounts.indexWhere((a) => a.user.id == user.id);
+  if (index != -1) {
+    _accounts[index] = _Account(
+      user: user,
+      username: _accounts[index].username,
+      password: _accounts[index].password,
+    );
+  }
+
   return user;
 }
 }

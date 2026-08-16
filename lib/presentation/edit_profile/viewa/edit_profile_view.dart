@@ -223,7 +223,7 @@ class EditProfileView extends GetView<EditProfileController> {
                     () => AppPrimaryButton(
                       label: 'Save Changes',
                       isLoading: controller.isLoading.value,
-                      onPressed: controller.save,
+                      onPressed: controller.saveChanges,
                     ),
                   ),
                 ],
