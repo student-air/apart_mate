@@ -43,6 +43,7 @@ dependencies:
   timeago: ^3.7.1
   lottie: ^3.5.1
   flutter_launcher_icons: ^0.14.4
+  url_launcher: ^6.3.2
 
  
   

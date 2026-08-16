@@ -59,16 +59,19 @@ class TenantConfirmController extends GetxController {
   isLoading.value = true;
   try {
     final updatedTenant = TenantModel(
-      id: tenant.id,
-      fullName: tenant.fullName,
-      phone: tenant.phone,
-      cnic: tenant.cnic,
-      propertyId: tenant.propertyId,
-      propertyLabel: tenant.propertyLabel,
-      inviteCode: tenant.inviteCode,
-      status: 'joined',
-      createdAt: tenant.createdAt,
-    );
+  id: tenant.id,
+  fullName: tenant.fullName,
+  phone: tenant.phone,
+  cnic: tenant.cnic,
+  propertyId: tenant.propertyId,
+  propertyLabel: tenant.propertyLabel,
+  inviteCode: tenant.inviteCode,
+  status: 'joined',
+  createdAt: tenant.createdAt,
+  ownerName: tenant.ownerName,
+  ownerPhone: tenant.ownerPhone,
+  ownerEmail: tenant.ownerEmail,
+);
 
     await _tenantRepo.saveTenant(updatedTenant);
 

@@ -103,7 +103,7 @@ if (wantTenant && !session.hasTenantRole.value) {
                   ),
                   child: Text(
                     'Yes',
-                    style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
+                    style: AppTextStyles.labelLarge.copyWith(color: AppColors.accentGreen),
                   ),
                 ),
               ),

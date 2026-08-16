@@ -16,6 +16,8 @@ class LocalSocietyRepository implements ISocietyRepository {
       buildingsCount: 3,
       unitsCount: 120,
       foundedYear: 2010,
+      phone: '03001234567',
+      email: 'info@gulshanheights.com'
     ),
     const SocietyModel(
       id: 'society_002',
@@ -27,6 +29,8 @@ class LocalSocietyRepository implements ISocietyRepository {
       buildingsCount: 5,
       unitsCount: 210,
       foundedYear: 2012,
+      phone: '03001234567',
+      email: 'info@riverviewenclave.com',
     ),
   ];
 

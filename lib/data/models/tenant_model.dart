@@ -4,10 +4,15 @@ class TenantModel {
   final String phone;
   final String cnic;
   final String propertyId;
-  final String propertyLabel; // e.g. "Flat A-203 · Block A"
-  final String inviteCode;    // 6-char alphanumeric
-  final String status;        // pending | joined
+  final String propertyLabel;
+  final String inviteCode;
+  final String status;
   final DateTime createdAt;
+
+  /// Set when owner creates the invite (exported to tenant on join)
+  final String ownerName;
+  final String ownerPhone;
+  final String ownerEmail;
 
   const TenantModel({
     required this.id,
@@ -19,5 +24,8 @@ class TenantModel {
     required this.inviteCode,
     required this.status,
     required this.createdAt,
+    this.ownerName = '',
+    this.ownerPhone = '',
+    this.ownerEmail = '',
   });
 }
