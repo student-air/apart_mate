@@ -23,25 +23,34 @@ class JoinSocietyController extends GetxController {
   final isJoining = false.obs;
   final lookupFailed = false.obs;
 
-  String get _enteredCode => digitCtrls.map((c) => c.text).join();
+  String get _enteredCode =>
+    digitCtrls.map((c) => c.text).join().trim().toUpperCase();
 
   /// Used by the view to show Independent Owner option only for owners
   String? get currentUserRole => _authRepository.currentUser?.role;
 
   void onDigitChanged(int index, String value) {
-    lookupFailed.value = false;
+  lookupFailed.value = false;
 
-    if (value.isNotEmpty && index < codeLength - 1) {
-      focusNodes[index + 1].requestFocus();
-    }
-
-    if (_enteredCode.length == codeLength) {
-      FocusScope.of(Get.context!).unfocus();
-      _lookupSociety();
-    } else {
-      society.value = null;
-    }
+  // Keep only last character, uppercase
+  if (value.isNotEmpty) {
+    final char = value.characters.last.toUpperCase();
+    digitCtrls[index].text = char;
+    digitCtrls[index].selection =
+        TextSelection.collapsed(offset: char.length);
   }
+
+  if (value.isNotEmpty && index < codeLength - 1) {
+    focusNodes[index + 1].requestFocus();
+  }
+
+  if (_enteredCode.length == codeLength) {
+    FocusScope.of(Get.context!).unfocus();
+    _lookupSociety();
+  } else {
+    society.value = null;
+  }
+}
 
   void onBackspace(int index) {
     if (digitCtrls[index].text.isEmpty && index > 0) {
@@ -51,18 +60,30 @@ class JoinSocietyController extends GetxController {
   }
 
   Future<void> _lookupSociety() async {
-    isLookingUp.value = true;
-    try {
-      final result = await _societyRepository.getSocietyByJoinCode(_enteredCode);
-      society.value = result;
-      lookupFailed.value = result == null;
-      if (result == null) {
-        AppSnackbar.error('Invalid code', 'No society found for that code');
-      }
-    } finally {
-      isLookingUp.value = false;
+  isLookingUp.value = true;
+  try {
+    final code = _enteredCode; // already trimmed + uppercased
+
+    if (code.length != codeLength) {
+      society.value = null;
+      return;
     }
+
+    final result = await _societyRepository.getSocietyByJoinCode(code);
+    society.value = result;
+    lookupFailed.value = result == null;
+
+    if (result == null) {
+      AppSnackbar.error('Invalid code', 'No society found for that code');
+    }
+  } catch (e) {
+    lookupFailed.value = true;
+    society.value = null;
+    AppSnackbar.error('Lookup failed', 'Please try again');
+  } finally {
+    isLookingUp.value = false;
   }
+}
 
   Future<void> continueWithSociety() async {
     final matchedSociety = society.value;
