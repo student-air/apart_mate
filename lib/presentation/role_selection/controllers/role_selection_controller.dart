@@ -52,43 +52,44 @@ class RoleSelectionController extends GetxController {
   void selectRole(String value) => selectedRole.value = value;
 
   Future<void> continueWithRole() async {
-    if (selectedRole.value == null) {
-      AppSnackbar.error(
-        'Select a role',
-        'Please choose how you\'ll use apart_mate',
-      );
-      return;
-    }
-
-    final role = selectedRole.value!.toLowerCase();
-
-    isLoading.value = true;
-    try {
-      // Save role on user
-      await _authRepository.updateUserRole(role);
-
-      // Save active session role
-      if (Get.isRegistered<AppSession>()) {
-        Get.find<AppSession>().setRole(role);
-      }
-
-      // Route by role
-      if (role == 'tenant') {
-        Get.offNamed(AppRoutes.tenantJoinCode);
-// → tenant dashboard for now
-      } else if (role == 'owner') {
-        Get.offNamed(AppRoutes.joinSociety);
-      } else {
-        // employee — keep simple for now
-        AppSnackbar.info('Employee role', 'Employee role is not yet implemented');
-      }
-    } catch (e) {
-      AppSnackbar.error('Something went wrong', 'Please try again');
-    } finally {
-      isLoading.value = false;
-    }
+  if (selectedRole.value == null) {
+    AppSnackbar.error(
+      'Select a role',
+      'Please choose how you\'ll use apart_mate',
+    );
+    return;
   }
 
+  final role = selectedRole.value!.toLowerCase();
+
+  isLoading.value = true;
+  try {
+    // Save role on user (Firestore via FirebaseAuthRepository)
+    await _authRepository.updateUserRole(role);
+
+    // Save active session role
+    if (Get.isRegistered<AppSession>()) {
+      Get.find<AppSession>().setRole(role);
+    }
+
+    // Route by role
+    if (role == 'tenant') {
+      Get.offNamed(AppRoutes.tenantJoinCode);
+    } else if (role == 'owner') {
+      Get.offNamed(AppRoutes.joinSociety);
+    } else {
+      // employee — not implemented yet
+      AppSnackbar.info(
+        'Employee role',
+        'Employee role is not yet implemented',
+      );
+    }
+  } catch (e) {
+    AppSnackbar.error('Something went wrong', 'Please try again');
+  } finally {
+    isLoading.value = false;
+  }
+}
   void goBack() {
     Get.back();
   }

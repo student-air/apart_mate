@@ -1,7 +1,11 @@
+// lib/presentation/splash/controllers/splash_controller.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/session/app_session.dart';
 import 'package:apart_mate/core/utils/app_navigation.dart';
+import 'package:apart_mate/data/models/user_model.dart';
+import 'package:apart_mate/data/repositories/firebase_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 
@@ -30,7 +34,12 @@ class SplashController extends GetxController {
     if (Get.currentRoute != AppRoutes.splash) return;
 
     final authRepository = Get.find<IAuthRepository>();
-    final user = authRepository.currentUser;
+
+    // Restore Firebase session into currentUser
+    UserModel? user = authRepository.currentUser;
+    if (user == null && authRepository is FirebaseAuthRepository) {
+      user = await authRepository.restoreSession();
+    }
 
     if (user == null) {
       Get.offAllNamed(AppRoutes.login);

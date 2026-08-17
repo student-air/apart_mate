@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "303796542589",
+    "project_id": "apart-mate-715c3",
+    "storage_bucket": "apart-mate-715c3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303796542589:android:70a33e2bb19122efe3a514",
+        "android_client_info": {
+          "package_name": "com.example.apart_mate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "303796542589-915fvlgqrn3vvgvg6sds2lomq9nv3hfh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgPDMDZh4YMO2t49yd91YgOrMdtjuGU5Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "303796542589-915fvlgqrn3vvgvg6sds2lomq9nv3hfh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

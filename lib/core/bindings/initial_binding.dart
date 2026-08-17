@@ -9,7 +9,7 @@ import 'package:apart_mate/domain/repositories/i_maintenance_repository.dart';
 import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
-import 'package:apart_mate/data/repositories/local_auth_repository.dart';
+import 'package:apart_mate/data/repositories/firebase_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_profile_repository.dart';
 import 'package:apart_mate/data/repositories/local_profile_repository.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
@@ -24,7 +24,7 @@ import 'package:apart_mate/data/repositories/local_manager_repository.dart';
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put<IAuthRepository>(LocalAuthRepository(), permanent: true);
+    Get.put<IAuthRepository>(FirebaseAuthRepository(), permanent: true);
     Get.put<IProfileRepository>(LocalProfileRepository(), permanent: true);
     Get.put<ISocietyRepository>(LocalSocietyRepository(), permanent: true);
     Get.put<IPropertyRepository>(LocalPropertyRepository(), permanent: true);
