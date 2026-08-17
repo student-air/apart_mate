@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:apart_mate/firebase_options.dart';
 import 'package:apart_mate/core/theme/app_theme.dart';
 import 'package:apart_mate/core/bindings/initial_binding.dart';
 import 'package:apart_mate/core/constants/app_strings.dart';
@@ -7,6 +9,10 @@ import 'package:apart_mate/routes/app_pages.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(const ApartMateApp());
 }
