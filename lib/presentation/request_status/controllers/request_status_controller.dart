@@ -7,6 +7,7 @@ import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 import 'package:apart_mate/routes/app_routes.dart';
+import 'package:apart_mate/core/utils/app_snackbar.dart';
 
 class requeststatusController extends GetxController {
   final IAuthRepository _authRepository;
@@ -20,7 +21,12 @@ class requeststatusController extends GetxController {
   final submittedAt = Rx<DateTime>(DateTime.now());
   final isLoading = true.obs;
 
-  String? get _societyId => Get.arguments is String ? Get.arguments as String : null;
+  String? get _societyId {
+  final args = Get.arguments;
+  if (args is String) return args;
+  if (args is Map) return args['societyId'] as String?;
+  return null;
+}
 
   String get requestId {
     final id = society.value?.id ?? '';
@@ -63,8 +69,15 @@ class requeststatusController extends GetxController {
   }
 
   void continueToDashboard() {
-    Get.offAllNamed(AppRoutes.dashboard);
+  if (status.value != Joinrequeststatus.approved) {
+    AppSnackbar.info(
+      'Not approved yet',
+      'Please wait until the society admin approves your request',
+    );
+    return;
   }
+  Get.offAllNamed(AppRoutes.dashboard);
+}
   
 
   

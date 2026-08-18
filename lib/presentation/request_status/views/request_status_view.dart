@@ -115,12 +115,18 @@ class _requeststatusViewState extends State<requeststatusView>
 
                         // Actions
                         AppPrimaryButton(
-                          label: status == Joinrequeststatus.approved
-                              ? 'Continue to Dashboard'
-                              : 'Continue',
-                          icon: Icons.arrow_forward_rounded,
-                          onPressed: controller.continueToDashboard,
-                        ),
+  label: status == Joinrequeststatus.approved
+      ? 'Continue to Dashboard'
+      : status == Joinrequeststatus.rejected
+          ? 'Request declined'
+          : 'Waiting for approval',
+  icon: status == Joinrequeststatus.approved
+      ? Icons.arrow_forward_rounded
+      : Icons.hourglass_top_rounded,
+  onPressed: status == Joinrequeststatus.approved
+      ? controller.continueToDashboard
+      : null, // disabled while pending / rejected
+),
                         if (status == Joinrequeststatus.rejected) ...[
                           const SizedBox(height: AppDimens.space12),
                           Center(
