@@ -1,5 +1,6 @@
 // lib/presentation/add_tenant/controllers/add_tenant_controller.dart
 
+import 'package:apart_mate/data/repositories/firebase_tenant_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
@@ -10,7 +11,7 @@ import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/core/widgets/app_button.dart';
 import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/data/models/tenant_model.dart';
-import 'package:apart_mate/data/repositories/local_tenant_repository.dart';
+// import 'package:apart_mate/data/repositories/local_tenant_repository.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
@@ -27,7 +28,6 @@ class AddTenantController extends GetxController {
   final selectedPropertyId = RxnString();
 
   late final DashboardController _dashboard;
-  late final LocalTenantRepository _tenantRepo;
   late final IPropertyRepository _propertyRepo;
   late final IAuthRepository _auth;
 
@@ -36,79 +36,82 @@ class AddTenantController extends GetxController {
     return all.where((p) => !p.isOccupied).toList();
   }
 
-  @override
-  void onInit() {
-    super.onInit();
-    _dashboard = Get.find<DashboardController>();
-    _tenantRepo = Get.find<ITenantRepository>() as LocalTenantRepository;
-    _propertyRepo = Get.find<IPropertyRepository>();
-    _auth = Get.find<IAuthRepository>();
-  }
+
+late final FirebaseTenantRepository _tenantRepo;
+
+@override
+void onInit() {
+  super.onInit();
+  _dashboard = Get.find<DashboardController>();
+  _tenantRepo = Get.find<ITenantRepository>() as FirebaseTenantRepository;
+  _propertyRepo = Get.find<IPropertyRepository>();
+  _auth = Get.find<IAuthRepository>();
+}
 
   void selectProperty(String id) {
     selectedPropertyId.value = id;
   }
 
   Future<void> saveTenant() async {
-    final name = fullNameCtrl.text.trim();
-    final phone = phoneCtrl.text.trim();
-    final cnic = cnicCtrl.text.trim();
-    final propId = selectedPropertyId.value;
+  final name = fullNameCtrl.text.trim();
+  final phone = phoneCtrl.text.trim();
+  final cnic = cnicCtrl.text.trim();
+  final propId = selectedPropertyId.value;
 
-    if (name.isEmpty || phone.isEmpty || cnic.isEmpty) {
-      AppSnackbar.info('Missing fields', 'Please fill all fields');
-      return;
-    }
-    if (propId == null) {
-      AppSnackbar.info('Select property', 'Please select a vacant property');
-      return;
-    }
-
-    final owner = _auth.currentUser;
-    if (owner == null) {
-      AppSnackbar.error('Not signed in', 'Please sign in again');
-      return;
-    }
-
-    final property = vacantProperties.firstWhere((p) => p.id == propId);
-    final label = 'Flat ${property.flatNumber} · ${property.building}';
-
-    isLoading.value = true;
-    try {
-      // 1) Create tenant + store owner contact for tenant profile
-      final tenant = await _tenantRepo.createTenant(
-        fullName: name,
-        phone: phone,
-        cnic: cnic,
-        propertyId: propId,
-        propertyLabel: label,
-        ownerName: owner.fullName,
-        ownerPhone: owner.phone,
-        ownerEmail: owner.email,
-      );
-
-      // 2) Mark property occupied
-      await _propertyRepo.saveProperty(
-        property.copyWith(
-          isOccupied: true,
-          occupiedBy: 'tenant',
-        ),
-      );
-
-      // 3) Refresh dashboard
-      if (Get.isRegistered<DashboardController>()) {
-        await _dashboard.refresh();
-      }
-
-      // 4) Invite code sheet
-      await _showInviteCodeSheet(tenant);
-    } catch (e) {
-      AppSnackbar.error('Failed', 'Could not add tenant. Please try again.');
-    } finally {
-      isLoading.value = false;
-    }
+  if (name.isEmpty || phone.isEmpty || cnic.isEmpty) {
+    AppSnackbar.info('Missing fields', 'Please fill all fields');
+    return;
+  }
+  if (propId == null) {
+    AppSnackbar.info('Select property', 'Please select a vacant property');
+    return;
   }
 
+  final owner = _auth.currentUser;
+  if (owner == null) {
+    AppSnackbar.error('Not signed in', 'Please sign in again');
+    return;
+  }
+
+  final property = vacantProperties.firstWhere((p) => p.id == propId);
+  final label = 'Flat ${property.flatNumber} · ${property.building}';
+
+  isLoading.value = true;
+  try {
+    // 1) Create tenant invite in Firestore (+ owner contact + ownerUserId)
+    final tenant = await _tenantRepo.createTenant(
+      fullName: name,
+      phone: phone,
+      cnic: cnic,
+      propertyId: propId,
+      propertyLabel: label,
+      ownerName: owner.fullName,
+      ownerPhone: owner.phone,
+      ownerEmail: owner.email,
+      ownerUserId: owner.id,
+    );
+
+    // 2) Mark property occupied
+    await _propertyRepo.saveProperty(
+      property.copyWith(
+        isOccupied: true,
+        occupiedBy: 'tenant',
+      ),
+    );
+
+    // 3) Refresh dashboard
+    if (Get.isRegistered<DashboardController>()) {
+      await _dashboard.refresh();
+    }
+
+    // 4) Invite code sheet
+    await _showInviteCodeSheet(tenant);
+  } catch (e) {
+    AppSnackbar.error('Failed', 'Could not add tenant. Please try again.');
+  } finally {
+    isLoading.value = false;
+  }
+}
   Future<void> _showInviteCodeSheet(TenantModel tenant) async {
     await Get.bottomSheet(
       Container(
