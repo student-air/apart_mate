@@ -412,7 +412,7 @@ class _BasicInfoStep extends StatelessWidget {
                 () => AppDropdownField<String?>(
                   label: 'Building',
                   value: controller.selectedBuilding.value,
-                  items: [null, ...PropertyDetailsController.buildings],
+                  items: [null, ...controller.buildingOptions],
                   labelBuilder: (v) => v ?? 'Select Building',
                   onChanged: (v) => controller.selectedBuilding.value = v,
                 ),
@@ -422,7 +422,7 @@ class _BasicInfoStep extends StatelessWidget {
                 () => AppDropdownField<String?>(
                   label: 'Floor',
                   value: controller.selectedFloor.value,
-                  items: [null, ...PropertyDetailsController.floors],
+                  items: [null, ...controller.floorOptions],
                   labelBuilder: (v) => v ?? 'Select Floor',
                   onChanged: (v) => controller.selectedFloor.value = v,
                 ),

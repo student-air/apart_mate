@@ -1648,11 +1648,27 @@ class _NoDataState extends StatelessWidget {
               width: double.infinity,
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: () => Get.toNamed(AppRoutes.joinSociety),
+                onPressed: () {
+  final societyId = Get.isRegistered<DashboardController>()
+      ? Get.find<DashboardController>().society.value?.id
+      : null;
+
+  if (societyId == null || societyId.isEmpty) {
+    // No society yet → user must join first
+    Get.toNamed(AppRoutes.joinSociety);
+    return;
+  }
+
+  // Has society → add property for that society
+  Get.toNamed(
+    AppRoutes.propertyDetails,
+    arguments: societyId, // String — society mode (building/floor)
+  );
+},
                 icon: const Icon(Icons.add_home_rounded, size: 20),
                 label: const Text('Add property'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryDark,
+                  backgroundColor: AppColors.accentGreen,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(

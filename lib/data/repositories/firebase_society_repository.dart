@@ -97,6 +97,48 @@ Future<void> joinSociety({
     return snap.docs.first.data()['societyId'] as String?;
   }
 
+    @override
+  Future<List<SocietyBuildingInfo>> getBuildings(String societyId) async {
+    final snap = await FirebaseFirestore.instance
+        .collection('societies')
+        .doc(societyId)
+        .collection('buildings')
+        .get();
+
+    final list = <SocietyBuildingInfo>[];
+    for (final doc in snap.docs) {
+      final data = doc.data();
+      final name = (data['name'] as String?)?.trim() ?? '';
+      if (name.isEmpty) continue;
+      final details = data['details'] as Map<String, dynamic>?;
+      final totalFloors = (details?['totalFloors'] as num?)?.toInt() ?? 0;
+      list.add(SocietyBuildingInfo(
+        id: doc.id,
+        name: name,
+        totalFloors: totalFloors,
+      ));
+    }
+    list.sort((a, b) => a.name.compareTo(b.name));
+    return list;
+  }
+
+  @override
+  Future<int> getFloorCountForBuilding(
+    String societyId,
+    String buildingId,
+  ) async {
+    final doc = await FirebaseFirestore.instance
+        .collection('societies')
+        .doc(societyId)
+        .collection('buildings')
+        .doc(buildingId)
+        .get();
+
+    if (!doc.exists) return 0;
+    final details = doc.data()?['details'] as Map<String, dynamic>?;
+    return (details?['totalFloors'] as num?)?.toInt() ?? 0;
+  }
+  
   SocietyModel _fromMap(String id, Map<String, dynamic> data) {
     return SocietyModel(
       id: id,

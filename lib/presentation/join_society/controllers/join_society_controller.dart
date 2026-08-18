@@ -101,17 +101,15 @@ class JoinSocietyController extends GetxController {
 
   isJoining.value = true;
   try {
-    await _societyRepository.joinSociety(
+        await _societyRepository.joinSociety(
       userId: user.id,
       societyId: matchedSociety.id,
     );
 
+    // Society property → collect building / floor / flat next
     Get.offNamed(
-      AppRoutes.requeststatus,
-      arguments: {
-        'societyId': matchedSociety.id,
-        'societyName': matchedSociety.name,
-      },
+      AppRoutes.propertyDetails,
+      arguments: matchedSociety.id, // must be a String (societyId)
     );
   } catch (e) {
     AppSnackbar.error('Join failed', e.toString());
@@ -122,22 +120,10 @@ class JoinSocietyController extends GetxController {
 
 /// Independent owner — no society code / no join request
 Future<void> continueAsIndependentOwner() async {
-  final user = _authRepository.currentUser;
-  if (user == null) {
-    AppSnackbar.error('Not signed in', 'Please sign in again');
-    Get.offAllNamed(AppRoutes.login);
-    return;
-  }
-
-  isJoining.value = true;
-  try {
-    // No society: go to property details in independent mode (or dashboard later)
-    Get.offNamed(AppRoutes.propertyDetails, arguments: null);
-  } catch (e) {
-    AppSnackbar.error('Something went wrong', e.toString());
-  } finally {
-    isJoining.value = false;
-  }
+  AppSnackbar.info(
+    'Coming soon',
+    'Independent property is not implemented yet',
+  );
 }
 
   void goBack() {

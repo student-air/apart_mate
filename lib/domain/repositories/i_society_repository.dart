@@ -14,8 +14,22 @@ class JoinRequestInfo {
   });
 }
 
+/// Building from Pro app: societies/{societyId}/buildings/{id}
+class SocietyBuildingInfo {
+  final String id;
+  final String name;
+  final int totalFloors;
+
+  const SocietyBuildingInfo({
+    required this.id,
+    required this.name,
+    this.totalFloors = 0,
+  });
+}
+
 abstract class ISocietyRepository {
   Future<SocietyModel?> getSocietyByJoinCode(String code);
+
   Future<SocietyModel?> getSocietyById(String id);
 
   Future<void> joinSociety({
@@ -31,4 +45,10 @@ abstract class ISocietyRepository {
   /// Returns the ID of the society this user has an active join
   /// request/membership with, or null if they haven't joined one yet.
   Future<String?> getSocietyIdForUser(String userId);
+
+  /// Buildings for a society (from Pro: societies/{id}/buildings).
+  Future<List<SocietyBuildingInfo>> getBuildings(String societyId);
+
+  /// totalFloors for one building (from building details in Firestore).
+  Future<int> getFloorCountForBuilding(String societyId, String buildingId);
 }

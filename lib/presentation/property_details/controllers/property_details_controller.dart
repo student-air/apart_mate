@@ -7,6 +7,7 @@ import 'package:apart_mate/core/utils/property_unit_key.dart';
 import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
+import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 import 'package:apart_mate/presentation/dashboard/controllers/dashboard_controller.dart';
 import 'package:apart_mate/routes/app_routes.dart';
  
@@ -16,15 +17,9 @@ class PropertyDetailsController extends GetxController {
   PropertyDetailsController(this._authRepository, this._propertyRepository);
 
   // ── Society mode lists ──────────────────────────────────────
-  static const buildings = ['Block A', 'Block B', 'Block C'];
-  static const floors = [
-    'Ground',
-    '1st Floor',
-    '2nd Floor',
-    '3rd Floor',
-    '4th Floor',
-    '5th Floor',
-  ];
+    final buildings = <SocietyBuildingInfo>[].obs;
+  final buildingOptions = <String>[].obs;
+  final floorOptions = <String>[].obs;
 
   // ── Independent mode lists ──────────────────────────────────
   static const houseTypes = [
@@ -87,6 +82,13 @@ class PropertyDetailsController extends GetxController {
     return args == null;
   }
 
+    String? get _societyId {
+    if (isIndependent) return null;
+    final args = Get.arguments;
+    if (args is String && args.isNotEmpty) return args;
+    return null;
+  }
+  
   String get headerTitle =>
       isEditMode ? 'Edit Property' : 'Property Details';
 
@@ -120,6 +122,9 @@ class PropertyDetailsController extends GetxController {
       existingProperty = args;
       _prefillFrom(args);
     }
+      if (!isIndependent) {
+    loadBuildings();
+  }
   }
 
   void _prefillFrom(PropertyModel p) {
@@ -151,6 +156,25 @@ class PropertyDetailsController extends GetxController {
         maintenanceBy.value = p.maintenanceBy;
   }
 
+  void onBuildingSelected(String? name) async {
+  selectedBuilding.value = name;
+  selectedFloor.value = null;
+  floorOptions.clear();
+
+  if (name == null) return;
+
+  final match = buildings.where((b) => b.name == name);
+  if (match.isEmpty) return;
+
+  final building = match.first;
+  final societyId = _societyId;
+  if (societyId == null) return;
+
+  final total = await Get.find<ISocietyRepository>()
+      .getFloorCountForBuilding(societyId, building.id);
+
+  floorOptions.assignAll(_buildFloorLabels(total));
+}
   void setMaintenanceBy(String value) {
   maintenanceBy.value = value;
 }
@@ -223,6 +247,65 @@ class PropertyDetailsController extends GetxController {
       default:
         return true;
     }
+  }
+
+    Future<void> loadBuildings() async {
+    final societyId = _societyId;
+    if (societyId == null) return;
+
+    final list =
+        await Get.find<ISocietyRepository>().getBuildings(societyId);
+
+    buildings.assignAll(list);
+    buildingOptions.assignAll(list.map((b) => b.name));
+    selectedBuilding.value = null;
+    selectedFloor.value = null;
+    floorOptions.clear();
+  }
+
+  // Future<void> onBuildingSelected(String? name) async {
+  //   selectedBuilding.value = name;
+  //   selectedFloor.value = null;
+  //   floorOptions.clear();
+
+  //   if (name == null) return;
+
+  //   final match = buildings.where((b) => b.name == name);
+  //   if (match.isEmpty) return;
+
+  //   final building = match.first;
+  //   final societyId = _societyId;
+  //   if (societyId == null) return;
+
+  //   final total = await Get.find<ISocietyRepository>()
+  //       .getFloorCountForBuilding(societyId, building.id);
+
+  //   floorOptions.assignAll(_buildFloorLabels(total));
+  // }
+
+  List<String> _buildFloorLabels(int totalFloors) {
+    if (totalFloors <= 0) {
+      return const [
+        'Ground',
+        '1st Floor',
+        '2nd Floor',
+        '3rd Floor',
+        '4th Floor',
+        '5th Floor',
+      ];
+    }
+    final labels = <String>['Ground'];
+    for (var i = 1; i < totalFloors; i++) {
+      labels.add(_ordinalFloor(i));
+    }
+    return labels;
+  }
+
+  String _ordinalFloor(int n) {
+    if (n == 1) return '1st Floor';
+    if (n == 2) return '2nd Floor';
+    if (n == 3) return '3rd Floor';
+    return '${n}th Floor';
   }
 
 // ── Save ────────────────────────────────────────────────────
@@ -308,13 +391,13 @@ maintenanceAmount: maintenanceBy.value == 'property_owner'
         await Get.find<DashboardController>().refresh();
       }
       Get.offNamed(AppRoutes.manageProperties);
-    } else if (isIndependent) {
-      // Independent owners → dashboard (no society admin approval)
-      Get.offAllNamed(AppRoutes.dashboard);
     } else {
-      // Society property → request status (admin approval path)
-      Get.offNamed(AppRoutes.requeststatus, arguments: societyId);
-    }
+  // Society property saved → back to owner dashboard (join request already done)
+  if (Get.isRegistered<DashboardController>()) {
+    await Get.find<DashboardController>().refresh();
+  }
+  Get.offAllNamed(AppRoutes.dashboard);
+}
   } finally {
     isLoading.value = false;
   }
