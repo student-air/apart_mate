@@ -86,51 +86,59 @@ class JoinSocietyController extends GetxController {
 }
 
   Future<void> continueWithSociety() async {
-    final matchedSociety = society.value;
-    if (matchedSociety == null) return;
-
-    final user = _authRepository.currentUser;
-    if (user == null) {
-      AppSnackbar.error('Not signed in', 'Please sign in again');
-      Get.offAllNamed(AppRoutes.login);
-      return;
-    }
-
-    isJoining.value = true;
-    try {
-      await _societyRepository.joinSociety(userId: user.id, societyId: matchedSociety.id);
-      AppSnackbar.success('Request sent', 'Your request to join ${matchedSociety.name} was submitted');
-
-      if (user.role == 'tenant' || user.role == 'owner') {
-        Get.offNamed(AppRoutes.propertyDetails, arguments: matchedSociety.id);
-      } else {
-        AppSnackbar.info('Next step', 'Please select your role to continue');
-      }
-    } finally {
-      isJoining.value = false;
-    }
+  final matchedSociety = society.value;
+  if (matchedSociety == null) {
+    AppSnackbar.error('No society', 'Enter a valid join code first');
+    return;
   }
 
-  /// Independent Owner path — no society code needed
-  Future<void> continueAsIndependentOwner() async {
-    final user = _authRepository.currentUser;
-    if (user == null) {
-      AppSnackbar.error('Not signed in', 'Please sign in again');
-      Get.offAllNamed(AppRoutes.login);
-      return;
-    }
-
-    isJoining.value = true;
-    try {
-      // Simply navigate to Property Details in independent mode
-      // We pass `null` so PropertyDetailsController knows it's independent
-      Get.offNamed(AppRoutes.propertyDetails, arguments: null);
-    } catch (e) {
-      AppSnackbar.error('Something went wrong', 'Please try again');
-    } finally {
-      isJoining.value = false;
-    }
+  final user = _authRepository.currentUser;
+  if (user == null) {
+    AppSnackbar.error('Not signed in', 'Please sign in again');
+    Get.offAllNamed(AppRoutes.login);
+    return;
   }
+
+  isJoining.value = true;
+  try {
+    await _societyRepository.joinSociety(
+      userId: user.id,
+      societyId: matchedSociety.id,
+    );
+
+    Get.offNamed(
+      AppRoutes.requeststatus,
+      arguments: {
+        'societyId': matchedSociety.id,
+        'societyName': matchedSociety.name,
+      },
+    );
+  } catch (e) {
+    AppSnackbar.error('Join failed', e.toString());
+  } finally {
+    isJoining.value = false;
+  }
+}
+
+/// Independent owner — no society code / no join request
+Future<void> continueAsIndependentOwner() async {
+  final user = _authRepository.currentUser;
+  if (user == null) {
+    AppSnackbar.error('Not signed in', 'Please sign in again');
+    Get.offAllNamed(AppRoutes.login);
+    return;
+  }
+
+  isJoining.value = true;
+  try {
+    // No society: go to property details in independent mode (or dashboard later)
+    Get.offNamed(AppRoutes.propertyDetails, arguments: null);
+  } catch (e) {
+    AppSnackbar.error('Something went wrong', e.toString());
+  } finally {
+    isJoining.value = false;
+  }
+}
 
   void goBack() {
     Get.back();

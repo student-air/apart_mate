@@ -33,17 +33,36 @@ class FirebaseSocietyRepository implements ISocietyRepository {
   }
 
   @override
-  Future<void> joinSociety({
-    required String userId,
-    required String societyId,
-  }) async {
-    await _memberships.doc('${userId}_$societyId').set({
-      'userId': userId,
-      'societyId': societyId,
-      'status': 'pending',
-      'submittedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-  }
+Future<void> joinSociety({
+  required String userId,
+  required String societyId,
+}) async {
+  // Optional: block duplicate pending request
+  final existing = await _db
+      .collection('joinRequests')
+      .where('userId', isEqualTo: userId)
+      .where('societyId', isEqualTo: societyId)
+      .where('status', isEqualTo: 'pending')
+      .limit(1)
+      .get();
+
+  if (existing.docs.isNotEmpty) return;
+
+  final user = await _db.collection('users').doc(userId).get();
+  final u = user.data() ?? {};
+
+  await _db.collection('joinRequests').add({
+    'userId': userId,
+    'societyId': societyId,
+    'role': u['role'] ?? 'owner',
+    'status': 'pending',
+    'fullName': u['fullName'] ?? '',
+    'email': u['email'] ?? '',
+    'phone': u['phone'] ?? '',
+    'createdAt': FieldValue.serverTimestamp(),
+    'updatedAt': FieldValue.serverTimestamp(),
+  });
+}
 
   @override
   Future<JoinRequestInfo> getJoinRequestInfo({
