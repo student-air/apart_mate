@@ -1,3 +1,7 @@
+// lib/presentation/add_manager/controllers/add_manager_controller.dart
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_strings.dart';
@@ -7,12 +11,11 @@ import 'package:apart_mate/core/widgets/app_button.dart';
 import 'package:apart_mate/data/models/manager_model.dart';
 import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/data/models/society_model.dart';
-import 'package:apart_mate/data/repositories/local_manager_repository.dart';
+import 'package:apart_mate/data/repositories/firebase_manager_repository.dart';
+import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_manager_repository.dart';
 import 'package:apart_mate/presentation/dashboard/controllers/dashboard_controller.dart';
 import 'package:apart_mate/routes/app_routes.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// Group of properties under one society (or Independent).
 class PropertyGroup {
@@ -36,7 +39,8 @@ class AddManagerController extends GetxController {
   final selectedPropertyIds = <String>{}.obs;
 
   late final DashboardController _dashboard;
-  late final LocalManagerRepository _managerRepo;
+  late final FirebaseManagerRepository _managerRepo;
+  late final IAuthRepository _auth;
 
   /// Every property for this user (all societies + independent).
   List<PropertyModel> get allProperties => _dashboard.properties.toList();
@@ -48,7 +52,6 @@ class AddManagerController extends GetxController {
     final props = allProperties;
     final groups = <PropertyGroup>[];
 
-    // Society groups
     for (final s in societies) {
       final inSoc = props.where((p) => p.societyId == s.id).toList();
       if (inSoc.isEmpty) continue;
@@ -59,9 +62,7 @@ class AddManagerController extends GetxController {
       ));
     }
 
-    // Independent (empty societyId)
-    final independent =
-        props.where((p) => p.societyId.isEmpty).toList();
+    final independent = props.where((p) => p.societyId.isEmpty).toList();
     if (independent.isNotEmpty) {
       groups.add(PropertyGroup(
         key: 'independent',
@@ -70,7 +71,6 @@ class AddManagerController extends GetxController {
       ));
     }
 
-    // Orphan society ids not in societies list (safety)
     final knownIds = societies.map((s) => s.id).toSet();
     final orphans = props
         .where((p) => p.societyId.isNotEmpty && !knownIds.contains(p.societyId))
@@ -149,8 +149,13 @@ class AddManagerController extends GetxController {
       return;
     }
 
-    final selected =
-        allProperties.where((p) => ids.contains(p.id)).toList();
+    final owner = _auth.currentUser;
+    if (owner == null) {
+      AppSnackbar.error('Not signed in', 'Please sign in again');
+      return;
+    }
+
+    final selected = allProperties.where((p) => ids.contains(p.id)).toList();
     final label = selected
         .map((p) {
           final place = p.societyId.isEmpty
@@ -168,8 +173,11 @@ class AddManagerController extends GetxController {
         cnic: cnic,
         propertyIds: ids,
         propertyLabel: label,
+        ownerUserId: owner.id,
       );
       await _showInviteCodeSheet(manager);
+    } catch (e) {
+      AppSnackbar.error('Failed', 'Could not add manager. Please try again.');
     } finally {
       isLoading.value = false;
     }
@@ -200,14 +208,14 @@ class AddManagerController extends GetxController {
               width: 64,
               height: 64,
               decoration: const BoxDecoration(
-                color: Color(0xFF22C55E),
+                color: AppColors.successGreen,
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
               child: const Icon(
                 Icons.check_rounded,
                 size: 34,
-                color: Colors.white,
+                color: AppColors.textOnDark,
               ),
             ),
             const SizedBox(height: 18),
@@ -227,10 +235,9 @@ class AddManagerController extends GetxController {
             const SizedBox(height: 24),
             Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
               decoration: BoxDecoration(
-                color: AppColors.successGreenDark.withOpacity(0.1),
+                color: AppColors.successGreenDark.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 border: Border.all(color: AppColors.borderLight),
               ),
@@ -256,11 +263,10 @@ class AddManagerController extends GetxController {
             AppPrimaryButton(
               label: AppStrings.done,
               onPressed: () {
-                Get.back(); // close sheet
-                // Open Members on Managers tab
+                Get.back();
                 Get.offNamed(
                   AppRoutes.members,
-                  arguments: {'tab': 1}, // 1 = Managers
+                  arguments: {'tab': 1}, // Managers tab
                 );
               },
             ),
@@ -277,10 +283,9 @@ class AddManagerController extends GetxController {
   void onInit() {
     super.onInit();
     _dashboard = Get.find<DashboardController>();
-    final repo = Get.find<IManagerRepository>();
-    _managerRepo = repo is LocalManagerRepository
-        ? repo
-        : LocalManagerRepository();
+    _managerRepo =
+        Get.find<IManagerRepository>() as FirebaseManagerRepository;
+    _auth = Get.find<IAuthRepository>();
   }
 
   @override

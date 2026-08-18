@@ -58,43 +58,46 @@ class TenantConfirmController extends GetxController {
 
   isLoading.value = true;
   try {
-    final updatedTenant = TenantModel(
-  id: tenant.id,
-  fullName: tenant.fullName,
-  phone: tenant.phone,
-  cnic: tenant.cnic,
-  propertyId: tenant.propertyId,
-  propertyLabel: tenant.propertyLabel,
-  inviteCode: tenant.inviteCode,
-  status: 'joined',
-  createdAt: tenant.createdAt,
-  ownerName: tenant.ownerName,
-  ownerPhone: tenant.ownerPhone,
-  ownerEmail: tenant.ownerEmail,
-);
-
-    await _tenantRepo.saveTenant(updatedTenant);
-
     final userId = Get.find<IAuthRepository>().currentUser?.id;
-    if (userId != null && userId.isNotEmpty) {
-      await _tenantRepo.linkTenantToUser(
-        userId: userId,
-        tenant: updatedTenant,
-      );
+    if (userId == null || userId.isEmpty) {
+      AppSnackbar.error('Not signed in', 'Please sign in again');
+      return;
     }
 
-    // REQUIRED: mark tenant role + set active role to tenant
+    final updatedTenant = TenantModel(
+      id: tenant.id,
+      fullName: tenant.fullName,
+      phone: tenant.phone,
+      cnic: tenant.cnic,
+      propertyId: tenant.propertyId,
+      propertyLabel: tenant.propertyLabel,
+      inviteCode: tenant.inviteCode,
+      status: 'joined',
+      createdAt: tenant.createdAt,
+      ownerName: tenant.ownerName,
+      ownerPhone: tenant.ownerPhone,
+      ownerEmail: tenant.ownerEmail,
+    );
+
+    // Single write: status=joined + linkedUserId (allowed by rules)
+    await _tenantRepo.linkTenantToUser(
+      userId: userId,
+      tenant: updatedTenant,
+    );
+
     Get.find<AppSession>().registerTenant();
 
     AppSnackbar.success('Welcome', 'You’re all set as a tenant');
 
     Get.offAllNamed(
-  AppRoutes.tenantDashboard,
-  arguments: {
-    'tenant': updatedTenant,
-    'property': property,
-  },
-);
+      AppRoutes.tenantDashboard,
+      arguments: {
+        'tenant': updatedTenant,
+        'property': property,
+      },
+    );
+  } catch (e) {
+    AppSnackbar.error('Failed', e.toString());
   } finally {
     isLoading.value = false;
   }
