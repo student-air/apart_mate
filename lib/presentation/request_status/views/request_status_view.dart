@@ -24,14 +24,20 @@ class requeststatusView extends StatefulWidget {
 class _requeststatusViewState extends State<requeststatusView>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
+  late final requeststatusController controller;
 
   @override
   void initState() {
     super.initState();
+    controller = Get.find<requeststatusController>();
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.refresh();
+    });
   }
 
   @override
@@ -42,8 +48,6 @@ class _requeststatusViewState extends State<requeststatusView>
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<requeststatusController>();
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Obx(() {

@@ -11,6 +11,7 @@ import 'package:apart_mate/routes/app_routes.dart';
 class JoinSocietyController extends GetxController {
   final IAuthRepository _authRepository;
   final ISocietyRepository _societyRepository;
+
   JoinSocietyController(this._authRepository, this._societyRepository);
 
   static const codeLength = 6;
@@ -24,33 +25,69 @@ class JoinSocietyController extends GetxController {
   final lookupFailed = false.obs;
 
   String get _enteredCode =>
-    digitCtrls.map((c) => c.text).join().trim().toUpperCase();
+      digitCtrls.map((c) => c.text).join().trim().toUpperCase();
 
   /// Used by the view to show Independent Owner option only for owners
   String? get currentUserRole => _authRepository.currentUser?.role;
 
+  @override
+  void onInit() {
+    super.onInit();
+    _redirectIfAlreadyRequested();
+  }
+
+  /// If user already has a join request, never stay on join-code screen.
+  Future<void> _redirectIfAlreadyRequested() async {
+    final user = _authRepository.currentUser;
+    if (user == null) return;
+
+    final societyId = await _societyRepository.getSocietyIdForUser(user.id);
+    if (societyId == null || societyId.isEmpty) return;
+
+    final info = await _societyRepository.getJoinRequestInfo(
+      userId: user.id,
+      societyId: societyId,
+    );
+
+    if (info.status == Joinrequeststatus.pending ||
+        info.status == Joinrequeststatus.rejected) {
+      Get.offAllNamed(
+        AppRoutes.requeststatus,
+        arguments: {'societyId': societyId},
+      );
+      return;
+    }
+
+    if (info.status == Joinrequeststatus.approved) {
+      // Never show join code again after approval
+      Get.offAllNamed(
+        AppRoutes.propertyDetails,
+        arguments: societyId,
+      );
+    }
+  }
+
   void onDigitChanged(int index, String value) {
-  lookupFailed.value = false;
+    lookupFailed.value = false;
 
-  // Keep only last character, uppercase
-  if (value.isNotEmpty) {
-    final char = value.characters.last.toUpperCase();
-    digitCtrls[index].text = char;
-    digitCtrls[index].selection =
-        TextSelection.collapsed(offset: char.length);
-  }
+    if (value.isNotEmpty) {
+      final char = value.characters.last.toUpperCase();
+      digitCtrls[index].text = char;
+      digitCtrls[index].selection =
+          TextSelection.collapsed(offset: char.length);
+    }
 
-  if (value.isNotEmpty && index < codeLength - 1) {
-    focusNodes[index + 1].requestFocus();
-  }
+    if (value.isNotEmpty && index < codeLength - 1) {
+      focusNodes[index + 1].requestFocus();
+    }
 
-  if (_enteredCode.length == codeLength) {
-    FocusScope.of(Get.context!).unfocus();
-    _lookupSociety();
-  } else {
-    society.value = null;
+    if (_enteredCode.length == codeLength) {
+      FocusScope.of(Get.context!).unfocus();
+      _lookupSociety();
+    } else {
+      society.value = null;
+    }
   }
-}
 
   void onBackspace(int index) {
     if (digitCtrls[index].text.isEmpty && index > 0) {
@@ -60,32 +97,32 @@ class JoinSocietyController extends GetxController {
   }
 
   Future<void> _lookupSociety() async {
-  isLookingUp.value = true;
-  try {
-    final code = _enteredCode; // already trimmed + uppercased
+    isLookingUp.value = true;
+    try {
+      final code = _enteredCode;
 
-    if (code.length != codeLength) {
+      if (code.length != codeLength) {
+        society.value = null;
+        return;
+      }
+
+      final result = await _societyRepository.getSocietyByJoinCode(code);
+      society.value = result;
+      lookupFailed.value = result == null;
+
+      if (result == null) {
+        AppSnackbar.error('Invalid code', 'No society found for that code');
+      }
+    } catch (e) {
+      lookupFailed.value = true;
       society.value = null;
-      return;
+      AppSnackbar.error('Lookup failed', 'Please try again');
+    } finally {
+      isLookingUp.value = false;
     }
-
-    final result = await _societyRepository.getSocietyByJoinCode(code);
-    society.value = result;
-    lookupFailed.value = result == null;
-
-    if (result == null) {
-      AppSnackbar.error('Invalid code', 'No society found for that code');
-    }
-  } catch (e) {
-    lookupFailed.value = true;
-    society.value = null;
-    AppSnackbar.error('Lookup failed', 'Please try again');
-  } finally {
-    isLookingUp.value = false;
   }
-}
 
-    Future<void> continueWithSociety() async {
+  Future<void> continueWithSociety() async {
     final matchedSociety = society.value;
     if (matchedSociety == null) {
       AppSnackbar.error('No society', 'Enter a valid join code first');
@@ -102,12 +139,12 @@ class JoinSocietyController extends GetxController {
     isJoining.value = true;
     try {
       await _societyRepository.joinSociety(
-        userId: user.id, // must be Firebase Auth uid
-        societyId: matchedSociety.id, // Pro society doc id (= admin uid)
+        userId: user.id,
+        societyId: matchedSociety.id,
       );
 
-      // ✅ Request status (pending) — NOT property details, NOT dashboard
-      Get.offNamed(
+      // Pending request → request status only
+      Get.offAllNamed(
         AppRoutes.requeststatus,
         arguments: {
           'societyId': matchedSociety.id,
@@ -120,18 +157,15 @@ class JoinSocietyController extends GetxController {
       isJoining.value = false;
     }
   }
-  
-/// Independent owner — no society code / no join request
-Future<void> continueAsIndependentOwner() async {
-  AppSnackbar.info(
-    'Coming soon',
-    'Independent property is not implemented yet',
-  );
-}
 
-  void goBack() {
-    Get.back();
+  Future<void> continueAsIndependentOwner() async {
+    AppSnackbar.info(
+      'Coming soon',
+      'Independent property is not implemented yet',
+    );
   }
+
+  void goBack() => Get.back();
 
   @override
   void onClose() {

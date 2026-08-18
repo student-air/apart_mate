@@ -1,3 +1,5 @@
+// lib/core/utils/app_navigation.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
@@ -5,6 +7,8 @@ import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/session/app_session.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
+import 'package:apart_mate/domain/repositories/i_property_repository.dart';
+import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 
 class AppNavigation {
@@ -18,6 +22,8 @@ class AppNavigation {
     return (auth.currentUser?.role ?? '').toLowerCase() == 'tenant';
   }
 
+  /// Simple home: tenant dashboard or owner dashboard.
+  /// Prefer [routeOwner] for owners after login/splash.
   static void goHome() {
     if (isTenant) {
       Get.offAllNamed(AppRoutes.tenantDashboard);
@@ -26,40 +32,95 @@ class AppNavigation {
     }
   }
 
-  /// Call this from the drawer switch button
+  /// Owner entry after login / splash / role.
+  /// - No join request  → join society code
+  /// - Pending/rejected → request status only
+  /// - Approved         → property details (no property) or dashboard
+  /// Approved users never see join code again.
+  static Future<void> routeOwner() async {
+    final auth = Get.find<IAuthRepository>();
+    final user = auth.currentUser;
+    if (user == null) {
+      Get.offAllNamed(AppRoutes.login);
+      return;
+    }
+
+    final societyRepo = Get.find<ISocietyRepository>();
+    final societyId = await societyRepo.getSocietyIdForUser(user.id);
+
+    // Never requested → join code
+    if (societyId == null || societyId.isEmpty) {
+      Get.offAllNamed(AppRoutes.joinSociety);
+      return;
+    }
+
+    final info = await societyRepo.getJoinRequestInfo(
+      userId: user.id,
+      societyId: societyId,
+    );
+
+    if (info.status == Joinrequeststatus.pending ||
+        info.status == Joinrequeststatus.rejected) {
+      // Only request status until Pro accepts
+      Get.offAllNamed(
+        AppRoutes.requeststatus,
+        arguments: {
+          'societyId': societyId,
+        },
+      );
+      return;
+    }
+
+    // Approved → never show join code again
+    final props =
+        await Get.find<IPropertyRepository>().getPropertiesForUser(user.id);
+    if (props.isEmpty) {
+      Get.offAllNamed(
+        AppRoutes.propertyDetails,
+        arguments: societyId,
+      );
+    } else {
+      Get.offAllNamed(AppRoutes.dashboard);
+    }
+  }
+
+  /// Drawer: switch owner ↔ tenant
   static Future<void> handleSwitchRole() async {
-  final session = _session;
-  final wantTenant = !session.isTenant;
+    final session = _session;
+    final wantTenant = !session.isTenant;
 
-  // Both roles fully registered → instant switch
-  if (session.canSwitchRole) {
-    session.switchRole();
-    if (Get.key.currentState?.canPop() == true) Get.back();
-    goHome();
-    return;
-  }
+    // Both roles registered → instant switch
+    if (session.canSwitchRole) {
+      session.switchRole();
+      if (Get.key.currentState?.canPop() == true) Get.back();
+      if (session.isTenant) {
+        Get.offAllNamed(AppRoutes.tenantDashboard);
+      } else {
+        await routeOwner();
+      }
+      return;
+    }
 
-  // Owner only → register as tenant
-if (wantTenant && !session.hasTenantRole.value) {
-  if (Get.key.currentState?.canPop() == true) Get.back(); // close drawer
-  final yes = await _confirmDialog(
-    title: 'Register as Tenant?',
-    message:
-        'You are only using the owner role. Do you want to register yourself as a tenant?',
-  );
-  if (yes == true) {
-    Get.toNamed(AppRoutes.tenantJoinCode); // NOT role selection, NOT dashboard
-  }
-  return;
-}
+    // Owner only → register as tenant
+    if (wantTenant && !session.hasTenantRole.value) {
+      if (Get.key.currentState?.canPop() == true) Get.back();
+      final yes = await _confirmDialog(
+        title: 'Register as Tenant?',
+        message:
+            'You are only using the owner role. Do you want to register yourself as a tenant?',
+      );
+      if (yes == true) {
+        Get.toNamed(AppRoutes.tenantJoinCode);
+      }
+      return;
+    }
 
-   // Tenant only → not registered as owner → go straight to join society
-  if (!wantTenant && !session.hasOwnerRole.value) {
-    if (Get.key.currentState?.canPop() == true) Get.back(); // close drawer
-    Get.toNamed(AppRoutes.joinSociety);
-    return;
-  }
-  
+    // Tenant only → not registered as owner → join society flow
+    if (!wantTenant && !session.hasOwnerRole.value) {
+      if (Get.key.currentState?.canPop() == true) Get.back();
+      Get.toNamed(AppRoutes.joinSociety);
+      return;
+    }
   }
 
   static Future<bool?> _confirmDialog({
@@ -98,12 +159,14 @@ if (wantTenant && !session.hasTenantRole.value) {
                     backgroundColor: AppColors.primaryDark,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimens.radiusFull),
+                      borderRadius:
+                          BorderRadius.circular(AppDimens.radiusFull),
                     ),
                   ),
                   child: Text(
                     'Yes',
-                    style: AppTextStyles.labelLarge.copyWith(color: AppColors.accentGreen),
+                    style: AppTextStyles.labelLarge
+                        .copyWith(color: AppColors.accentGreen),
                   ),
                 ),
               ),

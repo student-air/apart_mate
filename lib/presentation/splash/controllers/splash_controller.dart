@@ -29,13 +29,11 @@ class SplashController extends GetxController {
     await _goToNext();
   }
 
-  Future<void> _goToNext() async {
-    // Guard against skip() firing after _init() already navigated
+    Future<void> _goToNext() async {
     if (Get.currentRoute != AppRoutes.splash) return;
 
     final authRepository = Get.find<IAuthRepository>();
 
-    // Restore Firebase session into currentUser
     UserModel? user = authRepository.currentUser;
     if (user == null && authRepository is FirebaseAuthRepository) {
       user = await authRepository.restoreSession();
@@ -47,18 +45,19 @@ class SplashController extends GetxController {
     }
 
     if (user.role.isEmpty) {
-      // Signed in but never finished onboarding
       Get.offAllNamed(AppRoutes.roleSelection);
       return;
     }
 
-    // Set session role from saved user
     final role = user.role.toLowerCase();
     if (Get.isRegistered<AppSession>()) {
       Get.find<AppSession>().setRole(role);
     }
 
-    // Owner → /dashboard, Tenant → /tenant-dashboard
-    AppNavigation.goHome();
+    if (role == 'owner') {
+      await AppNavigation.routeOwner();
+    } else {
+      AppNavigation.goHome();
+    }
   }
 }

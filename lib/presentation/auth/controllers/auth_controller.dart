@@ -49,23 +49,27 @@ class AuthController extends GetxController {
   /// dashboard (returning account) after any successful auth action.
   /// Routes the user to onboarding (new account) or Home (returning account)
 /// after any successful auth action.
-Future<void> _navigateAfterAuth({bool isNewUser = false}) async {
-  if (isNewUser) {
-    Get.offAllNamed(AppRoutes.profileSetup);
-    return;
+  Future<void> _navigateAfterAuth({bool isNewUser = false}) async {
+    if (isNewUser) {
+      Get.offAllNamed(AppRoutes.profileSetup);
+      return;
+    }
+
+    final user = _authRepository.currentUser;
+    final role = (user?.role ?? 'owner').toLowerCase();
+
+    if (Get.isRegistered<AppSession>()) {
+      Get.find<AppSession>().setRole(role);
+    }
+
+    AppSnackbar.success('Login successful', 'Welcome back!');
+
+    if (role == 'owner') {
+      await AppNavigation.routeOwner();
+    } else {
+      AppNavigation.goHome();
+    }
   }
-
-  // Returning user → set role from user, then go to correct Home
-  final user = _authRepository.currentUser;
-  final role = (user?.role ?? 'owner').toLowerCase();
-
-  if (Get.isRegistered<AppSession>()) {
-    Get.find<AppSession>().setRole(role);
-  }
-
-  AppSnackbar.success('Login successful', 'Welcome back!');
-  AppNavigation.goHome(); // owner → dashboard, tenant → tenant-dashboard
-}
 
   bool _isCancelled(Object e) {
     final msg = e.toString().toLowerCase();

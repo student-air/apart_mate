@@ -1,3 +1,5 @@
+// lib/data/repositories/firebase_society_repository.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:apart_mate/data/models/society_model.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
@@ -8,8 +10,8 @@ class FirebaseSocietyRepository implements ISocietyRepository {
   CollectionReference<Map<String, dynamic>> get _societies =>
       _db.collection('societies');
 
-  CollectionReference<Map<String, dynamic>> get _memberships =>
-      _db.collection('society_memberships');
+  CollectionReference<Map<String, dynamic>> get _joinRequests =>
+      _db.collection('joinRequests');
 
   @override
   Future<SocietyModel?> getSocietyByJoinCode(String code) async {
@@ -32,13 +34,13 @@ class FirebaseSocietyRepository implements ISocietyRepository {
     return _fromMap(doc.id, doc.data()!);
   }
 
-    @override
+  @override
   Future<void> joinSociety({
     required String userId,
     required String societyId,
   }) async {
-    final existing = await _db
-        .collection('joinRequests')
+    // Block duplicate pending request
+    final existing = await _joinRequests
         .where('userId', isEqualTo: userId)
         .where('societyId', isEqualTo: societyId)
         .where('status', isEqualTo: 'pending')
@@ -50,9 +52,9 @@ class FirebaseSocietyRepository implements ISocietyRepository {
     final user = await _db.collection('users').doc(userId).get();
     final u = user.data() ?? {};
 
-    await _db.collection('joinRequests').add({
+    await _joinRequests.add({
       'userId': userId,
-      'societyId': societyId, // must equal Pro admin uid / society doc id
+      'societyId': societyId, // Pro society doc id (= admin uid)
       'role': u['role'] ?? 'owner',
       'status': 'pending',
       'fullName': u['fullName'] ?? '',
@@ -62,16 +64,16 @@ class FirebaseSocietyRepository implements ISocietyRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
-    @override
+
+  @override
   Future<JoinRequestInfo> getJoinRequestInfo({
     required String userId,
     required String societyId,
   }) async {
-    final snap = await _db
-        .collection('joinRequests')
+    // No orderBy → avoids composite index; take first match
+    final snap = await _joinRequests
         .where('userId', isEqualTo: userId)
         .where('societyId', isEqualTo: societyId)
-        .orderBy('createdAt', descending: true)
         .limit(1)
         .get();
 
@@ -97,37 +99,43 @@ class FirebaseSocietyRepository implements ISocietyRepository {
     return JoinRequestInfo(status: status, submittedAt: submittedAt);
   }
 
+  /// Society id from the user's join request (pending or approved).
+  /// Used so pending users reopen on request status, not join code.
   @override
   Future<String?> getSocietyIdForUser(String userId) async {
-    final snap = await _memberships
+    final snap = await _joinRequests
         .where('userId', isEqualTo: userId)
         .limit(1)
         .get();
+
     if (snap.docs.isEmpty) return null;
-    return snap.docs.first.data()['societyId'] as String?;
+    final id = snap.docs.first.data()['societyId'] as String?;
+    if (id == null || id.isEmpty) return null;
+    return id;
   }
 
-    @override
+  @override
   Future<List<SocietyBuildingInfo>> getBuildings(String societyId) async {
-    final snap = await FirebaseFirestore.instance
-        .collection('societies')
-        .doc(societyId)
-        .collection('buildings')
-        .get();
+    final snap = await _societies.doc(societyId).collection('buildings').get();
 
     final list = <SocietyBuildingInfo>[];
     for (final doc in snap.docs) {
       final data = doc.data();
       final name = (data['name'] as String?)?.trim() ?? '';
       if (name.isEmpty) continue;
+
       final details = data['details'] as Map<String, dynamic>?;
       final totalFloors = (details?['totalFloors'] as num?)?.toInt() ?? 0;
-      list.add(SocietyBuildingInfo(
-        id: doc.id,
-        name: name,
-        totalFloors: totalFloors,
-      ));
+
+      list.add(
+        SocietyBuildingInfo(
+          id: doc.id,
+          name: name,
+          totalFloors: totalFloors,
+        ),
+      );
     }
+
     list.sort((a, b) => a.name.compareTo(b.name));
     return list;
   }
@@ -137,12 +145,8 @@ class FirebaseSocietyRepository implements ISocietyRepository {
     String societyId,
     String buildingId,
   ) async {
-    final doc = await FirebaseFirestore.instance
-        .collection('societies')
-        .doc(societyId)
-        .collection('buildings')
-        .doc(buildingId)
-        .get();
+    final doc =
+        await _societies.doc(societyId).collection('buildings').doc(buildingId).get();
 
     if (!doc.exists) return 0;
     final details = doc.data()?['details'] as Map<String, dynamic>?;
