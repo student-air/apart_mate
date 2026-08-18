@@ -68,7 +68,8 @@ class requeststatusController extends GetxController {
     }
   }
 
-  void continueToDashboard() {
+    void continueToDashboard() {
+  // rename later to continueAfterApproval if you want
   if (status.value != Joinrequeststatus.approved) {
     AppSnackbar.info(
       'Not approved yet',
@@ -76,10 +77,19 @@ class requeststatusController extends GetxController {
     );
     return;
   }
-  Get.offAllNamed(AppRoutes.dashboard);
-}
-  
 
-  
+  final societyId = _societyId;
+  if (societyId == null || societyId.isEmpty) {
+    AppSnackbar.error('Missing society', 'Please rejoin the society');
+    return;
+  }
+
+  // ✅ After approval → Property details (not dashboard)
+  Get.offNamed(
+    AppRoutes.propertyDetails,
+    arguments: societyId, // String → society mode (buildings/floors)
+  );
+}
+
   Future<void> refresh() => _load();
 }

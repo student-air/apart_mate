@@ -32,58 +32,68 @@ class FirebaseSocietyRepository implements ISocietyRepository {
     return _fromMap(doc.id, doc.data()!);
   }
 
-  @override
-Future<void> joinSociety({
-  required String userId,
-  required String societyId,
-}) async {
-  // Optional: block duplicate pending request
-  final existing = await _db
-      .collection('joinRequests')
-      .where('userId', isEqualTo: userId)
-      .where('societyId', isEqualTo: societyId)
-      .where('status', isEqualTo: 'pending')
-      .limit(1)
-      .get();
+    @override
+  Future<void> joinSociety({
+    required String userId,
+    required String societyId,
+  }) async {
+    final existing = await _db
+        .collection('joinRequests')
+        .where('userId', isEqualTo: userId)
+        .where('societyId', isEqualTo: societyId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1)
+        .get();
 
-  if (existing.docs.isNotEmpty) return;
+    if (existing.docs.isNotEmpty) return;
 
-  final user = await _db.collection('users').doc(userId).get();
-  final u = user.data() ?? {};
+    final user = await _db.collection('users').doc(userId).get();
+    final u = user.data() ?? {};
 
-  await _db.collection('joinRequests').add({
-    'userId': userId,
-    'societyId': societyId,
-    'role': u['role'] ?? 'owner',
-    'status': 'pending',
-    'fullName': u['fullName'] ?? '',
-    'email': u['email'] ?? '',
-    'phone': u['phone'] ?? '',
-    'createdAt': FieldValue.serverTimestamp(),
-    'updatedAt': FieldValue.serverTimestamp(),
-  });
-}
-
-  @override
+    await _db.collection('joinRequests').add({
+      'userId': userId,
+      'societyId': societyId, // must equal Pro admin uid / society doc id
+      'role': u['role'] ?? 'owner',
+      'status': 'pending',
+      'fullName': u['fullName'] ?? '',
+      'email': u['email'] ?? '',
+      'phone': u['phone'] ?? '',
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+    @override
   Future<JoinRequestInfo> getJoinRequestInfo({
     required String userId,
     required String societyId,
   }) async {
-    final doc = await _memberships.doc('${userId}_$societyId').get();
-    if (!doc.exists || doc.data() == null) {
+    final snap = await _db
+        .collection('joinRequests')
+        .where('userId', isEqualTo: userId)
+        .where('societyId', isEqualTo: societyId)
+        .orderBy('createdAt', descending: true)
+        .limit(1)
+        .get();
+
+    if (snap.docs.isEmpty) {
       return JoinRequestInfo(
         status: Joinrequeststatus.pending,
         submittedAt: DateTime.now(),
       );
     }
-    final data = doc.data()!;
-    final statusStr = (data['status'] as String?) ?? 'pending';
-    final status = Joinrequeststatus.values.firstWhere(
-      (e) => e.name == statusStr,
-      orElse: () => Joinrequeststatus.pending,
-    );
-    final ts = data['submittedAt'];
-    final submittedAt = ts is Timestamp ? ts.toDate() : DateTime.now();
+
+    final data = snap.docs.first.data();
+    final statusStr = (data['status'] as String?)?.toLowerCase() ?? 'pending';
+    final status = switch (statusStr) {
+      'approved' || 'accepted' => Joinrequeststatus.approved,
+      'rejected' => Joinrequeststatus.rejected,
+      _ => Joinrequeststatus.pending,
+    };
+
+    final ts = data['createdAt'] ?? data['submittedAt'];
+    final submittedAt =
+        ts is Timestamp ? ts.toDate() : DateTime.now();
+
     return JoinRequestInfo(status: status, submittedAt: submittedAt);
   }
 
@@ -138,7 +148,7 @@ Future<void> joinSociety({
     final details = doc.data()?['details'] as Map<String, dynamic>?;
     return (details?['totalFloors'] as num?)?.toInt() ?? 0;
   }
-  
+
   SocietyModel _fromMap(String id, Map<String, dynamic> data) {
     return SocietyModel(
       id: id,

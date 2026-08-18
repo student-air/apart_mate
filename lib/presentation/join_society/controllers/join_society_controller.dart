@@ -85,39 +85,42 @@ class JoinSocietyController extends GetxController {
   }
 }
 
-  Future<void> continueWithSociety() async {
-  final matchedSociety = society.value;
-  if (matchedSociety == null) {
-    AppSnackbar.error('No society', 'Enter a valid join code first');
-    return;
+    Future<void> continueWithSociety() async {
+    final matchedSociety = society.value;
+    if (matchedSociety == null) {
+      AppSnackbar.error('No society', 'Enter a valid join code first');
+      return;
+    }
+
+    final user = _authRepository.currentUser;
+    if (user == null) {
+      AppSnackbar.error('Not signed in', 'Please sign in again');
+      Get.offAllNamed(AppRoutes.login);
+      return;
+    }
+
+    isJoining.value = true;
+    try {
+      await _societyRepository.joinSociety(
+        userId: user.id, // must be Firebase Auth uid
+        societyId: matchedSociety.id, // Pro society doc id (= admin uid)
+      );
+
+      // ✅ Request status (pending) — NOT property details, NOT dashboard
+      Get.offNamed(
+        AppRoutes.requeststatus,
+        arguments: {
+          'societyId': matchedSociety.id,
+          'societyName': matchedSociety.name,
+        },
+      );
+    } catch (e) {
+      AppSnackbar.error('Join failed', e.toString());
+    } finally {
+      isJoining.value = false;
+    }
   }
-
-  final user = _authRepository.currentUser;
-  if (user == null) {
-    AppSnackbar.error('Not signed in', 'Please sign in again');
-    Get.offAllNamed(AppRoutes.login);
-    return;
-  }
-
-  isJoining.value = true;
-  try {
-        await _societyRepository.joinSociety(
-      userId: user.id,
-      societyId: matchedSociety.id,
-    );
-
-    // Society property → collect building / floor / flat next
-    Get.offNamed(
-      AppRoutes.propertyDetails,
-      arguments: matchedSociety.id, // must be a String (societyId)
-    );
-  } catch (e) {
-    AppSnackbar.error('Join failed', e.toString());
-  } finally {
-    isJoining.value = false;
-  }
-}
-
+  
 /// Independent owner — no society code / no join request
 Future<void> continueAsIndependentOwner() async {
   AppSnackbar.info(

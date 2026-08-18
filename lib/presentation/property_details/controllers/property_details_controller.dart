@@ -1,5 +1,6 @@
 // lib/presentation/property_details/controllers/property_details_controller.dart
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
@@ -10,18 +11,19 @@ import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 import 'package:apart_mate/presentation/dashboard/controllers/dashboard_controller.dart';
 import 'package:apart_mate/routes/app_routes.dart';
- 
+
 class PropertyDetailsController extends GetxController {
   final IAuthRepository _authRepository;
   final IPropertyRepository _propertyRepository;
+
   PropertyDetailsController(this._authRepository, this._propertyRepository);
 
-  // ── Society mode lists ──────────────────────────────────────
-    final buildings = <SocietyBuildingInfo>[].obs;
+  // ── Buildings / floors from Pro (Firestore) ─────────────────
+  final buildings = <SocietyBuildingInfo>[].obs;
   final buildingOptions = <String>[].obs;
   final floorOptions = <String>[].obs;
 
-  // ── Independent mode lists ──────────────────────────────────
+  // ── Independent (not used for now; kept for edit of old data) ─
   static const houseTypes = [
     'Independent House',
     'Bungalow',
@@ -29,7 +31,6 @@ class PropertyDetailsController extends GetxController {
     'Townhouse',
   ];
 
-  // Shared lists
   static const propertyTypes = ['Apartment', 'House', 'Office'];
   static const flatTypes = ['1 Bed', '2 Bed', '3 Bed', '4 Bed', 'Studio'];
   static const meterTypes = ['Wapda', 'Society', 'WAPDA Meter'];
@@ -44,13 +45,12 @@ class PropertyDetailsController extends GetxController {
     'Unfurnished',
   ];
 
-  // ── Controllers ─────────────────────────────────────────────
   final flatNumberCtrl = TextEditingController();
   final addressCtrl = TextEditingController();
   final areaCtrl = TextEditingController();
   final bathroomsCtrl = TextEditingController();
+  final maintenanceAmountCtrl = TextEditingController();
 
-  // ── Observables ─────────────────────────────────────────────
   final selectedBuilding = RxnString();
   final selectedFloor = RxnString();
   final selectedHouseType = RxnString();
@@ -65,53 +65,51 @@ class PropertyDetailsController extends GetxController {
   final selectedWaterConnection = RxnString();
   final selectedFurnishing = RxnString();
   final maintenanceBy = 'property_owner'.obs;
-  final maintenanceAmountCtrl = TextEditingController();
   final isLoading = false.obs;
+  final isLoadingBuildings = false.obs;
 
-  /// Existing property when opened from Edit. Null = create flow.
   PropertyModel? existingProperty;
 
   bool get isEditMode => existingProperty != null;
 
-  /// true = Independent Owner (no society)
+  /// Independent only when no society id (legacy / not implemented for create).
   bool get isIndependent {
-    if (isEditMode) {
-      return existingProperty!.societyId.isEmpty;
-    }
-    final args = Get.arguments;
-    return args == null;
+    if (isEditMode) return existingProperty!.societyId.isEmpty;
+    return _resolveSocietyId() == null;
   }
 
-    String? get _societyId {
-    if (isIndependent) return null;
+  String? _resolveSocietyId() {
     final args = Get.arguments;
     if (args is String && args.isNotEmpty) return args;
+    if (args is Map && args['societyId'] is String) {
+      final id = args['societyId'] as String;
+      if (id.isNotEmpty) return id;
+    }
+    if (Get.isRegistered<DashboardController>()) {
+      final id = Get.find<DashboardController>().society.value?.id;
+      if (id != null && id.isNotEmpty) return id;
+    }
     return null;
   }
-  
-  String get headerTitle =>
-      isEditMode ? 'Edit Property' : 'Property Details';
+
+  String? get _societyId => isIndependent ? null : _resolveSocietyId();
+
+  String get headerTitle => isEditMode ? 'Edit Property' : 'Property Details';
 
   String get headerSubtitle {
     if (isIndependent) {
       final name = flatNumberCtrl.text.trim();
       final type = selectedHouseType.value;
       if (name.isEmpty && type == null) return 'Tell us about your house';
-      final parts = [
-        if (name.isNotEmpty) name,
-        if (type != null) type,
-      ];
-      return parts.join(' · ');
+      return [if (name.isNotEmpty) name, if (type != null) type].join(' · ');
     }
-
     final flat = flatNumberCtrl.text.trim();
     final building = selectedBuilding.value;
     if (flat.isEmpty && building == null) return 'Tell us about your property';
-    final parts = [
+    return [
       if (flat.isNotEmpty) 'Flat $flat',
       if (building != null) building,
-    ];
-    return parts.join(' · ');
+    ].join(' · ');
   }
 
   @override
@@ -122,9 +120,9 @@ class PropertyDetailsController extends GetxController {
       existingProperty = args;
       _prefillFrom(args);
     }
-      if (!isIndependent) {
-    loadBuildings();
-  }
+    if (!isIndependent) {
+      loadBuildings();
+    }
   }
 
   void _prefillFrom(PropertyModel p) {
@@ -153,37 +151,94 @@ class PropertyDetailsController extends GetxController {
         p.waterConnection.isNotEmpty ? p.waterConnection : null;
     selectedFurnishing.value =
         p.furnishing.isNotEmpty ? p.furnishing : null;
-        maintenanceBy.value = p.maintenanceBy;
+    maintenanceBy.value =
+        p.maintenanceBy.isNotEmpty ? p.maintenanceBy : 'property_owner';
   }
 
-  void onBuildingSelected(String? name) async {
-  selectedBuilding.value = name;
-  selectedFloor.value = null;
-  floorOptions.clear();
+  Future<void> loadBuildings() async {
+    final societyId = _societyId;
+    if (societyId == null) return;
 
-  if (name == null) return;
+    isLoadingBuildings.value = true;
+    try {
+      final list =
+          await Get.find<ISocietyRepository>().getBuildings(societyId);
+      buildings.assignAll(list);
+      buildingOptions.assignAll(list.map((b) => b.name));
 
-  final match = buildings.where((b) => b.name == name);
-  if (match.isEmpty) return;
-
-  final building = match.first;
-  final societyId = _societyId;
-  if (societyId == null) return;
-
-  final total = await Get.find<ISocietyRepository>()
-      .getFloorCountForBuilding(societyId, building.id);
-
-  floorOptions.assignAll(_buildFloorLabels(total));
-}
-  void setMaintenanceBy(String value) {
-  maintenanceBy.value = value;
-}
-
-  // ── Validation ──────────────────────────────────────────────
-  bool validateStep(int step) {
-    if (isIndependent) {
-      return _validateIndependent(step);
+      // If editing, rebuild floor list for the current building
+      final current = selectedBuilding.value;
+      if (current != null) {
+        await onBuildingSelected(current);
+      } else {
+        floorOptions.clear();
+      }
+    } catch (e) {
+      AppSnackbar.error('Buildings', 'Could not load buildings');
+      buildings.clear();
+      buildingOptions.clear();
+      floorOptions.clear();
+    } finally {
+      isLoadingBuildings.value = false;
     }
+  }
+
+  /// MUST be used by the Building dropdown (loads floors).
+  Future<void> onBuildingSelected(String? name) async {
+    selectedBuilding.value = name;
+    selectedFloor.value = null;
+    floorOptions.clear();
+
+    if (name == null) return;
+
+    final matches = buildings.where((b) => b.name == name).toList();
+    if (matches.isEmpty) return;
+
+    final building = matches.first;
+    final societyId = _societyId;
+    if (societyId == null) return;
+
+    // Prefer totalFloors already on the building; otherwise fetch
+    var total = building.totalFloors;
+    if (total <= 0) {
+      total = await Get.find<ISocietyRepository>()
+          .getFloorCountForBuilding(societyId, building.id);
+    }
+
+    floorOptions.assignAll(_buildFloorLabels(total));
+  }
+
+  List<String> _buildFloorLabels(int totalFloors) {
+    if (totalFloors <= 0) {
+      return const [
+        'Ground',
+        '1st Floor',
+        '2nd Floor',
+        '3rd Floor',
+        '4th Floor',
+        '5th Floor',
+      ];
+    }
+    final labels = <String>['Ground'];
+    for (var i = 1; i < totalFloors; i++) {
+      labels.add(_ordinalFloor(i));
+    }
+    return labels;
+  }
+
+  String _ordinalFloor(int n) {
+    if (n == 1) return '1st Floor';
+    if (n == 2) return '2nd Floor';
+    if (n == 3) return '3rd Floor';
+    return '${n}th Floor';
+  }
+
+  void setMaintenanceBy(String value) {
+    maintenanceBy.value = value;
+  }
+
+  bool validateStep(int step) {
+    if (isIndependent) return _validateIndependent(step);
     return _validateSociety(step);
   }
 
@@ -213,8 +268,6 @@ class PropertyDetailsController extends GetxController {
           return false;
         }
         return true;
-      case 2:
-        return true;
       default:
         return true;
     }
@@ -225,10 +278,6 @@ class PropertyDetailsController extends GetxController {
       case 0:
         if (flatNumberCtrl.text.trim().isEmpty) {
           AppSnackbar.error('Missing info', 'Please enter house name');
-          return false;
-        }
-        if (addressCtrl.text.trim().isEmpty && !isEditMode) {
-          AppSnackbar.error('Missing info', 'Please enter address');
           return false;
         }
         if (selectedHouseType.value == null) {
@@ -242,166 +291,153 @@ class PropertyDetailsController extends GetxController {
           return false;
         }
         return true;
-      case 2:
-        return true;
       default:
         return true;
     }
   }
 
-    Future<void> loadBuildings() async {
-    final societyId = _societyId;
-    if (societyId == null) return;
-
-    final list =
-        await Get.find<ISocietyRepository>().getBuildings(societyId);
-
-    buildings.assignAll(list);
-    buildingOptions.assignAll(list.map((b) => b.name));
-    selectedBuilding.value = null;
-    selectedFloor.value = null;
-    floorOptions.clear();
-  }
-
-  // Future<void> onBuildingSelected(String? name) async {
-  //   selectedBuilding.value = name;
-  //   selectedFloor.value = null;
-  //   floorOptions.clear();
-
-  //   if (name == null) return;
-
-  //   final match = buildings.where((b) => b.name == name);
-  //   if (match.isEmpty) return;
-
-  //   final building = match.first;
-  //   final societyId = _societyId;
-  //   if (societyId == null) return;
-
-  //   final total = await Get.find<ISocietyRepository>()
-  //       .getFloorCountForBuilding(societyId, building.id);
-
-  //   floorOptions.assignAll(_buildFloorLabels(total));
-  // }
-
-  List<String> _buildFloorLabels(int totalFloors) {
-    if (totalFloors <= 0) {
-      return const [
-        'Ground',
-        '1st Floor',
-        '2nd Floor',
-        '3rd Floor',
-        '4th Floor',
-        '5th Floor',
-      ];
+    Future<void> saveAndContinue() async {
+    // Always use Firebase Auth uid (must match Firestore rules)
+    final authUser = FirebaseAuth.instance.currentUser;
+    if (authUser == null) {
+      AppSnackbar.error('Not signed in', 'Please sign in again');
+      Get.offAllNamed(AppRoutes.login);
+      return;
     }
-    final labels = <String>['Ground'];
-    for (var i = 1; i < totalFloors; i++) {
-      labels.add(_ordinalFloor(i));
+    final uid = authUser.uid;
+
+    // Resolve society id (create flow)
+    String societyId;
+    if (isEditMode) {
+      societyId = existingProperty!.societyId;
+    } else if (isIndependent) {
+      societyId = '';
+    } else {
+      societyId = _societyId ??
+          (Get.arguments is String ? Get.arguments as String : '') ;
+      if (societyId.isEmpty &&
+          Get.isRegistered<DashboardController>()) {
+        societyId =
+            Get.find<DashboardController>().society.value?.id ?? '';
+      }
     }
-    return labels;
-  }
 
-  String _ordinalFloor(int n) {
-    if (n == 1) return '1st Floor';
-    if (n == 2) return '2nd Floor';
-    if (n == 3) return '3rd Floor';
-    return '${n}th Floor';
-  }
-
-// ── Save ────────────────────────────────────────────────────
-Future<void> saveAndContinue() async {
-  final user = _authRepository.currentUser;
-  if (user == null) {
-    AppSnackbar.error('Not signed in', 'Please sign in again');
-    Get.offAllNamed(AppRoutes.login);
-    return;
-  }
-
-  final societyId = isEditMode
-      ? existingProperty!.societyId
-      : (isIndependent
-          ? ''
-          : (Get.arguments is String ? Get.arguments as String : ''));
-
-  final building = isIndependent
-      ? (selectedHouseType.value ?? '')
-      : (selectedBuilding.value ?? '');
-  final floor = isIndependent ? '' : (selectedFloor.value ?? '');
-  final flatNumber = flatNumberCtrl.text.trim();
-
-  isLoading.value = true;
-  try {
-    // ── Uniqueness check (create only) ──────────────────────
-    if (!isEditMode) {
-      final unitKey = buildPropertyUnitKey(
-        societyId: societyId,
-        building: building,
-        floor: floor,
-        flatNumber: flatNumber,
+    if (!isIndependent && societyId.isEmpty) {
+      AppSnackbar.error(
+        'No society',
+        'Join a society before adding a property',
       );
+      return;
+    }
 
-      final existingClaim =
-          await _propertyRepository.findActiveClaimByUnitKey(unitKey);
+    final building = isIndependent
+        ? (selectedHouseType.value ?? '')
+        : (selectedBuilding.value ?? '');
+    final floor = isIndependent ? '' : (selectedFloor.value ?? '');
+    final flatNumber = flatNumberCtrl.text.trim();
 
-      if (existingClaim != null && existingClaim.userId != user.id) {
-        AppSnackbar.error(
-          'Already registered',
-          'This property is already registered to another user',
-        );
+    if (!isIndependent) {
+      if (building.isEmpty) {
+        AppSnackbar.error('Missing info', 'Please select a building');
+        return;
+      }
+      if (floor.isEmpty) {
+        AppSnackbar.error('Missing info', 'Please select a floor');
+        return;
+      }
+      if (flatNumber.isEmpty) {
+        AppSnackbar.error('Missing info', 'Please enter your flat number');
         return;
       }
     }
 
-    final property = PropertyModel(
-      id: isEditMode
-          ? existingProperty!.id
-          : 'property_${DateTime.now().millisecondsSinceEpoch}',
-      userId: user.id,
-      societyId: societyId,
-      building: building,
-      floor: floor,
-      flatNumber: flatNumber,
-      // New property → always vacant; edit keeps current occupancy
-      isOccupied: isEditMode ? existingProperty!.isOccupied : false,
-      occupiedBy: isEditMode ? existingProperty!.occupiedBy : '',
-      propertyType:
-          selectedPropertyType.value ?? (isIndependent ? 'House' : ''),
-      areaSqFt: areaCtrl.text.trim(),
-      bathrooms: bathroomsCtrl.text.trim(),
-      flatType: selectedFlatType.value ?? '',
-      hasBalcony: hasBalcony.value,
-      hasElectricity: hasElectricity.value,
-      hasGas: hasGas.value,
-      meterType: selectedMeterType.value ?? '',
-      waterConnection: selectedWaterConnection.value ?? '',
-      furnishing: selectedFurnishing.value ?? '',
-      createdAt: isEditMode ? existingProperty!.createdAt : DateTime.now(),
-      claimStatus: isEditMode ? existingProperty!.claimStatus : 'active',
-      maintenanceBy: maintenanceBy.value,
-maintenanceAmount: maintenanceBy.value == 'property_owner'
-    ? maintenanceAmountCtrl.text.trim()
-    : '',
-    );
+    isLoading.value = true;
+    try {
+      // Uniqueness check (create only, society units)
+      if (!isEditMode && !isIndependent) {
+        final unitKey = buildPropertyUnitKey(
+          societyId: societyId,
+          building: building,
+          floor: floor,
+          flatNumber: flatNumber,
+        );
 
-    await _propertyRepository.saveProperty(property);
+        final existingClaim =
+            await _propertyRepository.findActiveClaimByUnitKey(unitKey);
 
-    if (isEditMode) {
-      AppSnackbar.success('Updated', 'Property details saved');
+        if (existingClaim != null && existingClaim.userId != uid) {
+          AppSnackbar.error(
+            'Already registered',
+            'This property is already registered to another user',
+          );
+          return;
+        }
+      }
+
+      final property = PropertyModel(
+        id: isEditMode
+            ? existingProperty!.id
+            : 'property_${DateTime.now().millisecondsSinceEpoch}',
+        userId: uid, // MUST be Firebase Auth uid
+        societyId: societyId,
+        building: building,
+        floor: floor,
+        flatNumber: flatNumber,
+        isOccupied: isEditMode ? existingProperty!.isOccupied : false,
+        occupiedBy: isEditMode ? existingProperty!.occupiedBy : '',
+        propertyType:
+            selectedPropertyType.value ?? (isIndependent ? 'House' : ''),
+        areaSqFt: areaCtrl.text.trim(),
+        bathrooms: bathroomsCtrl.text.trim(),
+        flatType: selectedFlatType.value ?? '',
+        hasBalcony: hasBalcony.value,
+        hasElectricity: hasElectricity.value,
+        hasGas: hasGas.value,
+        meterType: selectedMeterType.value ?? '',
+        waterConnection: selectedWaterConnection.value ?? '',
+        furnishing: selectedFurnishing.value ?? '',
+        createdAt: isEditMode ? existingProperty!.createdAt : DateTime.now(),
+        claimStatus: isEditMode ? existingProperty!.claimStatus : 'active',
+        maintenanceBy: maintenanceBy.value,
+        maintenanceAmount: maintenanceBy.value == 'property_owner'
+            ? maintenanceAmountCtrl.text.trim()
+            : '',
+      );
+
+      await _propertyRepository.saveProperty(property);
+
+      AppSnackbar.success(
+        isEditMode ? 'Updated' : 'Saved',
+        isEditMode
+            ? 'Property details updated'
+            : 'Property added successfully',
+      );
+
       if (Get.isRegistered<DashboardController>()) {
         await Get.find<DashboardController>().refresh();
       }
-      Get.offNamed(AppRoutes.manageProperties);
-    } else {
-  // Society property saved → back to owner dashboard (join request already done)
-  if (Get.isRegistered<DashboardController>()) {
-    await Get.find<DashboardController>().refresh();
+
+      if (isEditMode) {
+        Get.offNamed(AppRoutes.manageProperties);
+      } else {
+        // Owner flow: after add property → dashboard (not request status)
+        Get.offAllNamed(AppRoutes.dashboard);
+      }
+    } catch (e) {
+      final msg = e.toString();
+      if (msg.contains('permission-denied') ||
+          msg.contains('PERMISSION_DENIED')) {
+        AppSnackbar.error(
+          'Save failed',
+          'Permission denied. Check Firestore rules and that you are signed in.',
+        );
+      } else {
+        AppSnackbar.error('Save failed', msg);
+      }
+    } finally {
+      isLoading.value = false;
+    }
   }
-  Get.offAllNamed(AppRoutes.dashboard);
-}
-  } finally {
-    isLoading.value = false;
-  }
-}
 
   void goBack() => Get.back();
 

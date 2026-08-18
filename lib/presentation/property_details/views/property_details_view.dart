@@ -414,7 +414,7 @@ class _BasicInfoStep extends StatelessWidget {
                   value: controller.selectedBuilding.value,
                   items: [null, ...controller.buildingOptions],
                   labelBuilder: (v) => v ?? 'Select Building',
-                  onChanged: (v) => controller.selectedBuilding.value = v,
+                  onChanged: controller.onBuildingSelected,
                 ),
               ),
               const SizedBox(height: AppDimens.space16),

@@ -13,6 +13,7 @@ class PropertyDetailsBinding extends Bindings {
         Get.find<IAuthRepository>(),
         Get.find<IPropertyRepository>(),
       ),
+      fenix: true,
     );
   }
 }
