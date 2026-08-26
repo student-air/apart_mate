@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_dimens.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
+import 'package:apart_mate/data/models/society_model.dart';
 import 'package:apart_mate/core/widgets/app_button.dart';
 import 'package:apart_mate/presentation/join_society/controllers/join_society_controller.dart';
 
@@ -435,12 +436,14 @@ class UpperCaseTextFormatter extends TextInputFormatter {
 }
 
 class _SocietyPreviewCard extends StatelessWidget {
-  final dynamic society;
+  final SocietyModel society;
   const _SocietyPreviewCard({required this.society});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDimens.space16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimens.radius2xl),
@@ -454,68 +457,85 @@ class _SocietyPreviewCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppDimens.space16),
-            decoration: BoxDecoration(
-              color: AppColors.pastelGreenBg,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppDimens.radius2xl),
-                topRight: Radius.circular(AppDimens.radius2xl),
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.pastelGreenBg,
+                  borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.villa_rounded,
+                  size: 24,
+                  color: AppColors.accentGreenDark,
+                ),
               ),
+              const SizedBox(width: AppDimens.space12),
+              Expanded(
+                child: Text(society.name, style: AppTextStyles.h4),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppDimens.space16),
+          if (society.ownerName.isNotEmpty) ...[
+            _InfoRow(
+              icon: Icons.person_rounded,
+              label: 'Owner',
+              value: society.ownerName,
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.villa_rounded,
-                    size: 24,
-                    color: AppColors.accentGreenDark,
-                  ),
-                ),
-                const SizedBox(width: AppDimens.space12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(society.name as String, style: AppTextStyles.h4),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${society.address}, ${society.city}',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (society.isVerified as bool)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppDimens.radiusFull),
-                    ),
-                    child: Text(
-                      'Verified',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.successGreenDark,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            const SizedBox(height: AppDimens.space10),
+          ],
+          _InfoRow(
+            icon: Icons.location_on_rounded,
+            label: 'Address',
+            value: society.fullAddress,
           ),
         ],
       ),
     );
   }
 }
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: AppColors.textSecondary),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(value, style: AppTextStyles.bodyMedium),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+

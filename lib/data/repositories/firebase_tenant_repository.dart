@@ -45,10 +45,7 @@ class FirebaseTenantRepository implements ITenantRepository {
 
   @override
   Future<List<TenantModel>> getTenantsForOwner(String ownerId) async {
-    final snap = await _col
-        .where('ownerUserId', isEqualTo: ownerId)
-        .get();
-
+    final snap = await _col.where('ownerUserId', isEqualTo: ownerId).get();
     return snap.docs.map((d) => _fromMap(d.id, d.data())).toList();
   }
 
@@ -77,7 +74,7 @@ class FirebaseTenantRepository implements ITenantRepository {
       {
         ..._toMap(tenant),
         'linkedUserId': userId,
-        'status': tenant.status.isEmpty ? 'joined' : tenant.status,
+        'status': 'joined',
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
@@ -86,10 +83,8 @@ class FirebaseTenantRepository implements ITenantRepository {
 
   @override
   Future<TenantModel?> getTenantForUser(String userId) async {
-    final snap = await _col
-        .where('linkedUserId', isEqualTo: userId)
-        .limit(1)
-        .get();
+    final snap =
+        await _col.where('linkedUserId', isEqualTo: userId).limit(1).get();
 
     if (snap.docs.isEmpty) return null;
     return _fromMap(snap.docs.first.id, snap.docs.first.data());
@@ -100,7 +95,8 @@ class FirebaseTenantRepository implements ITenantRepository {
     await _col.doc(tenantId).delete();
   }
 
-  /// Create invite (same helper as local — used by Add Tenant)
+  /// Create invite — used by Add Tenant (owner).
+  /// Writes society + unit fields so Pro Residents can show building/floor/flat.
   Future<TenantModel> createTenant({
     required String fullName,
     required String phone,
@@ -111,6 +107,10 @@ class FirebaseTenantRepository implements ITenantRepository {
     required String ownerPhone,
     required String ownerEmail,
     required String ownerUserId,
+    required String societyId,
+    required String building,
+    required String floor,
+    required String flatNumber,
   }) async {
     final doc = _col.doc();
     final tenant = TenantModel(
@@ -131,7 +131,12 @@ class FirebaseTenantRepository implements ITenantRepository {
     await doc.set({
       ..._toMap(tenant),
       'ownerUserId': ownerUserId,
+      'societyId': societyId,
+      'building': building,
+      'floor': floor,
+      'flatNumber': flatNumber,
       'linkedUserId': null,
+      'status': 'pending',
     });
 
     return tenant;

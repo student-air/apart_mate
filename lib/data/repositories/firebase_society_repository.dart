@@ -54,7 +54,7 @@ class FirebaseSocietyRepository implements ISocietyRepository {
 
     await _joinRequests.add({
       'userId': userId,
-      'societyId': societyId, // Pro society doc id (= admin uid)
+      'societyId': societyId, // Pro society doc id (= admin uid )
       'role': u['role'] ?? 'owner',
       'status': 'pending',
       'fullName': u['fullName'] ?? '',
@@ -154,18 +154,19 @@ class FirebaseSocietyRepository implements ISocietyRepository {
   }
 
   SocietyModel _fromMap(String id, Map<String, dynamic> data) {
-    return SocietyModel(
-      id: id,
-      name: data['name'] ?? '',
-      joinCode: data['joinCode'] ?? '',
-      address: data['address'] ?? '',
-      city: data['city'] ?? '',
-      isVerified: data['registrationStatus'] == 'approved',
-      buildingsCount: 0,
-      unitsCount: 0,
-      foundedYear: DateTime.now().year,
-      phone: data['contactNumber'] ?? '',
-      email: '',
-    );
-  }
+  return SocietyModel(
+    id: id,
+    name: data['name'] ?? '',
+    ownerName: data['ownerName'] ?? '',
+    joinCode: data['joinCode'] ?? '',
+    address: data['address'] ?? '',
+    city: data['city'] ?? '',
+    isVerified: data['registrationStatus'] == 'approved',
+    buildingsCount: 0,
+    unitsCount: 0,
+    foundedYear: DateTime.now().year,
+    phone: data['contactNumber'] ?? '',
+    email: '',
+  );
+}
 }

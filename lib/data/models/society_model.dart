@@ -1,6 +1,7 @@
 class SocietyModel {
   final String id;
   final String name;
+  final String ownerName; // from Pro app
   final String joinCode;
   final String address;
   final String city;
@@ -8,12 +9,13 @@ class SocietyModel {
   final int buildingsCount;
   final int unitsCount;
   final int foundedYear;
-  final String phone;   // from admin app
-  final String email;   // from admin app
+  final String phone;
+  final String email;
 
   const SocietyModel({
     required this.id,
     required this.name,
+    this.ownerName = '',
     required this.joinCode,
     required this.address,
     required this.city,

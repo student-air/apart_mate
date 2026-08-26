@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
+import 'package:apart_mate/data/models/profile_model.dart';
 import 'package:apart_mate/domain/repositories/i_profile_repository.dart';
 import 'package:apart_mate/presentation/profile/controllers/profile_controller.dart';
 
@@ -34,26 +35,32 @@ class EditProfileController extends GetxController {
   void goBack() => Get.back();
 
   @override
-  void onInit() {
-    super.onInit();
-    _prefill();
+void onInit() {
+  super.onInit();
+  _prefill();
+}
+
+Future<void> _prefill() async {
+  final user = authRepository.currentUser;
+  if (user == null) return;
+
+  // Signup / auth fields
+  fullNameCtrl.text = user.fullName;
+  phoneCtrl.text = user.phone;
+  emailCtrl.text = user.email;
+  photoPath.value = user.photoPath ?? '';
+
+  // Profile setup fields
+  final profile = await profileRepository.getProfile(user.id);
+  if (profile == null) return;
+
+  cityCtrl.text = profile.city;
+  occupationCtrl.text = profile.occupation;
+  emergencyContactCtrl.text = profile.emergencyContact;
+  if (profile.gender.isNotEmpty) {
+    selectedGender.value = profile.gender;
   }
-
-  void _prefill() {
-    final user = authRepository.currentUser;
-    if (user == null) return;
-
-    fullNameCtrl.text = user.fullName;
-    phoneCtrl.text = user.phone;
-    emailCtrl.text = user.email;
-    photoPath.value = user.photoPath ?? '';
-
-    // If profile repo has extra fields, load them here
-    // cityCtrl.text = profile?.city ?? '';
-    // occupationCtrl.text = profile?.occupation ?? '';
-    // emergencyContactCtrl.text = profile?.emergencyContact ?? '';
-    // selectedGender.value = profile?.gender;
-  }
+}
 
   Future<void> pickPhoto() async {
     final picker = ImagePicker();
@@ -141,8 +148,20 @@ class EditProfileController extends GetxController {
 
       await authRepository.updateCurrentUser(updated);
 
-      // Optional: save city / occupation / gender / emergency via profileRepository
-      // await profileRepository.updateProfile(...);
+// Save profile-setup fields (city, gender, etc.)
+await profileRepository.saveProfile(
+  ProfileModel(
+    userId: current.id,
+    gender: selectedGender.value ?? '',
+    city: cityCtrl.text.trim(),
+    occupation: occupationCtrl.text.trim(),
+    emergencyContact: emergencyContactCtrl.text.trim(),
+  ),
+);
+
+if (Get.isRegistered<ProfileController>()) {
+  await Get.find<ProfileController>().refresh();
+}
 
       if (Get.isRegistered<ProfileController>()) {
         await Get.find<ProfileController>().refresh();

@@ -16,7 +16,6 @@ class MaintenanceView extends GetView<MaintenanceController> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // ── Header (same style as rest of app) ─────────────
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -89,7 +88,6 @@ class MaintenanceView extends GetView<MaintenanceController> {
               ),
             ),
           ),
-
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
@@ -113,7 +111,6 @@ class _TenantBody extends StatelessWidget {
   final MaintenanceController controller;
   const _TenantBody({required this.controller});
 
-  /// Current month status from history (first item is latest)
   bool get _isCurrentPaid {
     if (controller.history.isEmpty) return false;
     return controller.history.first.status == 'paid';
@@ -130,7 +127,6 @@ class _TenantBody extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
-          // Payment card — green if paid, red if pending
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(22),
@@ -214,14 +210,12 @@ class _TenantBody extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 28),
           Text(
             'Payment history',
             style: AppTextStyles.h4.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
-
           if (controller.history.isEmpty)
             const _EmptyCard(text: 'No payment history yet')
           else
@@ -253,13 +247,6 @@ class _OwnerBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (controller.ownerRows.isEmpty) {
-      return const Center(
-        child: _EmptyCard(text: 'No maintenance records yet'),
-      );
-    }
-
-    // Optional summary counts
     final pendingCount =
         controller.ownerRows.where((e) => e.status != 'paid').length;
     final paidCount =
@@ -272,7 +259,45 @@ class _OwnerBody extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
-          // Summary row
+          // Specified monthly amount — always visible
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.primaryDark,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Monthly maintenance',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textOnDark.withValues(alpha: 0.85),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Rs. ${controller.monthlyAmount.value}',
+                  style: AppTextStyles.h2.copyWith(
+                    color: AppColors.textOnDark,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (controller.propertyLabel.value.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    controller.propertyLabel.value,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textOnDark.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
           Row(
             children: [
               Expanded(
@@ -298,168 +323,165 @@ class _OwnerBody extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'This month',
+            'Records',
             style: AppTextStyles.h4.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
 
-          ...controller.ownerRows.map((h) {
-            final isPaid = h.status == 'paid';
-            final monthLabel =
-                '${controller.monthName(h.month)} ${h.year}';
+          if (controller.ownerRows.isEmpty)
+            const _EmptyCard(text: 'No payment records yet')
+          else
+            ...controller.ownerRows.map((h) {
+              final isPaid = h.status == 'paid';
+              final monthLabel =
+                  '${controller.monthName(h.month)} ${h.year}';
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 14),
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isPaid
-                      ? AppColors.successGreenBg
-                      : AppColors.dangerBorder,
-                  width: 1.2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isPaid
+                        ? AppColors.successGreenBg
+                        : AppColors.dangerBorder,
+                    width: 1.2,
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Top: avatar + tenant + status
-                  Row(
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: isPaid
-                              ? AppColors.successGreenBg
-                              : AppColors.dangerBg,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          _initials(h.tenantUserId), // fallback if no name field
-                          style: AppTextStyles.h4.copyWith(
-                            color: isPaid
-                                ? AppColors.successGreenDark
-                                : AppColors.danger,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              // Prefer tenant name when you add it on the model
-                              _tenantDisplayName(h),
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              monthLabel,
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      _StatusChip(isPaid: isPaid),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-                  const Divider(height: 1, color: AppColors.borderLight),
-                  const SizedBox(height: 14),
-
-                  // Amount + property
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _InfoBlock(
-                          label: 'Amount',
-                          value: 'Rs. ${h.amount}',
-                          valueColor: isPaid
-                              ? AppColors.successGreenDark
-                              : AppColors.danger,
-                        ),
-                      ),
-                      Container(
-                        width: 1,
-                        height: 36,
-                        color: AppColors.borderLight,
-                      ),
-                      Expanded(
-                        child: _InfoBlock(
-                          label: 'Property',
-                          value: _propertyLabel(h.propertyId),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  if (!isPaid) ...[
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 46,
-                      child: ElevatedButton.icon(
-                        onPressed: () => controller.markPaid(h.id),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.successGreenDark,
-                          foregroundColor: AppColors.textOnDark,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        icon: const Icon(Icons.check_rounded, size: 18),
-                        label: Text(
-                          'Mark as paid',
-                          style: AppTextStyles.labelLarge.copyWith(
-                            color: AppColors.textOnDark,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
                     ),
-                  ] else if (h.paidAt != null) ...[
-                    const SizedBox(height: 12),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Row(
                       children: [
-                        const Icon(
-                          Icons.event_available_rounded,
-                          size: 16,
-                          color: AppColors.successGreenDark,
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: isPaid
+                                ? AppColors.successGreenBg
+                                : AppColors.dangerBg,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            _initials(h.tenantUserId),
+                            style: AppTextStyles.h4.copyWith(
+                              color: isPaid
+                                  ? AppColors.successGreenDark
+                                  : AppColors.danger,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Paid on ${h.paidAt!.day}/${h.paidAt!.month}/${h.paidAt!.year}',
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.successGreenDark,
-                            fontWeight: FontWeight.w600,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _tenantDisplayName(h),
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                monthLabel,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _StatusChip(isPaid: isPaid),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1, color: AppColors.borderLight),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _InfoBlock(
+                            label: 'Amount',
+                            value: 'Rs. ${h.amount}',
+                            valueColor: isPaid
+                                ? AppColors.successGreenDark
+                                : AppColors.danger,
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 36,
+                          color: AppColors.borderLight,
+                        ),
+                        Expanded(
+                          child: _InfoBlock(
+                            label: 'Property',
+                            value: _propertyLabel(h.propertyId),
                           ),
                         ),
                       ],
                     ),
+                    if (!isPaid) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 46,
+                        child: ElevatedButton.icon(
+                          onPressed: () => controller.markPaid(h.id),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.successGreenDark,
+                            foregroundColor: AppColors.textOnDark,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          icon: const Icon(Icons.check_rounded, size: 18),
+                          label: Text(
+                            'Mark as paid',
+                            style: AppTextStyles.labelLarge.copyWith(
+                              color: AppColors.textOnDark,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ] else if (h.paidAt != null) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.event_available_rounded,
+                            size: 16,
+                            color: AppColors.successGreenDark,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Paid on ${h.paidAt!.day}/${h.paidAt!.month}/${h.paidAt!.year}',
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: AppColors.successGreenDark,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
-              ),
-            );
-          }),
+                ),
+              );
+            }),
         ],
       ),
     );
@@ -472,7 +494,6 @@ class _OwnerBody extends StatelessWidget {
         : id[0].toUpperCase();
   }
 
-  /// Until model has tenantName, show a readable fallback
   String _tenantDisplayName(dynamic h) {
     try {
       final name = h.tenantName as String?;
@@ -482,8 +503,7 @@ class _OwnerBody extends StatelessWidget {
   }
 
   String _propertyLabel(String propertyId) {
-    // Optional: resolve from controller if you expose a map later
-    return propertyId.isEmpty ? '—' : 'Flat';
+    return propertyId.isEmpty ? '—' : 'Unit';
   }
 }
 
@@ -573,9 +593,7 @@ class _InfoBlock extends StatelessWidget {
     );
   }
 }
-// ─────────────────────────────────────────────────────────────
-// SHARED
-// ─────────────────────────────────────────────────────────────
+
 class _HistoryTile extends StatelessWidget {
   final String title;
   final String amount;
