@@ -177,6 +177,7 @@ TenantModel _fromMap(String id, Map<String, dynamic> d) {
     maintenancePaid: d['maintenancePaid'] == true,
   );
 }
+@override
 Future<void> setMaintenancePaid(String tenantId, {required bool paid}) async {
   await _col.doc(tenantId).set(
     {

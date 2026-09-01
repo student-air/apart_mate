@@ -3,6 +3,7 @@
 import 'dart:math';
 import 'package:apart_mate/data/models/tenant_model.dart';
 import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LocalTenantRepository implements ITenantRepository {
   /// userId → tenantId (joined tenants for the current app user)
@@ -25,6 +26,8 @@ class LocalTenantRepository implements ITenantRepository {
       ownerEmail: 'owner@example.com', maintenancePaid: true,
     ),
   };
+
+  get _col => null;
 
   String _generateCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
@@ -79,6 +82,17 @@ class LocalTenantRepository implements ITenantRepository {
 Future<void> deleteTenant(String tenantId) async {
   await Future.delayed(const Duration(milliseconds: 200));
   _tenants.remove(tenantId);
+}
+
+@override
+Future<void> setMaintenancePaid(String tenantId, {required bool paid}) async {
+  await _col.doc(tenantId).set(
+    {
+      'maintenancePaid': paid,
+      'updatedAt': FieldValue.serverTimestamp(),
+    },
+    SetOptions(merge: true),
+  );
 }
 
   /// Create + save invite (owner contact exported for tenant profile)

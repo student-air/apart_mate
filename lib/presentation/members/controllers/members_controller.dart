@@ -2,12 +2,13 @@ import 'package:apart_mate/core/constants/app_colors.dart';
 import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/data/models/tenant_model.dart';
-import 'package:apart_mate/data/repositories/firebase_tenant_repository.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/domain/repositories/i_tenant_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:apart_mate/domain/repositories/i_maintenance_repository.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -59,64 +60,80 @@ class MembersController extends GetxController {
   }
 
   Future<void> markMaintenancePaid(TenantModel tenant) async {
-    if (tenant.maintenancePaid) {
-      AppSnackbar.info('Already paid', 'Maintenance is already marked paid');
-      return;
-    }
-
-    try {
-      final repo = _tenantRepo;
-      if (repo is FirebaseTenantRepository) {
-        await repo.setMaintenancePaid(tenant.id, paid: true);
-      } else {
-        // fallback: merge via save if you only have saveTenant
-        await repo.saveTenant(
-          TenantModel(
-            id: tenant.id,
-            fullName: tenant.fullName,
-            phone: tenant.phone,
-            cnic: tenant.cnic,
-            propertyId: tenant.propertyId,
-            propertyLabel: tenant.propertyLabel,
-            inviteCode: tenant.inviteCode,
-            status: tenant.status,
-            createdAt: tenant.createdAt,
-            ownerName: tenant.ownerName,
-            ownerPhone: tenant.ownerPhone,
-            ownerEmail: tenant.ownerEmail,
-            maintenancePaid: true,
-          ),
-        );
-      }
-
-      final i = tenants.indexWhere((e) => e.id == tenant.id);
-      if (i != -1) {
-        tenants[i] = TenantModel(
-          id: tenant.id,
-          fullName: tenant.fullName,
-          phone: tenant.phone,
-          cnic: tenant.cnic,
-          propertyId: tenant.propertyId,
-          propertyLabel: tenant.propertyLabel,
-          inviteCode: tenant.inviteCode,
-          status: tenant.status,
-          createdAt: tenant.createdAt,
-          ownerName: tenant.ownerName,
-          ownerPhone: tenant.ownerPhone,
-          ownerEmail: tenant.ownerEmail,
-          maintenancePaid: true,
-        );
-        tenants.refresh();
-      }
-
-      AppSnackbar.success(
-        'Maintenance',
-        'Marked as paid for ${tenant.fullName}',
-      );
-    } catch (_) {
-      AppSnackbar.error('Failed', 'Could not update maintenance');
-    }
+  if (tenant.maintenancePaid) {
+    AppSnackbar.info('Already paid', 'Maintenance is already marked paid');
+    return;
   }
+
+  final owner = _auth.currentUser;
+  if (owner == null) {
+    AppSnackbar.error('Not signed in', 'Please sign in again');
+    return;
+  }
+
+  if (tenant.propertyId.isEmpty) {
+    AppSnackbar.error('No property', 'Tenant has no linked property');
+    return;
+  }
+
+  try {
+    // 1) Tenant flag
+    await _tenantRepo.setMaintenancePaid(tenant.id, paid: true);
+
+    // 2) Amount from property
+    final property =
+        await _propertyRepo.getPropertyById(tenant.propertyId);
+    final amount = (property?.maintenanceAmount.isNotEmpty == true)
+        ? property!.maintenanceAmount
+        : '0';
+
+    // 3) Tenant user id if already joined
+    String tenantUserId = '';
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('tenants')
+          .doc(tenant.id)
+          .get();
+      tenantUserId = (doc.data()?['linkedUserId'] as String?) ?? '';
+    } catch (_) {}
+
+    // 4) Payment record → Maintenance Records + tenant history
+    await Get.find<IMaintenanceRepository>().markCurrentMonthPaidForProperty(
+      propertyId: tenant.propertyId,
+      ownerUserId: owner.id,
+      tenantUserId: tenantUserId,
+      amount: amount,
+    );
+
+    // 5) Local list
+    final i = tenants.indexWhere((e) => e.id == tenant.id);
+    if (i != -1) {
+      tenants[i] = TenantModel(
+        id: tenant.id,
+        fullName: tenant.fullName,
+        phone: tenant.phone,
+        cnic: tenant.cnic,
+        propertyId: tenant.propertyId,
+        propertyLabel: tenant.propertyLabel,
+        inviteCode: tenant.inviteCode,
+        status: tenant.status,
+        createdAt: tenant.createdAt,
+        ownerName: tenant.ownerName,
+        ownerPhone: tenant.ownerPhone,
+        ownerEmail: tenant.ownerEmail,
+        maintenancePaid: true,
+      );
+      tenants.refresh();
+    }
+
+    AppSnackbar.success(
+      'Maintenance paid',
+      'Record added for ${tenant.fullName}',
+    );
+  } catch (e) {
+    AppSnackbar.error('Failed', e.toString());
+  }
+}
 
   Future<void> deleteTenant(TenantModel tenant) async {
     final confirmed = await Get.dialog<bool>(

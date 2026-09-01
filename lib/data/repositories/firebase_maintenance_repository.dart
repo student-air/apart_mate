@@ -19,13 +19,10 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
     final p = await _properties.getPropertyById(propertyId);
     if (p == null) return '0';
 
-    if (p.maintenanceAmount.isNotEmpty) {
-      return p.maintenanceAmount;
+    if (p.maintenanceBy == 'society_admin') {
+      return p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '300';
     }
-
-    // Society path stub until Pro sets society amount
-    if (p.maintenanceBy == 'society_admin') return '0';
-    return '0';
+    return p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '0';
   }
 
   @override
@@ -33,8 +30,7 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
     String propertyId, {
     int limit = 3,
   }) async {
-    final snap =
-        await _col.where('propertyId', isEqualTo: propertyId).get();
+    final snap = await _col.where('propertyId', isEqualTo: propertyId).get();
 
     final list = snap.docs.map((d) => _fromMap(d.id, d.data())).toList()
       ..sort((a, b) {
@@ -54,11 +50,7 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
         await _col.where('ownerUserId', isEqualTo: ownerUserId).get();
 
     final list = snap.docs.map((d) => _fromMap(d.id, d.data())).toList();
-    list.sort((a, b) {
-      final ay = a.year * 12 + a.month;
-      final by = b.year * 12 + b.month;
-      return by.compareTo(ay);
-    });
+    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return list;
   }
 
@@ -82,8 +74,6 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
     required String ownerUserId,
     required String amount,
   }) async {
-    if (propertyId.isEmpty || amount.isEmpty || amount == '0') return;
-
     final now = DateTime.now();
 
     final existing = await _col
@@ -93,16 +83,7 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
         .limit(1)
         .get();
 
-    if (existing.docs.isNotEmpty) {
-      // Keep amount in sync if owner changed it
-      await existing.docs.first.reference.set({
-        'amount': amount,
-        'ownerUserId': ownerUserId,
-        if (tenantUserId.isNotEmpty) 'tenantUserId': tenantUserId,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      return;
-    }
+    if (existing.docs.isNotEmpty) return;
 
     final id = 'maint_${propertyId}_${now.year}_${now.month}';
     final model = MaintenancePaymentModel(
@@ -118,6 +99,33 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
     );
 
     await _col.doc(id).set(_toMap(model), SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> markCurrentMonthPaidForProperty({
+    required String propertyId,
+    required String ownerUserId,
+    required String tenantUserId,
+    required String amount,
+  }) async {
+    final now = DateTime.now();
+    final id = 'maint_${propertyId}_${now.year}_${now.month}';
+
+    await _col.doc(id).set(
+      {
+        'propertyId': propertyId,
+        'tenantUserId': tenantUserId,
+        'ownerUserId': ownerUserId,
+        'amount': amount,
+        'year': now.year,
+        'month': now.month,
+        'status': 'paid',
+        'paidAt': FieldValue.serverTimestamp(),
+        'createdAt': Timestamp.fromDate(now),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
   }
 
   Map<String, dynamic> _toMap(MaintenancePaymentModel p) {

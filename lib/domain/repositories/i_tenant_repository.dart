@@ -13,5 +13,6 @@ abstract class ITenantRepository {
 
   /// Load that user's joined tenant (for dashboard without route args).
   Future<TenantModel?> getTenantForUser(String userId);
+  Future<void> setMaintenancePaid(String tenantId, {required bool paid});
   Future<void> deleteTenant(String tenantId);
 }

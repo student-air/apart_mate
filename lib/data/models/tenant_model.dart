@@ -7,10 +7,8 @@ class TenantModel {
   final String propertyLabel;
   final String inviteCode;
   final String status;
-  final bool maintenancePaid; // default false
+  final bool maintenancePaid;
   final DateTime createdAt;
-
-  /// Set when owner creates the invite (exported to tenant on join)
   final String ownerName;
   final String ownerPhone;
   final String ownerEmail;
@@ -25,8 +23,9 @@ class TenantModel {
     required this.inviteCode,
     required this.status,
     required this.createdAt,
+    this.maintenancePaid = false,
     this.ownerName = '',
     this.ownerPhone = '',
-    this.ownerEmail = '', required this.maintenancePaid,
+    this.ownerEmail = '',
   });
 }

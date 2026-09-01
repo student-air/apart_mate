@@ -15,7 +15,6 @@ class LocalMaintenanceRepository implements IMaintenanceRepository {
     if (p == null) return '0';
 
     if (p.maintenanceBy == 'society_admin') {
-      // Stub until admin app is connected
       return p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '300';
     }
     return p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '0';
@@ -65,6 +64,32 @@ class LocalMaintenanceRepository implements IMaintenanceRepository {
       status: 'paid',
       paidAt: DateTime.now(),
       createdAt: p.createdAt,
+    );
+  }
+
+  @override
+  Future<void> markCurrentMonthPaidForProperty({
+    required String propertyId,
+    required String ownerUserId,
+    required String tenantUserId,
+    required String amount,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final now = DateTime.now();
+    final id = 'maint_${propertyId}_${now.year}_${now.month}';
+
+    final existing = _payments[id];
+    _payments[id] = MaintenancePaymentModel(
+      id: id,
+      propertyId: propertyId,
+      tenantUserId: tenantUserId,
+      ownerUserId: ownerUserId,
+      amount: amount,
+      year: now.year,
+      month: now.month,
+      status: 'paid',
+      paidAt: DateTime.now(),
+      createdAt: existing?.createdAt ?? now,
     );
   }
 
