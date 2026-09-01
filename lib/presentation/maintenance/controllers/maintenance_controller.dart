@@ -3,6 +3,7 @@
 import 'package:get/get.dart';
 import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:apart_mate/data/models/maintenance_payment_model.dart';
+import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_maintenance_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
@@ -48,7 +49,6 @@ class MaintenanceController extends GetxController {
     }
   }
 
-  /// Tenant: joined tenant → property → amount + history
   Future<void> _loadTenant(String userId) async {
     final tenant = await _tenantRepo.getTenantForUser(userId);
     if (tenant == null || tenant.propertyId.isEmpty) {
@@ -69,8 +69,7 @@ class MaintenanceController extends GetxController {
     propertyLabel.value =
         'Flat ${property.flatNumber} · ${property.building} · ${property.floor}';
 
-    final amount =
-        await _maintRepo.getMonthlyAmountForProperty(property.id);
+    final amount = await _maintRepo.getMonthlyAmountForProperty(property.id);
     monthlyAmount.value = amount.isEmpty ? '0' : amount;
 
     await _maintRepo.ensureCurrentMonthPending(
@@ -86,45 +85,55 @@ class MaintenanceController extends GetxController {
   }
 
   Future<void> _loadOwner(String userId) async {
-  final props = await _propertyRepo.getPropertiesForUser(userId);
+    final props = await _propertyRepo.getPropertiesForUser(userId);
 
-  final managed = props.where((p) {
-    final by = p.maintenanceBy.toLowerCase();
-    return by == 'property_owner' || by == 'owner';
-  }).toList();
+    final managed = props.where((p) {
+      final by = p.maintenanceBy.toLowerCase();
+      return by == 'property_owner' || by == 'owner';
+    }).toList();
 
-  final focusList = managed.isNotEmpty ? managed : props;
+    final focusList = managed.isNotEmpty ? managed : props;
 
-  if (focusList.isNotEmpty) {
-    final p = focusList.first;
-    monthlyAmount.value =
-        p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '0';
+    if (focusList.isEmpty) {
+      monthlyAmount.value = '0';
+      propertyLabel.value = '';
+      ownerRows.clear();
+      return;
+    }
+
+    final primary = focusList.first;
+    monthlyAmount.value = primary.maintenanceAmount.isNotEmpty
+        ? primary.maintenanceAmount
+        : '0';
     propertyLabel.value =
-        'Flat ${p.flatNumber} · ${p.building} · ${p.floor}';
-  } else {
-    monthlyAmount.value = '0';
-    propertyLabel.value = '';
+        'Flat ${primary.flatNumber} · ${primary.building} · ${primary.floor}';
+
+    // Seed current-month pending for each unit with an amount
+    final myTenants = await _tenantRepo.getTenantsForOwner(userId);
+
+    for (final p in focusList) {
+      final amount =
+          p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '0';
+      if (amount == '0') continue;
+
+      final linked = myTenants.where((t) => t.propertyId == p.id).toList();
+      final tenantUserId = linked.isNotEmpty
+          ? (linked.first.id) // fallback; prefer linkedUserId if you store it
+          : '';
+
+      await _maintRepo.ensureCurrentMonthPending(
+        propertyId: p.id,
+        tenantUserId: tenantUserId,
+        ownerUserId: userId,
+        amount: amount,
+      );
+    }
+
+    ownerRows.assignAll(await _maintRepo.getOwnerOverview(userId));
   }
-
-  // Create current-month pending for occupied, owner-managed units
-  for (final p in focusList) {
-    if (!p.isOccupied) continue;
-    final amount =
-        p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : monthlyAmount.value;
-    if (amount == '0' || amount.isEmpty) continue;
-
-    await _maintRepo.ensureCurrentMonthPending(
-      propertyId: p.id,
-      tenantUserId: '', // or real tenant id if you look it up
-      ownerUserId: userId,
-      amount: amount,
-    );
-  }
-
-  ownerRows.assignAll(await _maintRepo.getOwnerOverview(userId));
-}
 
   Future<void> markPaid(String paymentId) async {
+    if (paymentId.isEmpty) return;
     await _maintRepo.markPaid(paymentId);
     await load();
   }

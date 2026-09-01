@@ -743,16 +743,22 @@ class _MetricCardsRow extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: _MetricCard(
-            icon: Icons.person_rounded,
-            iconBg: AppColors.pastelOrangeBg,
-            iconColor: AppColors.pastelOrangeIcon,
-            value: property.isOccupied ? '1' : '0',
-            label: 'Tenant\nStatus',
-            subLabel: tenantStatus,
-            subColor: AppColors.textPrimary,
-          ),
-        ),
+  child: GestureDetector(
+    onTap: () => Get.toNamed(
+      AppRoutes.members,
+      arguments: {'tab': 0}, // 0 = Tenants
+    ),
+    child: _MetricCard(
+      icon: Icons.person_rounded,
+      iconBg: AppColors.pastelOrangeBg,
+      iconColor: AppColors.pastelOrangeIcon,
+      value: property.isOccupied ? '1' : '0',
+      label: 'Tenant\nStatus',
+      subLabel: tenantStatus,
+      subColor: AppColors.textPrimary,
+    ),
+  ),
+),
       ],
     );
   }

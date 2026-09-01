@@ -6,6 +6,10 @@ import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/session/app_session.dart';
 import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
+import 'package:apart_mate/core/widgets/help_support_sheet.dart';
+import 'package:apart_mate/core/widgets/notification_preferences_sheet.dart';
+import 'package:apart_mate/core/widgets/privacy_security_sheet.dart';
+import 'package:apart_mate/core/widgets/terms_of_service_sheet.dart';
 import 'package:apart_mate/data/models/profile_model.dart';
 import 'package:apart_mate/data/models/society_model.dart';
 import 'package:apart_mate/data/models/user_model.dart';
@@ -41,6 +45,19 @@ class ProfileController extends GetxController {
   final ownerEmail = ''.obs;
   final hasOwnerInfo = false.obs;
 
+  // ── Notification preferences ──
+  final notifyUpdates = true.obs;
+  final notifyComplaints = true.obs;
+  final notifyTenantActivity = true.obs; // owner only
+  final notifySound = false.obs;
+
+  // ── Privacy & security ──
+  final biometricLoginEnabled = false.obs;
+  final currentPasswordCtrl = TextEditingController();
+  final newPasswordCtrl = TextEditingController();
+  final confirmPasswordCtrl = TextEditingController();
+  final isChangingPassword = false.obs;
+
   String get roleLabel {
     if (Get.isRegistered<AppSession>()) {
       final sessionRole = Get.find<AppSession>().currentRole.value;
@@ -53,6 +70,8 @@ class ProfileController extends GetxController {
   }
 
   bool get isTenant => AppNavigation.isTenant;
+
+  String get societyContactNumber => society.value?.phone ?? '';
 
   @override
   void onInit() {
@@ -68,7 +87,6 @@ class ProfileController extends GetxController {
     try {
       user.value = currentUser;
 
-      // reset owner
       ownerName.value = '';
       ownerPhone.value = '';
       ownerEmail.value = '';
@@ -86,7 +104,6 @@ class ProfileController extends GetxController {
       profile.value = results[0] as ProfileModel?;
       society.value = results[1] as SocietyModel?;
 
-      // ── Tenant: load joined tenant → owner contact ─────────
       if (isTenant && Get.isRegistered<ITenantRepository>()) {
         final tenantRepo = Get.find<ITenantRepository>();
         final t = await tenantRepo.getTenantForUser(currentUser.id);
@@ -99,7 +116,6 @@ class ProfileController extends GetxController {
               t.ownerPhone.trim().isNotEmpty ||
               t.ownerEmail.trim().isNotEmpty;
 
-          // Society from property if owner path had no societyId
           if (society.value == null &&
               t.propertyId.isNotEmpty &&
               Get.isRegistered<IPropertyRepository>()) {
@@ -142,6 +158,84 @@ class ProfileController extends GetxController {
 
   void goToEditProfile() => Get.toNamed(AppRoutes.editProfile);
 
+  // ── Settings sheets ──
+  void openNotificationPreferences() => showNotificationPreferencesSheet();
+  void openPrivacyAndSecurity() => showPrivacySecuritySheet();
+  void openHelpAndSupport() => showHelpSupportSheet();
+  void openTermsOfService() => showTermsOfServiceSheet();
+
+  void setNotifyUpdates(bool value) => notifyUpdates.value = value;
+  void setNotifyComplaints(bool value) => notifyComplaints.value = value;
+  void setNotifyTenantActivity(bool value) => notifyTenantActivity.value = value;
+  void setNotifySound(bool value) => notifySound.value = value;
+
+  void toggleBiometricLogin(bool value) {
+    biometricLoginEnabled.value = value;
+    AppSnackbar.info(
+      value ? 'Biometric enabled' : 'Biometric disabled',
+      value
+          ? 'Fingerprint / face unlock is on (local preference)'
+          : 'Password will be required to sign in',
+    );
+  }
+
+  Future<void> changePassword() async {
+    final current = currentPasswordCtrl.text.trim();
+    final next = newPasswordCtrl.text.trim();
+    final confirm = confirmPasswordCtrl.text.trim();
+
+    if (current.isEmpty || next.isEmpty || confirm.isEmpty) {
+      AppSnackbar.info('Missing fields', 'Fill all password fields');
+      return;
+    }
+    if (next.length < 8) {
+      AppSnackbar.info('Weak password', 'Use at least 8 characters');
+      return;
+    }
+    if (next != confirm) {
+      AppSnackbar.error('Mismatch', 'New passwords do not match');
+      return;
+    }
+
+    isChangingPassword.value = true;
+    try {
+      // Prefer real re-auth + update when you add it to IAuthRepository.
+      // For now: send reset email as a reliable Firebase path.
+      final email = user.value?.email ?? '';
+      if (email.isEmpty) {
+        AppSnackbar.error('No email', 'Account has no email for reset');
+        return;
+      }
+      await _authRepository.sendPasswordResetEmail(email);
+      currentPasswordCtrl.clear();
+      newPasswordCtrl.clear();
+      confirmPasswordCtrl.clear();
+      Get.back();
+      AppSnackbar.success(
+        'Reset link sent',
+        'Check $email to set a new password',
+      );
+    } catch (e) {
+      AppSnackbar.error('Failed', e.toString());
+    } finally {
+      isChangingPassword.value = false;
+    }
+  }
+
+  Future<void> sendPasswordResetLink() async {
+    final email = user.value?.email ?? '';
+    if (email.isEmpty) {
+      AppSnackbar.error('No email', 'Account has no email');
+      return;
+    }
+    try {
+      await _authRepository.sendPasswordResetEmail(email);
+      AppSnackbar.success('Reset link sent', 'Check $email');
+    } catch (e) {
+      AppSnackbar.error('Reset failed', e.toString());
+    }
+  }
+
   Future<void> confirmLogout() async {
     final confirmed = await Get.dialog<bool>(
       Dialog(
@@ -155,7 +249,7 @@ class ProfileController extends GetxController {
               Text('Log out?', style: AppTextStyles.h4, textAlign: TextAlign.center),
               const SizedBox(height: 8),
               Text(
-                'You will need to sign in again to manage your properties.',
+                'You will need to sign in again to access Apart Mate.',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -176,8 +270,7 @@ class ProfileController extends GetxController {
                   ),
                   child: Text(
                     'Log Out',
-                    style: AppTextStyles.labelLarge
-                        .copyWith(color: Colors.white),
+                    style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
                   ),
                 ),
               ),
@@ -201,5 +294,13 @@ class ProfileController extends GetxController {
       await _authRepository.logout();
       Get.offAllNamed(AppRoutes.login);
     }
+  }
+
+  @override
+  void onClose() {
+    currentPasswordCtrl.dispose();
+    newPasswordCtrl.dispose();
+    confirmPasswordCtrl.dispose();
+    super.onClose();
   }
 }

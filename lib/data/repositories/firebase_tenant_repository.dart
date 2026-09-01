@@ -33,7 +33,7 @@ class FirebaseTenantRepository implements ITenantRepository {
             createdAt: tenant.createdAt,
             ownerName: tenant.ownerName,
             ownerPhone: tenant.ownerPhone,
-            ownerEmail: tenant.ownerEmail,
+            ownerEmail: tenant.ownerEmail, maintenancePaid: false,
           )
         : tenant;
 
@@ -125,7 +125,7 @@ class FirebaseTenantRepository implements ITenantRepository {
       createdAt: DateTime.now(),
       ownerName: ownerName.trim(),
       ownerPhone: ownerPhone.trim(),
-      ownerEmail: ownerEmail.trim(),
+      ownerEmail: ownerEmail.trim(), maintenancePaid: false,
     );
 
     await doc.set({
@@ -143,36 +143,47 @@ class FirebaseTenantRepository implements ITenantRepository {
   }
 
   Map<String, dynamic> _toMap(TenantModel t) {
-    return {
-      'fullName': t.fullName,
-      'phone': t.phone,
-      'cnic': t.cnic,
-      'propertyId': t.propertyId,
-      'propertyLabel': t.propertyLabel,
-      'inviteCode': t.inviteCode.toUpperCase(),
-      'status': t.status,
-      'ownerName': t.ownerName,
-      'ownerPhone': t.ownerPhone,
-      'ownerEmail': t.ownerEmail,
-      'createdAt': Timestamp.fromDate(t.createdAt),
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-  }
+  return {
+    'fullName': t.fullName,
+    'phone': t.phone,
+    'cnic': t.cnic,
+    'propertyId': t.propertyId,
+    'propertyLabel': t.propertyLabel,
+    'inviteCode': t.inviteCode.toUpperCase(),
+    'status': t.status,
+    'ownerName': t.ownerName,
+    'ownerPhone': t.ownerPhone,
+    'ownerEmail': t.ownerEmail,
+    'maintenancePaid': t.maintenancePaid,
+    'createdAt': Timestamp.fromDate(t.createdAt),
+    'updatedAt': FieldValue.serverTimestamp(),
+  };
+}
 
-  TenantModel _fromMap(String id, Map<String, dynamic> d) {
-    return TenantModel(
-      id: id,
-      fullName: d['fullName'] ?? '',
-      phone: d['phone'] ?? '',
-      cnic: d['cnic'] ?? '',
-      propertyId: d['propertyId'] ?? '',
-      propertyLabel: d['propertyLabel'] ?? '',
-      inviteCode: (d['inviteCode'] as String? ?? '').toUpperCase(),
-      status: d['status'] ?? 'pending',
-      createdAt: (d['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      ownerName: d['ownerName'] ?? '',
-      ownerPhone: d['ownerPhone'] ?? '',
-      ownerEmail: d['ownerEmail'] ?? '',
-    );
-  }
+TenantModel _fromMap(String id, Map<String, dynamic> d) {
+  return TenantModel(
+    id: id,
+    fullName: d['fullName'] ?? '',
+    phone: d['phone'] ?? '',
+    cnic: d['cnic'] ?? '',
+    propertyId: d['propertyId'] ?? '',
+    propertyLabel: d['propertyLabel'] ?? '',
+    inviteCode: (d['inviteCode'] as String? ?? '').toUpperCase(),
+    status: d['status'] ?? 'pending',
+    createdAt: (d['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    ownerName: d['ownerName'] ?? '',
+    ownerPhone: d['ownerPhone'] ?? '',
+    ownerEmail: d['ownerEmail'] ?? '',
+    maintenancePaid: d['maintenancePaid'] == true,
+  );
+}
+Future<void> setMaintenancePaid(String tenantId, {required bool paid}) async {
+  await _col.doc(tenantId).set(
+    {
+      'maintenancePaid': paid,
+      'updatedAt': FieldValue.serverTimestamp(),
+    },
+    SetOptions(merge: true),
+  );
+}
 }

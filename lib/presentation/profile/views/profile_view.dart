@@ -12,6 +12,9 @@ import 'package:apart_mate/core/utils/app_navigation.dart';
 // import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/core/widgets/app_bottom_nav.dart';
 import 'package:apart_mate/core/widgets/app_loading.dart';
+import 'package:apart_mate/core/utils/app_snackbar.dart';
+import 'package:apart_mate/presentation/profile/controllers/profile_controller.dart';
+import 'package:apart_mate/routes/app_routes.dart';
 import 'package:apart_mate/core/widgets/send_complaint_sheet.dart';
 import 'package:apart_mate/data/models/society_model.dart';
 import 'package:apart_mate/data/models/user_model.dart';
@@ -688,6 +691,9 @@ class _SocietyActionRow extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 // SETTINGS
 // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// SETTINGS
+// ─────────────────────────────────────────────────────────────
 class _SettingsCard extends StatelessWidget {
   final bool isTenant;
   const _SettingsCard({required this.isTenant});
@@ -749,8 +755,23 @@ class _SettingsCard extends StatelessWidget {
             children: [
               InkWell(
                 onTap: () {
-                  if (label == 'My Properties') {
-                    Get.toNamed(AppRoutes.manageProperties);
+                  final c = Get.find<ProfileController>();
+                  switch (label) {
+                    case 'My Properties':
+                      Get.toNamed(AppRoutes.manageProperties);
+                      break;
+                    case 'Notification Preferences':
+                      c.openNotificationPreferences();
+                      break;
+                    case 'Privacy & Security':
+                      c.openPrivacyAndSecurity();
+                      break;
+                    case 'Help & Support':
+                      c.openHelpAndSupport();
+                      break;
+                    case 'Terms of Service':
+                      c.openTermsOfService();
+                      break;
                   }
                 },
                 borderRadius: BorderRadius.vertical(
@@ -802,7 +823,6 @@ class _SettingsCard extends StatelessWidget {
     );
   }
 }
-
 // ─────────────────────────────────────────────────────────────
 // LOG OUT
 // ─────────────────────────────────────────────────────────────

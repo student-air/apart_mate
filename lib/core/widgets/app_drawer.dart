@@ -1,7 +1,7 @@
 // lib/core/widgets/app_drawer.dart
 
 import 'package:apart_mate/core/utils/app_navigation.dart';
-import 'package:apart_mate/core/utils/app_snackbar.dart';
+// import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apart_mate/core/constants/app_colors.dart';
@@ -280,14 +280,14 @@ Row(
                       Get.toNamed(AppRoutes.updates);
                     },
                   ),
-                  _DrawerItem(
-                    icon: Icons.support_agent_rounded,
-                    label: 'Contact Admin',
-                    onTap: () {
-                      Get.back();
-                      AppSnackbar.info('Coming Soon', 'This feature is under development');
-                    },
-                  ),
+                  // _DrawerItem(
+                  //   icon: Icons.support_agent_rounded,
+                  //   label: 'Contact Admin',
+                  //   onTap: () {
+                  //     Get.back();
+                  //     AppSnackbar.info('Coming Soon', 'This feature is under development');
+                  //   },
+                  // ),
                   _DrawerItem(
                     icon: Icons.person_rounded,
                     label: 'Profile',

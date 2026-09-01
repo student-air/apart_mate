@@ -22,7 +22,7 @@ class LocalTenantRepository implements ITenantRepository {
       // Demo owner contact (shown on tenant profile after join)
       ownerName: 'Armaghan',
       ownerPhone: '03001112233',
-      ownerEmail: 'owner@example.com',
+      ownerEmail: 'owner@example.com', maintenancePaid: true,
     ),
   };
 
@@ -104,7 +104,7 @@ Future<void> deleteTenant(String tenantId) async {
       createdAt: DateTime.now(),
       ownerName: ownerName.trim(),
       ownerPhone: ownerPhone.trim(),
-      ownerEmail: ownerEmail.trim(),
+      ownerEmail: ownerEmail.trim(), maintenancePaid: true,
     );
     await saveTenant(tenant);
     return tenant;

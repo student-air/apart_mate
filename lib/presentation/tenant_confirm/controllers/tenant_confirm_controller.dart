@@ -76,7 +76,7 @@ class TenantConfirmController extends GetxController {
       createdAt: tenant.createdAt,
       ownerName: tenant.ownerName,
       ownerPhone: tenant.ownerPhone,
-      ownerEmail: tenant.ownerEmail,
+      ownerEmail: tenant.ownerEmail, maintenancePaid: false,
     );
 
     // Single write: status=joined + linkedUserId (allowed by rules)

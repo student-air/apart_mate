@@ -19,10 +19,13 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
     final p = await _properties.getPropertyById(propertyId);
     if (p == null) return '0';
 
-    if (p.maintenanceBy == 'society_admin') {
-      return p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '300';
+    if (p.maintenanceAmount.isNotEmpty) {
+      return p.maintenanceAmount;
     }
-    return p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '0';
+
+    // Society path stub until Pro sets society amount
+    if (p.maintenanceBy == 'society_admin') return '0';
+    return '0';
   }
 
   @override
@@ -30,9 +33,8 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
     String propertyId, {
     int limit = 3,
   }) async {
-    final snap = await _col
-        .where('propertyId', isEqualTo: propertyId)
-        .get();
+    final snap =
+        await _col.where('propertyId', isEqualTo: propertyId).get();
 
     final list = snap.docs.map((d) => _fromMap(d.id, d.data())).toList()
       ..sort((a, b) {
@@ -48,12 +50,15 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
   Future<List<MaintenancePaymentModel>> getOwnerOverview(
     String ownerUserId,
   ) async {
-    final snap = await _col
-        .where('ownerUserId', isEqualTo: ownerUserId)
-        .get();
+    final snap =
+        await _col.where('ownerUserId', isEqualTo: ownerUserId).get();
 
     final list = snap.docs.map((d) => _fromMap(d.id, d.data())).toList();
-    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    list.sort((a, b) {
+      final ay = a.year * 12 + a.month;
+      final by = b.year * 12 + b.month;
+      return by.compareTo(ay);
+    });
     return list;
   }
 
@@ -77,6 +82,8 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
     required String ownerUserId,
     required String amount,
   }) async {
+    if (propertyId.isEmpty || amount.isEmpty || amount == '0') return;
+
     final now = DateTime.now();
 
     final existing = await _col
@@ -86,7 +93,16 @@ class FirebaseMaintenanceRepository implements IMaintenanceRepository {
         .limit(1)
         .get();
 
-    if (existing.docs.isNotEmpty) return;
+    if (existing.docs.isNotEmpty) {
+      // Keep amount in sync if owner changed it
+      await existing.docs.first.reference.set({
+        'amount': amount,
+        'ownerUserId': ownerUserId,
+        if (tenantUserId.isNotEmpty) 'tenantUserId': tenantUserId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return;
+    }
 
     final id = 'maint_${propertyId}_${now.year}_${now.month}';
     final model = MaintenancePaymentModel(
