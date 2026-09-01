@@ -10,30 +10,21 @@ class LocalMaintenanceRepository implements IMaintenanceRepository {
 
   @override
   Future<String> getMonthlyAmountForProperty(String propertyId) async {
-    await Future.delayed(const Duration(milliseconds: 200));
     final p = await _properties.getPropertyById(propertyId);
     if (p == null) return '0';
-
-    if (p.maintenanceBy == 'society_admin') {
-      return p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '300';
-    }
     return p.maintenanceAmount.isNotEmpty ? p.maintenanceAmount : '0';
   }
 
   @override
   Future<List<MaintenancePaymentModel>> getHistoryForProperty(
     String propertyId, {
-    int limit = 3,
+    int limit = 6,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 200));
     final list = _payments.values
         .where((e) => e.propertyId == propertyId)
         .toList()
-      ..sort((a, b) {
-        final ay = a.year * 12 + a.month;
-        final by = b.year * 12 + b.month;
-        return by.compareTo(ay);
-      });
+      ..sort((a, b) =>
+          (b.year * 12 + b.month).compareTo(a.year * 12 + a.month));
     return list.take(limit).toList();
   }
 
@@ -41,7 +32,6 @@ class LocalMaintenanceRepository implements IMaintenanceRepository {
   Future<List<MaintenancePaymentModel>> getOwnerOverview(
     String ownerUserId,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 200));
     return _payments.values
         .where((e) => e.ownerUserId == ownerUserId)
         .toList()
@@ -50,7 +40,6 @@ class LocalMaintenanceRepository implements IMaintenanceRepository {
 
   @override
   Future<void> markPaid(String paymentId) async {
-    await Future.delayed(const Duration(milliseconds: 200));
     final p = _payments[paymentId];
     if (p == null) return;
     _payments[paymentId] = MaintenancePaymentModel(
@@ -64,32 +53,8 @@ class LocalMaintenanceRepository implements IMaintenanceRepository {
       status: 'paid',
       paidAt: DateTime.now(),
       createdAt: p.createdAt,
-    );
-  }
-
-  @override
-  Future<void> markCurrentMonthPaidForProperty({
-    required String propertyId,
-    required String ownerUserId,
-    required String tenantUserId,
-    required String amount,
-  }) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    final now = DateTime.now();
-    final id = 'maint_${propertyId}_${now.year}_${now.month}';
-
-    final existing = _payments[id];
-    _payments[id] = MaintenancePaymentModel(
-      id: id,
-      propertyId: propertyId,
-      tenantUserId: tenantUserId,
-      ownerUserId: ownerUserId,
-      amount: amount,
-      year: now.year,
-      month: now.month,
-      status: 'paid',
-      paidAt: DateTime.now(),
-      createdAt: existing?.createdAt ?? now,
+      tenantName: p.tenantName,
+      propertyLabel: p.propertyLabel,
     );
   }
 
@@ -108,7 +73,6 @@ class LocalMaintenanceRepository implements IMaintenanceRepository {
           e.month == now.month,
     );
     if (exists) return;
-
     final id = 'maint_${propertyId}_${now.year}_${now.month}';
     _payments[id] = MaintenancePaymentModel(
       id: id,
@@ -120,6 +84,34 @@ class LocalMaintenanceRepository implements IMaintenanceRepository {
       month: now.month,
       status: 'pending',
       createdAt: now,
+    );
+  }
+
+  @override
+  Future<void> markCurrentMonthPaidForProperty({
+    required String propertyId,
+    required String ownerUserId,
+    required String tenantUserId,
+    required String amount,
+    String tenantName = '',
+    String propertyLabel = '',
+  }) async {
+    final now = DateTime.now();
+    final id = 'maint_${propertyId}_${now.year}_${now.month}';
+    final existing = _payments[id];
+    _payments[id] = MaintenancePaymentModel(
+      id: id,
+      propertyId: propertyId,
+      tenantUserId: tenantUserId,
+      ownerUserId: ownerUserId,
+      amount: amount,
+      year: now.year,
+      month: now.month,
+      status: 'paid',
+      paidAt: DateTime.now(),
+      createdAt: existing?.createdAt ?? now,
+      tenantName: tenantName,
+      propertyLabel: propertyLabel,
     );
   }
 }

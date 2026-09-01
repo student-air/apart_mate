@@ -3,12 +3,14 @@ class MaintenancePaymentModel {
   final String propertyId;
   final String tenantUserId;
   final String ownerUserId;
-  final String amount; // Rs
+  final String amount;
   final int year;
-  final int month; // 1-12
+  final int month;
   final String status; // paid | pending
   final DateTime? paidAt;
   final DateTime createdAt;
+  final String tenantName;
+  final String propertyLabel;
 
   const MaintenancePaymentModel({
     required this.id,
@@ -21,5 +23,7 @@ class MaintenancePaymentModel {
     required this.status,
     this.paidAt,
     required this.createdAt,
+    this.tenantName = '',
+    this.propertyLabel = '',
   });
 }

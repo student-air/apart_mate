@@ -4,6 +4,9 @@ import 'package:apart_mate/presentation/maintenance/controllers/maintenance_cont
 class MaintenanceBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => MaintenanceController());
+    Get.lazyPut<MaintenanceController>(
+      () => MaintenanceController(),
+      fenix: true,
+    );
   }
 }

@@ -13,7 +13,6 @@ import 'package:apart_mate/domain/repositories/i_manager_repository.dart';
 import 'package:apart_mate/domain/repositories/i_complaint_repository.dart';
 import 'package:apart_mate/domain/repositories/i_maintenance_repository.dart';
 import 'package:apart_mate/domain/repositories/i_dashboard_repository.dart';
-
 import 'package:apart_mate/data/repositories/firebase_auth_repository.dart';
 import 'package:apart_mate/data/repositories/firebase_profile_repository.dart';
 import 'package:apart_mate/data/repositories/firebase_society_repository.dart';

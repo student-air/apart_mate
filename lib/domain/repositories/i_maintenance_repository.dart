@@ -5,7 +5,7 @@ abstract class IMaintenanceRepository {
 
   Future<List<MaintenancePaymentModel>> getHistoryForProperty(
     String propertyId, {
-    int limit = 3,
+    int limit = 6,
   });
 
   Future<List<MaintenancePaymentModel>> getOwnerOverview(String ownerUserId);
@@ -19,11 +19,12 @@ abstract class IMaintenanceRepository {
     required String amount,
   });
 
-  /// Owner marks tenant paid from Members → paid record for current month.
   Future<void> markCurrentMonthPaidForProperty({
     required String propertyId,
     required String ownerUserId,
     required String tenantUserId,
     required String amount,
+    String tenantName,
+    String propertyLabel,
   });
 }
