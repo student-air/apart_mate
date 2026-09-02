@@ -159,11 +159,11 @@ class JoinSocietyController extends GetxController {
   }
 
   Future<void> continueAsIndependentOwner() async {
-    AppSnackbar.info(
-      'Coming soon',
-      'Independent property is not implemented yet',
-    );
-  }
+  AppSnackbar.info(
+    'Under production',
+    'This feature is under production and will be available soon',
+  );
+}
 
   void goBack() => Get.back();
 

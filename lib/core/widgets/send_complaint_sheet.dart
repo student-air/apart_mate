@@ -7,8 +7,10 @@ import 'package:apart_mate/core/constants/app_text_styles.dart';
 import 'package:apart_mate/core/utils/app_navigation.dart';
 import 'package:apart_mate/core/utils/app_snackbar.dart';
 import 'package:apart_mate/data/models/complaint_model.dart';
+import 'package:apart_mate/data/models/property_model.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_complaint_repository.dart';
+import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
 import 'package:apart_mate/presentation/dashboard/controllers/dashboard_controller.dart';
 import 'package:apart_mate/presentation/tenant_dashboard/controllers/tenant_dashboard_controller.dart';
@@ -62,30 +64,37 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
     String? societyId;
     String propertyId = '';
     String propertyLabel = 'Society complaint';
+    PropertyModel? property;
 
     if (_isTenant) {
-  if (Get.isRegistered<TenantDashboardController>()) {
-    final tCtrl = Get.find<TenantDashboardController>();
-    societyId = tCtrl.society.value?.id;
-    societyId ??= tCtrl.property.value?.societyId;
+      if (Get.isRegistered<TenantDashboardController>()) {
+        final tCtrl = Get.find<TenantDashboardController>();
+        societyId = tCtrl.society.value?.id;
+        societyId ??= tCtrl.property.value?.societyId;
 
-    final p = tCtrl.property.value;
-    propertyId = p?.id ?? '';
+        property = tCtrl.property.value;
+        propertyId = property?.id ?? '';
 
-    // ── Step 5: format for the card ─────────────────────────
-    if (p != null) {
-      propertyLabel = [
-        if (p.flatNumber.isNotEmpty) p.flatNumber,              // B-501
-        if (p.floor.isNotEmpty) p.floor,                        // 5th Floor
-        if (p.building.isNotEmpty) 'Building ${p.building}',    // Building B
-      ].join(' · ');
-      // → "B-501 · 5th Floor · Building B"
-    } else if (tCtrl.propertyLabel.isNotEmpty) {
-      propertyLabel = tCtrl.propertyLabel;
-    }
-  }
-} else {
-      // Owner: selected society on dashboard
+        if (property != null) {
+          propertyLabel = [
+            if (property.flatNumber.isNotEmpty) property.flatNumber,
+            if (property.floor.isNotEmpty) property.floor,
+            if (property.building.isNotEmpty) 'Building ${property.building}',
+          ].join(' · ');
+        } else if (tCtrl.propertyLabel.isNotEmpty) {
+          propertyLabel = tCtrl.propertyLabel;
+        }
+      }
+
+      // Fallback: load property by id for maintenanceBy
+      if (property == null && propertyId.isNotEmpty) {
+        try {
+          property =
+              await Get.find<IPropertyRepository>().getPropertyById(propertyId);
+        } catch (_) {}
+      }
+    } else {
+      // Owner: active society on dashboard
       if (Get.isRegistered<DashboardController>()) {
         societyId = Get.find<DashboardController>().society.value?.id;
       }
@@ -106,6 +115,22 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
       return;
     }
 
+    // ── Routing ─────────────────────────────────────────────
+    // Tenant + maintenance by property owner → owner inbox
+    // Tenant + maintenance by society admin → Pro
+    // Owner complaint → always Pro
+    String assignedTo = 'society_admin';
+    if (_isTenant) {
+      final by = (property?.maintenanceBy ?? '').toLowerCase().trim();
+      if (by == 'property_owner' || by == 'owner') {
+        assignedTo = 'owner';
+      } else {
+        assignedTo = 'society_admin';
+      }
+    } else {
+      assignedTo = 'society_admin';
+    }
+
     setState(() => isLoading = true);
     try {
       final complaint = ComplaintModel(
@@ -120,7 +145,7 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
         description: desc,
         category: selectedCategory,
         status: 'open',
-        assignedTo: 'society_admin',
+        assignedTo: assignedTo,
         createdAt: DateTime.now(),
       );
 
@@ -129,10 +154,12 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
       Get.back();
       AppSnackbar.success(
         'Submitted',
-        'Complaint sent to society admin',
+        assignedTo == 'owner'
+            ? 'Complaint sent to your property owner'
+            : 'Complaint sent to society admin',
       );
-    } catch (_) {
-      AppSnackbar.error('Failed', 'Could not submit complaint');
+    } catch (e) {
+      AppSnackbar.error('Failed', e.toString());
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -182,7 +209,6 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Dark header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
@@ -231,7 +257,7 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
                             const SizedBox(height: 4),
                             Text(
                               _isTenant
-                                  ? 'Filed under the society of your assigned unit'
+                                  ? 'Routed to owner or society admin by unit settings'
                                   : 'Sent to the society admin for your active society',
                               style: AppTextStyles.bodySmall.copyWith(
                                 color: AppColors.textOnDarkMuted,
@@ -245,7 +271,6 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
                 ],
               ),
             ),
-
             Flexible(
               child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(20, 18, 20, 12 + bottom),
@@ -267,8 +292,7 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
                       controller: descriptionCtrl,
                       maxLines: 4,
                       style: AppTextStyles.bodyMedium,
-                      decoration:
-                          _decoration('Describe the issue clearly…'),
+                      decoration: _decoration('Describe the issue clearly…'),
                     ),
                     const SizedBox(height: 16),
                     Text('Category', style: AppTextStyles.labelLarge),
@@ -279,8 +303,7 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
                       children: categories.map((c) {
                         final selected = selectedCategory == c;
                         return GestureDetector(
-                          onTap: () =>
-                              setState(() => selectedCategory = c),
+                          onTap: () => setState(() => selectedCategory = c),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 180),
                             padding: const EdgeInsets.symmetric(
@@ -323,7 +346,7 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.info_outline_rounded,
                             size: 18,
                             color: AppColors.pastelBlueIcon,
@@ -332,8 +355,8 @@ class _SendComplaintSheetState extends State<SendComplaintSheet> {
                           Expanded(
                             child: Text(
                               _isTenant
-                                  ? 'This uses the society of the property your landlord assigned you to. No property selection needed.'
-                                  : 'This will be filed under your selected society and sent to the society admin.',
+                                  ? 'If your unit is owner-managed, the property owner receives this. If society-managed, it goes to the society admin.'
+                                  : 'Your complaint is sent to the society admin. You can track it under My complaints.',
                               style: AppTextStyles.bodySmall.copyWith(
                                 color: AppColors.pastelBlueIcon,
                                 height: 1.35,
