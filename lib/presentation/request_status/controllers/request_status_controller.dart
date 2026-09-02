@@ -23,7 +23,7 @@ class requeststatusController extends GetxController {
 
   final society = Rxn<SocietyModel>();
   final property = Rxn<PropertyModel>();
-  final status = Rx<Joinrequeststatus>(Joinrequeststatus.pending);
+  final status = Rx<Joinrequeststatus>(Joinrequeststatus.approved);
   final submittedAt = Rx<DateTime>(DateTime.now());
   final isLoading = true.obs;
 

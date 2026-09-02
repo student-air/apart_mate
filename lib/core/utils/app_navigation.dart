@@ -31,6 +31,15 @@ class AppNavigation {
   return false; // real check lives on DashboardController
 }
 
+static bool get isEmployee {
+  return currentRole == 'employee';
+}
+
+/// Staff home only (not joined manager on owner dashboard)
+static bool get usesStaffNav {
+  return isEmployee; // managers use owner nav on dashboard
+}
+
   /// Simple home: tenant dashboard or owner dashboard.
   /// Prefer [routeOwner] for owners after login/splash.
     static String get currentRole {
