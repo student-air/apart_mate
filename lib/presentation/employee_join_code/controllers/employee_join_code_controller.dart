@@ -26,7 +26,7 @@ class EmployeeJoinCodeController extends GetxController {
   String get enteredCode =>
       digitCtrls.map((c) => c.text).join().trim().toUpperCase();
 
-   @override
+  @override
   void onInit() {
     super.onInit();
     _auth = Get.find<IAuthRepository>();
@@ -35,32 +35,43 @@ class EmployeeJoinCodeController extends GetxController {
     _redirectIfAlreadyLinked();
   }
 
-    Future<void> _redirectIfAlreadyLinked() async {
+  /// If already manager / pending staff / approved staff, leave this screen.
+  Future<void> _redirectIfAlreadyLinked() async {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    final manager =
-        await _managers.getManagerByUserId(user.id);
-    if (manager != null && manager.status == 'joined') {
-      Get.offAllNamed(AppRoutes.managerDashboard);
-      return;
-    }
+    try {
+      final manager = await _managers.getManagerByUserId(user.id);
+      if (manager != null && manager.status == 'joined') {
+        Get.offAllNamed(AppRoutes.managerDashboard);
+        return;
+      }
 
-    final societyId = await _societies.getSocietyIdForUser(user.id);
-    if (societyId == null) return; // stay on join code
+      final societyId = await _societies.getSocietyIdForUser(user.id);
+      if (societyId == null || societyId.isEmpty) return;
 
-    final info = await _societies.getJoinRequestInfo(
-      userId: user.id,
-      societyId: societyId,
-    );
-    if (info.status == Joinrequeststatus.pending ||
-        info.status == Joinrequeststatus.rejected) {
-      Get.offAllNamed(
-        AppRoutes.requeststatus,
-        arguments: {'societyId': societyId, 'type': 'staff'},
+      final info = await _societies.getJoinRequestInfo(
+        userId: user.id,
+        societyId: societyId,
       );
-    } else if (info.status == Joinrequeststatus.approved) {
-      Get.offAllNamed(AppRoutes.employeeDashboard);
+
+      if (info.status == Joinrequeststatus.pending ||
+          info.status == Joinrequeststatus.rejected) {
+        Get.offAllNamed(
+          AppRoutes.requeststatus,
+          arguments: {
+            'societyId': societyId,
+            'type': 'staff',
+          },
+        );
+        return;
+      }
+
+      if (info.status == Joinrequeststatus.approved) {
+        Get.offAllNamed(AppRoutes.employeeDashboard);
+      }
+    } catch (_) {
+      // Stay on join code if lookup fails
     }
   }
 
@@ -108,7 +119,7 @@ class EmployeeJoinCodeController extends GetxController {
     lookupFailed.value = false;
 
     try {
-      // 1) Manager invite first (owner Add Manager)
+      // 1) Manager invite (owner Add Manager) first
       final manager = await _managers.getManagerByCode(enteredCode);
       if (manager != null) {
         await _managers.markManagerJoined(
@@ -118,7 +129,9 @@ class EmployeeJoinCodeController extends GetxController {
         matchedLabel.value = manager.fullName;
         AppSnackbar.success(
           'Welcome',
-          'You joined as manager for ${manager.propertyLabel}',
+          manager.propertyLabel.isEmpty
+              ? 'You joined as manager'
+              : 'You joined as manager for ${manager.propertyLabel}',
         );
         Get.offAllNamed(AppRoutes.managerDashboard);
         return;
@@ -149,7 +162,10 @@ class EmployeeJoinCodeController extends GetxController {
 
       // 3) Neither
       lookupFailed.value = true;
-      AppSnackbar.error('Invalid code', 'No society or manager invite found');
+      AppSnackbar.error(
+        'Invalid code',
+        'No society or manager invite found',
+      );
     } catch (e) {
       lookupFailed.value = true;
       AppSnackbar.error('Lookup failed', e.toString());
