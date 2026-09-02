@@ -34,34 +34,50 @@ class DashboardView extends GetView<DashboardController> {
       floatingActionButton: AppAddFab(
         onPressed: () => SendComplaintSheet.open(),
       ),
-      bottomNavigationBar: AppBottomNav(
-        items: [
-          NavItemData(
-            icon: Icons.home_rounded,
-            label: 'Home',
-            isActive: true,
-            onTap: AppNavigation.goHome,
-          ),
-          NavItemData(
-            icon: Icons.campaign_rounded,
-            label: 'Updates',
-            isActive: false,
-            onTap: () => Get.toNamed(AppRoutes.updates),
-          ),
-          NavItemData(
-            icon: Icons.groups_rounded,
-            label: 'Members',
-            isActive: false,
-            onTap: () => Get.toNamed(AppRoutes.members),
-          ),
-          NavItemData(
-            icon: Icons.person_rounded,
-            label: 'Profile',
-            isActive: false,
-            onTap: () => Get.toNamed(AppRoutes.profile),
-          ),
-        ],
+     bottomNavigationBar: Obx(() {
+  final isManager = controller.isActingManager.value;
+
+  return AppBottomNav(
+    items: [
+      NavItemData(
+        icon: Icons.home_rounded,
+        label: 'Home',
+        isActive: true,
+        onTap: AppNavigation.goHome,
       ),
+      NavItemData(
+        icon: Icons.campaign_rounded,
+        label: 'Updates',
+        isActive: false,
+        onTap: () => Get.toNamed(AppRoutes.updates),
+      ),
+      // Owner → Members | Manager → Complaints
+      NavItemData(
+        icon: isManager
+            ? Icons.report_problem_rounded
+            : Icons.groups_rounded,
+        label: isManager ? 'Complaints' : 'Members',
+        isActive: false,
+        onTap: () {
+  if (controller.isActingManager.value) {
+    Get.toNamed(AppRoutes.complaint);
+  } else {
+    Get.toNamed(
+      AppRoutes.members,
+      arguments: {'tab': 0},
+    );
+  }
+},
+      ),
+      NavItemData(
+        icon: Icons.person_rounded,
+        label: 'Profile',
+        isActive: false,
+        onTap: () => Get.toNamed(AppRoutes.profile),
+      ),
+    ],
+  );
+}),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const AppLoading();

@@ -23,6 +23,14 @@ class AppNavigation {
     return (auth.currentUser?.role ?? '').toLowerCase() == 'tenant';
   }
 
+  static bool get isManager {
+  // Set while on owner dashboard as manager; or check session flag
+  if (Get.isRegistered<AppSession>()) {
+    // optional: session.isManager if you add it
+  }
+  return false; // real check lives on DashboardController
+}
+
   /// Simple home: tenant dashboard or owner dashboard.
   /// Prefer [routeOwner] for owners after login/splash.
     static String get currentRole {

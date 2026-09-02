@@ -14,6 +14,14 @@ class EmployeeDashboardController extends GetxController {
   late final IAuthRepository _auth;
   late final ISocietyRepository _societyRepo;
 
+  String get roleLabel => 'Staff';
+  String get societyName => society.value?.name ?? '';
+  String get greetingName {
+    final n = userName.value.trim();
+    if (n.isEmpty) return 'Staff';
+    return n.split(' ').first;
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -26,9 +34,7 @@ class EmployeeDashboardController extends GetxController {
     isLoading.value = true;
     try {
       final user = _auth.currentUser;
-      // Use the field your UserModel has: fullName / name / email
-      userName.value =
-          user?.fullName ?? user?.email ?? 'Staff';
+      userName.value = user?.fullName ?? user?.email ?? 'Staff';
 
       if (user != null) {
         final societyId =
@@ -46,8 +52,6 @@ class EmployeeDashboardController extends GetxController {
   Future<void> refresh() => load();
 
   void openProfile() => Get.toNamed(AppRoutes.profile);
-
   void openUpdates() => Get.toNamed(AppRoutes.updates);
-
   void openComplaints() => Get.toNamed(AppRoutes.complaint);
 }

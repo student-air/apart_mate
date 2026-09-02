@@ -40,7 +40,7 @@ class RoleSelectionController extends GetxController {
     ),
     RoleOption(
       value: 'employee',
-      title: 'Employee',
+      title: 'Employee/Manager',
       description: 'I provide my services to this society',
       icon: 'employee',
     ),
