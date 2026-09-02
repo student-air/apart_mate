@@ -42,6 +42,11 @@ abstract class ISocietyRepository {
     required String societyId,
   });
 
+    Future<void> joinAsStaff({
+    required String userId,
+    required String societyId,
+  });
+
   /// Returns the ID of the society this user has an active join
   /// request/membership with, or null if they haven't joined one yet.
   Future<String?> getSocietyIdForUser(String userId);

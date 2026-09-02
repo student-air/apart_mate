@@ -49,6 +49,32 @@ class FirebaseManagerRepository implements IManagerRepository {
     return snap.docs.map((d) => _fromMap(d.id, d.data())).toList();
   }
 
+    @override
+  Future<void> markManagerJoined({
+    required String managerId,
+    required String userId,
+  }) async {
+    await _col.doc(managerId).set(
+      {
+        'status': 'joined',
+        'userId': userId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+    @override
+  Future<ManagerModel?> getManagerByUserId(String userId) async {
+    if (userId.isEmpty) return null;
+    final snap = await _col
+        .where('userId', isEqualTo: userId)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return null;
+    return _fromMap(snap.docs.first.id, snap.docs.first.data());
+  }
+
   @override
   Future<ManagerModel?> getManagerByCode(String code) async {
     final normalized = code.trim().toUpperCase();

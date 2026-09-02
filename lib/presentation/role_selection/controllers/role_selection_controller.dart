@@ -74,16 +74,12 @@ class RoleSelectionController extends GetxController {
 
     // Route by role
     if (role == 'tenant') {
-      Get.offNamed(AppRoutes.tenantJoinCode);
-    } else if (role == 'owner') {
-      Get.offNamed(AppRoutes.joinSociety);
-    } else {
-      // employee — not implemented yet
-      AppSnackbar.info(
-        'Employee role',
-        'Employee role is not yet implemented',
-      );
-    }
+  Get.offNamed(AppRoutes.tenantJoinCode);
+} else if (role == 'owner') {
+  Get.offNamed(AppRoutes.joinSociety);
+} else if (role == 'employee') {
+  Get.offNamed(AppRoutes.employeeJoinCode); // new
+}
   } catch (e) {
     AppSnackbar.error('Something went wrong', 'Please try again');
   } finally {

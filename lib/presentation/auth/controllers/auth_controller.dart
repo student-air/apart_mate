@@ -56,19 +56,21 @@ class AuthController extends GetxController {
     }
 
     final user = _authRepository.currentUser;
-    final role = (user?.role ?? 'owner').toLowerCase();
+      final role = (user?.role ?? 'owner').toLowerCase();
 
-    if (Get.isRegistered<AppSession>()) {
-      Get.find<AppSession>().setRole(role);
-    }
+  if (Get.isRegistered<AppSession>()) {
+    Get.find<AppSession>().setRole(role);
+  }
 
-    AppSnackbar.success('Login successful', 'Welcome back!');
+  AppSnackbar.success('Login successful', 'Welcome back!');
 
-    if (role == 'owner') {
-      await AppNavigation.routeOwner();
-    } else {
-      AppNavigation.goHome();
-    }
+  if (role == 'owner') {
+    await AppNavigation.routeOwner();
+  } else if (role == 'employee') {
+    await AppNavigation.routeEmployee();
+  } else {
+    AppNavigation.goHome();
+  }
   }
 
   bool _isCancelled(Object e) {

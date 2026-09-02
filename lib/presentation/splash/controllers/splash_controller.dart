@@ -49,14 +49,17 @@ class SplashController extends GetxController {
       return;
     }
 
-    final role = user.role.toLowerCase();
+        final role = user.role.toLowerCase();
     if (Get.isRegistered<AppSession>()) {
       Get.find<AppSession>().setRole(role);
     }
 
     if (role == 'owner') {
       await AppNavigation.routeOwner();
+    } else if (role == 'employee') {
+      await AppNavigation.routeEmployee();
     } else {
+      // tenant (and any other)
       AppNavigation.goHome();
     }
   }

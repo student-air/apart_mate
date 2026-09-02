@@ -33,4 +33,9 @@ abstract class AppRoutes {
   static const tenantJoinCode = '/tenant-join-code';
   static const tenantConfirm = '/tenant-confirm';
   static const tenantDashboard = '/tenant-dashboard';
+
+  static const employeeJoinCode = '/employee-join-code';
+static const employeeRequestStatus = '/employee-request-status';
+static const employeeDashboard = '/employee-dashboard';
+static const managerDashboard = '/manager-dashboard';
 }

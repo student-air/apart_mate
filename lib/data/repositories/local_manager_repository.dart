@@ -36,6 +36,8 @@ class LocalManagerRepository implements IManagerRepository {
     }
   }
 
+  
+
   /// Helper used by the controller to create + save
   Future<ManagerModel> createManager({
   required String fullName,
@@ -58,4 +60,16 @@ class LocalManagerRepository implements IManagerRepository {
   await saveManager(manager);
   return manager;
 }
+
+  @override
+  Future<ManagerModel?> getManagerByUserId(String userId) {
+    // TODO: implement getManagerByUserId
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> markManagerJoined({required String managerId, required String userId}) {
+    // TODO: implement markManagerJoined
+    throw UnimplementedError();
+  }
 }

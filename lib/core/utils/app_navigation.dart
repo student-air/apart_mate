@@ -9,6 +9,7 @@ import 'package:apart_mate/core/session/app_session.dart';
 import 'package:apart_mate/domain/repositories/i_auth_repository.dart';
 import 'package:apart_mate/domain/repositories/i_property_repository.dart';
 import 'package:apart_mate/domain/repositories/i_society_repository.dart';
+import 'package:apart_mate/domain/repositories/i_manager_repository.dart';
 import 'package:apart_mate/routes/app_routes.dart';
 
 class AppNavigation {
@@ -82,6 +83,59 @@ class AppNavigation {
     } else {
       Get.offAllNamed(AppRoutes.dashboard);
     }
+  }
+
+    /// Employee / manager entry after splash or login.
+  static Future<void> routeEmployee() async {
+    final auth = Get.find<IAuthRepository>();
+    final user = auth.currentUser;
+    if (user == null) {
+      Get.offAllNamed(AppRoutes.login);
+      return;
+    }
+
+    // 1) Already joined as property manager?
+    final manager = await Get.find<IManagerRepository>()
+        .getManagerByUserId(user.id);
+    if (manager != null && manager.status == 'joined') {
+      Get.offAllNamed(AppRoutes.managerDashboard);
+      return;
+    }
+
+    final societyRepo = Get.find<ISocietyRepository>();
+    final societyId = await societyRepo.getSocietyIdForUser(user.id);
+
+    // 2) Never submitted staff request → join code
+    if (societyId == null || societyId.isEmpty) {
+      Get.offAllNamed(AppRoutes.employeeJoinCode);
+      return;
+    }
+
+    final info = await societyRepo.getJoinRequestInfo(
+      userId: user.id,
+      societyId: societyId,
+    );
+
+    // 3) Pending / rejected → request status only
+    if (info.status == Joinrequeststatus.pending ||
+        info.status == Joinrequeststatus.rejected) {
+      Get.offAllNamed(
+        AppRoutes.requeststatus,
+        arguments: {
+          'societyId': societyId,
+          'type': 'staff',
+        },
+      );
+      return;
+    }
+
+    // 4) Approved staff → employee dashboard
+    if (info.status == Joinrequeststatus.approved) {
+      Get.offAllNamed(AppRoutes.employeeDashboard);
+      return;
+    }
+
+    Get.offAllNamed(AppRoutes.employeeJoinCode);
   }
 
   /// Drawer: switch owner ↔ tenant

@@ -140,6 +140,36 @@ class FirebaseSocietyRepository implements ISocietyRepository {
     return list;
   }
 
+    @override
+  Future<void> joinAsStaff({
+    required String userId,
+    required String societyId,
+  }) async {
+    final existing = await _joinRequests
+        .where('userId', isEqualTo: userId)
+        .where('societyId', isEqualTo: societyId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1)
+        .get();
+
+    if (existing.docs.isNotEmpty) return;
+
+    final user = await _db.collection('users').doc(userId).get();
+    final u = user.data() ?? {};
+
+    await _joinRequests.add({
+      'userId': userId,
+      'societyId': societyId,
+      'role': 'staff', // Pro Requests → Staff tab
+      'status': 'pending',
+      'fullName': u['fullName'] ?? '',
+      'email': u['email'] ?? '',
+      'phone': u['phone'] ?? '',
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+  
   @override
   Future<int> getFloorCountForBuilding(
     String societyId,
