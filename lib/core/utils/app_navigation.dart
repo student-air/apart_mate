@@ -25,12 +25,45 @@ class AppNavigation {
 
   /// Simple home: tenant dashboard or owner dashboard.
   /// Prefer [routeOwner] for owners after login/splash.
-  static void goHome() {
-    if (isTenant) {
-      Get.offAllNamed(AppRoutes.tenantDashboard);
-    } else {
-      Get.offAllNamed(AppRoutes.dashboard);
+    static String get currentRole {
+    if (Get.isRegistered<AppSession>()) {
+      return _session.currentRole.value.toLowerCase();
     }
+    final auth = Get.find<IAuthRepository>();
+    return (auth.currentUser?.role ?? '').toLowerCase();
+  }
+
+  /// Home by role — employee never opens owner dashboard.
+  static Future<void> goHome() async {
+    final auth = Get.find<IAuthRepository>();
+    final user = auth.currentUser;
+    final role = currentRole;
+
+    // Tenant
+    if (role == 'tenant' || isTenant) {
+      Get.offAllNamed(AppRoutes.tenantDashboard);
+      return;
+    }
+
+    // Employee: manager invite → owner powers; else staff home only
+    if (role == 'employee') {
+      if (user != null) {
+        try {
+          final manager =
+              await Get.find<IManagerRepository>().getManagerByUserId(user.id);
+          if (manager != null && manager.status == 'joined') {
+            // Temporary owner (manager)
+            Get.offAllNamed(AppRoutes.dashboard);
+            return;
+          }
+        } catch (_) {}
+      }
+      Get.offAllNamed(AppRoutes.employeeDashboard);
+      return;
+    }
+
+    // Owner (and any other non-tenant)
+    Get.offAllNamed(AppRoutes.dashboard);
   }
 
   /// Owner entry after login / splash / role.
@@ -98,7 +131,7 @@ class AppNavigation {
     final manager = await Get.find<IManagerRepository>()
         .getManagerByUserId(user.id);
     if (manager != null && manager.status == 'joined') {
-      Get.offAllNamed(AppRoutes.managerDashboard);
+      Get.offAllNamed(AppRoutes.dashboard);
       return;
     }
 

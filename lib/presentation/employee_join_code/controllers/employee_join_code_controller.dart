@@ -43,7 +43,7 @@ class EmployeeJoinCodeController extends GetxController {
     try {
       final manager = await _managers.getManagerByUserId(user.id);
       if (manager != null && manager.status == 'joined') {
-        Get.offAllNamed(AppRoutes.managerDashboard);
+        Get.offAllNamed(AppRoutes.dashboard);
         return;
       }
 
@@ -102,7 +102,7 @@ class EmployeeJoinCodeController extends GetxController {
     }
   }
 
-  Future<void> continueWithCode() async {
+    Future<void> continueWithCode() async {
     if (enteredCode.length != codeLength) {
       AppSnackbar.error('Incomplete code', 'Enter the 6-character code');
       return;
@@ -119,32 +119,31 @@ class EmployeeJoinCodeController extends GetxController {
     lookupFailed.value = false;
 
     try {
-      // 1) Manager invite (owner Add Manager) first
+      // ——— 1) Manager invite first ———
       final manager = await _managers.getManagerByCode(enteredCode);
       if (manager != null) {
         await _managers.markManagerJoined(
           managerId: manager.id,
           userId: user.id,
         );
-        matchedLabel.value = manager.fullName;
         AppSnackbar.success(
           'Welcome',
           manager.propertyLabel.isEmpty
               ? 'You joined as manager'
               : 'You joined as manager for ${manager.propertyLabel}',
         );
-        Get.offAllNamed(AppRoutes.managerDashboard);
+        // Temporary owner → same home as owner
+        Get.offAllNamed(AppRoutes.dashboard);
         return;
       }
 
-      // 2) Society join code → staff request for Pro
+      // ——— 2) Society code → staff request ———
       final society = await _societies.getSocietyByJoinCode(enteredCode);
       if (society != null) {
         await _societies.joinAsStaff(
           userId: user.id,
           societyId: society.id,
         );
-        matchedLabel.value = society.name;
         AppSnackbar.success(
           'Request sent',
           'Waiting for society admin approval',
@@ -154,13 +153,13 @@ class EmployeeJoinCodeController extends GetxController {
           arguments: {
             'societyId': society.id,
             'societyName': society.name,
-            'type': 'staff',
+            'type': 'staff', // so continue goes to employee dashboard
           },
         );
         return;
       }
 
-      // 3) Neither
+      // ——— 3) Invalid ———
       lookupFailed.value = true;
       AppSnackbar.error(
         'Invalid code',
@@ -173,7 +172,7 @@ class EmployeeJoinCodeController extends GetxController {
       isContinuing.value = false;
     }
   }
-
+  
   void goBack() => Get.back();
 
   @override

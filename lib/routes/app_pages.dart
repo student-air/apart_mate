@@ -44,10 +44,10 @@ import 'package:apart_mate/presentation/complaint/bindings/complaint_binding.dar
 import 'package:apart_mate/presentation/complaint/views/complaint_view.dart';
 import 'package:apart_mate/presentation/employee_join_code/bindings/employee_join_code_binding.dart';
 import 'package:apart_mate/presentation/employee_join_code/views/employee_join_code_view.dart';
-// import 'package:apart_mate/presentation/employee_dashboard/bindings/employee_dashboard_binding.dart';
-// import 'package:apart_mate/presentation/employee_dashboard/views/employee_dashboard_view.dart';
-// import 'package:apart_mate/presentation/manager_dashboard/bindings/manager_dashboard_binding.dart';
-// import 'package:apart_mate/presentation/manager_dashboard/views/manager_dashboard_view.dart';
+import 'package:apart_mate/presentation/employee_dashboard/bindings/employee_dashboard_binding.dart';
+import 'package:apart_mate/presentation/employee_dashboard/views/employee_dashboard_view.dart';
+import 'package:apart_mate/presentation/manager_dashboard/bindings/manager_dashboard_binding.dart';
+import 'package:apart_mate/presentation/manager_dashboard/views/manager_dashboard_view.dart';
 
 
 class AppPages {
@@ -170,6 +170,16 @@ class AppPages {
   name: AppRoutes.employeeJoinCode,
   page: () => const EmployeeJoinCodeView(),
   binding: EmployeeJoinCodeBinding(),
+),
+GetPage(
+  name: AppRoutes.employeeDashboard,
+  page: () => const EmployeeDashboardView(),
+  binding: EmployeeDashboardBinding(),
+),
+GetPage(
+  name: AppRoutes.managerDashboard,
+  page: () => const ManagerDashboardView(),
+  binding: ManagerDashboardBinding(),
 ),
 // GetPage(
 //   name: AppRoutes.employeeDashboard,
